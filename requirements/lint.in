@@ -1,0 +1,7 @@
+black
+detect-secrets
+flake8
+isort
+tomli
+exceptiongroup
+typing-extensions
