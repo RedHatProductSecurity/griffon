@@ -1,0 +1,6 @@
+-r base.txt
+-r lint.txt
+-r test.txt
+ipdb
+ipython
+pip-tools

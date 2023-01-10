@@ -1,0 +1,8 @@
+-r base.txt
+mypy
+lxml
+pytest
+pytest-cov
+tomli
+exceptiongroup
+types-requests
