@@ -248,7 +248,6 @@ class products_containing_specific_component_query:
         }
 
 
-
 class dep_us7_query:
     """list active product_streams"""
 
