@@ -248,6 +248,36 @@ class products_containing_specific_component_query:
         }
 
 
+
+class products_containing_component_query:
+    """What products contain a component?"""
+
+    name = "products_containing_component_query"
+    description = "What products contain a component?"
+
+    def __init__(self) -> None:
+        self.corgi_session = CorgiService.create_session()
+
+    def execute(self, ctx) -> dict:
+        component_name = ctx["component_name"]
+        components = self.corgi_session.components.retrieve_list(
+            name=component_name,
+            view="product",
+        )
+        results = []
+        for c in components.results:
+            results.append(
+                {
+                    "link": c.link,
+                    "ofuri": c["ofuri"],
+                    "name": c.name,
+                    "component_link": c["component_link"],
+                    "component_purl": c["component_purl"],
+                }
+            )
+        return results
+
+
 class dep_us7_query:
     """list active product_streams"""
 

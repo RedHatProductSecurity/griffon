@@ -145,20 +145,25 @@ def components_in_product_stream_query(ctx, ofuri, namespace):
     ctx.invoke(list_components, ofuri=ofuri)
 
 
-@core_grp.command(
-    name="products_containing_specific_component",
-    help="List products of a specific component.",
+@queries_grp.command(
+    name="get-product-contain-component",
+    help="List products containing component.",
 )
+@click.option("--name", "component_name")
 @click.option("--purl")
 @click.pass_context
-def products_containing_specific_component_query(ctx, purl):
-    """List components of a specific product version."""
-    if not purl:
+def get_product_contain_component(ctx, component_name, purl):
+    """List components of a product version."""
+    if not purl and not component_name:
         click.echo(ctx.get_help())
         exit(0)
     with console.status("griffoning...", spinner="line"):
-        q = core_queries.products_containing_specific_component_query()
-        cprint(q.execute({"purl": purl}))
+        if component_name:
+            q = core_queries.products_containing_component_query()
+            cprint(q.execute({"component_name": component_name}))
+        if purl:
+            q = core_queries.products_containing_specific_component_query()
+            cprint(q.execute({"purl": purl}))
 
 
 @queries_grp.command(

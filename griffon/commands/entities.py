@@ -36,41 +36,13 @@ def flaws(ctx):
 @click.option(
     "--state",
     "flaw_state",
-    type=click.Choice(
-        [
-            "ASSIGNED",
-            "CLOSED",
-            "MODIFIED",
-            "NEW",
-            "ON_DEV",
-            "ON_QA",
-            "POST",
-            "RELEASE_PENDING",
-            "VERIFIED",
-        ]
-    ),
+    type=click.Choice(OSIDBService.get_flaw_states()),
 )
 @click.option(
     "--resolution",
-    type=click.Choice(
-        [
-            "CANTFIX",
-            "CURRENTRELEASE",
-            "DEFERRED",
-            "DUPLICATE",
-            "EOL",
-            "ERRATA",
-            "INSUFFICIENT_DATA",
-            "NEXTRELEASE",
-            "NOTABUG",
-            "RAWHIDE",
-            "UPSTREAM",
-            "WONTFIX",
-            "WORKSFORME",
-        ]
-    ),
+    type=click.Choice(OSIDBService.get_flaw_resolutions()),
 )
-@click.option("--impact", type=click.Choice(["CRITICAL", "IMPORTANT", "MODERATE", "LOW"]))
+@click.option("--impact", type=click.Choice(OSIDBService.get_flaw_impacts()))
 @click.option("--embargoed", "is_embargoed", is_flag=True)
 @click.option("--major-incident", "is_major_incident", is_flag=True)
 @click.pass_context
@@ -119,12 +91,12 @@ def affects(ctx):
 @affects.command(name="list")
 @click.option("--product_version", help="ps module")
 @click.option("--component_name", help="ps component")
-@click.option("--affectedness", type=click.Choice(["NEW", "AFFECTED", "NOTAFFECTED"]))
+@click.option("--affectedness", type=click.Choice(OSIDBService.get_affect_affectedness()))
 @click.option(
     "--resolution",
-    type=click.Choice(["DEFER", "DELEGATED", "FIX", "OOSS", "WONTFIX", "WONTREPORT"]),
+    type=click.Choice(OSIDBService.get_affect_resolution()),
 )
-@click.option("--impact", type=click.Choice(["CRITICAL", "IMPORTANT", "MODERATE", "LOW"]))
+@click.option("--impact", type=click.Choice(OSIDBService.get_affect_impact()))
 @click.pass_context
 def list_affects(ctx, product_version, component_name, affectedness, resolution, impact):
     if (
@@ -220,21 +192,7 @@ def components(ctx):
 )
 @click.option(
     "--arch",
-    type=click.Choice(
-        [
-            "src",
-            "noarch",
-            "i386",
-            "ia64",
-            "s390",
-            "x86_64",
-            "s390x",
-            "ppc",
-            "ppc64",
-            "aarch64",
-            "ppc64le",
-        ]
-    ),
+    type=click.Choice(CorgiService.get_component_arches()),
 )
 @click.option("--view", default="summary")
 @click.pass_context
@@ -292,7 +250,7 @@ def list_components(
         #       service binding itself rather then here
         logger.debug("starting parallel http requests")
         component_cnt = session.components.retrieve_list(**conditions).count
-        if component_cnt < 30000:
+        if component_cnt < 50000:
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 futures = []
                 components = list()
@@ -335,7 +293,7 @@ def get_component(ctx, component_uuid, purl, nvr):
         return cprint(data, ctx=ctx)
 
 
-@components.command(name="get_manifest")
+@components.command(name="get-manifest")
 @click.option("--uuid", "component_uuid")
 @click.option("--purl")
 @click.pass_context
@@ -401,7 +359,7 @@ def get_product_stream(ctx, inactive, ofuri, product_stream_name):
         return cprint(data, ctx=ctx)
 
 
-@product_streams.command(name="get_latest_components")
+@product_streams.command(name="get-latest-components")
 @click.option("--namespace", type=click.Choice(CorgiService.get_component_namespaces()), help="")
 @click.option("--ofuri", "ofuri")
 @click.option("--name", "product_stream_name")
@@ -415,7 +373,7 @@ def get_product_stream_components(ctx, namespace, ofuri, product_stream_name, vi
     ctx.invoke(list_components, ofuri=ofuri)
 
 
-@product_streams.command(name="get_manifest")
+@product_streams.command(name="get-manifest")
 @click.option("--ofuri", "ofuri")
 @click.option("--name", "product_stream_name")
 @click.pass_context
