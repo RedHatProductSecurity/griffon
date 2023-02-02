@@ -38,10 +38,21 @@ class CorgiService:
         return corgi_bindings.bindings.python_client.models.namespace_enum.NamespaceEnum
 
     @staticmethod
-    def get_component_arch():
+    def get_component_arches():
         """get component arch enum"""
-        pass
-        # return corgi_bindings.bindings.python_client.models.arch_enum.ArchEnum
+        return [
+            "src",
+            "noarch",
+            "i386",
+            "ia64",
+            "s390",
+            "x86_64",
+            "s390x",
+            "ppc",
+            "ppc64",
+            "aarch64",
+            "ppc64le",
+        ]
 
 
 class OSIDBService:
@@ -53,3 +64,33 @@ class OSIDBService:
     def create_session():
         """init osidb session"""
         return osidb_bindings.new_session(osidb_server_uri=OSIDB_API_URL)
+
+    @staticmethod
+    def get_flaw_states():
+        """get flaw states enum"""
+        return osidb_bindings.bindings.python_client.models.FlawClassificationState
+
+    @staticmethod
+    def get_flaw_resolutions():
+        """get flaw resolution enum"""
+        return osidb_bindings.bindings.python_client.models.FlawResolutionEnum
+
+    @staticmethod
+    def get_flaw_impacts():
+        """get flaw impacts enum"""
+        return osidb_bindings.bindings.python_client.models.ImpactEnum
+
+    @staticmethod
+    def get_affect_affectedness():
+        """get affect affectedness enum"""
+        return osidb_bindings.bindings.python_client.models.AffectednessEnum
+
+    @staticmethod
+    def get_affect_resolution():
+        """get affect affectedness enum"""
+        return osidb_bindings.bindings.python_client.models.AffectResolutionEnum
+
+    @staticmethod
+    def get_affect_impact():
+        """get affect impact enum"""
+        return osidb_bindings.bindings.python_client.models.ImpactEnum
