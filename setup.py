@@ -28,7 +28,7 @@ setup(
         "griffon",
         "griffon/commands",
         "griffon/commands/plugins",
-        "griffon/service_layer",
+        "griffon/services",
         "griffon/autocomplete",
     ],
     install_requires=[

@@ -15,7 +15,7 @@ and affected products and components.
 The CLI that integrates with security related data services will provide:
 
 * Set of core entity operations on flaws, affects, components, products, etc... for 
-searching, listing and retrieving entities.
+searching, listing and retrieving entities (where appropriate and CRUD operations).
 * Set of read only query operations answering 'canned' product security related queries
 * Set of process operations (mutation) automating away manual 'drudgery'
 * Dynamic, extensible set of custom plugin operations for interacting with external services 

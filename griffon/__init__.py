@@ -1,9 +1,12 @@
 import logging
 import os
+from functools import partial, wraps
 
 import corgi_bindings
 import osidb_bindings
 from rich.logging import RichHandler
+
+from griffon.output import console
 
 __version__ = "0.1.0"
 
@@ -94,3 +97,18 @@ class OSIDBService:
     def get_affect_impact():
         """get affect impact enum"""
         return osidb_bindings.bindings.python_client.models.ImpactEnum
+
+
+def progress_bar(
+    func=None,
+):
+    """progress bar decorator"""
+    if not func:
+        return partial(progress_bar)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        with console.status("griffoning...", spinner="line"):
+            func(*args, **kwargs)
+
+    return wrapper

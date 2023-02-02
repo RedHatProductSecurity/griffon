@@ -1,5 +1,8 @@
 import logging
 
+import requests
+
+from griffon import OSIDB_API_URL
 from griffon.autocomplete import product_streams, product_versions
 
 logger = logging.getLogger("rich")
@@ -23,8 +26,7 @@ def get_product_stream_names(ctx, param, incomplete):
 
 def get_cve_ids(ctx, param, incomplete):
     """TODO - the following is not ideal for autocomplete lookup - need to investigate"""
-    # response = requests.get(
-    #     f"{OSIDB_API_URL}/osidb/api/v1/flaws?limit=5&search={incomplete}&include_fields=cve_id,title"  # noqa
-    # )
-    # return [k["cve_id"] for k in response.json()["results"]]
-    pass
+    response = requests.get(
+        f"{OSIDB_API_URL}/osidb/api/v1/flaws?limit=10&re_cve_id={incomplete}&include_fields=cve_id"  # noqa
+    )
+    return [k["cve_id"] for k in response.json()["results"]]

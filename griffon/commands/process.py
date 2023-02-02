@@ -6,9 +6,10 @@ import logging
 import click
 from requests import HTTPError
 
+from griffon import progress_bar
 from griffon.exceptions import catch_exception
-from griffon.output import console, cprint
-from griffon.service_layer import Process, core_process
+from griffon.output import cprint
+from griffon.services import Process, core_process
 
 logger = logging.getLogger("rich")
 
@@ -25,12 +26,12 @@ def process_grp(ctx):
 @click.option("--cve_id")
 @catch_exception(handle=(HTTPError))
 @click.pass_context
+@progress_bar
 def generate_affects_for_component_process(ctx, purl, cve_id):
     """List cves of a specific component."""
     if not purl and not cve_id:
         click.echo(ctx.get_help())
         exit(0)
-    with console.status("griffoning...", spinner="line"):
-        q = core_process.generate_affects_for_specific_component_process()
-        assert isinstance(q, Process)
-        cprint(q.execute({"purl": purl}))
+    q = core_process.generate_affects_for_specific_component_process()
+    assert isinstance(q, Process)
+    cprint(q.execute({"purl": purl}))

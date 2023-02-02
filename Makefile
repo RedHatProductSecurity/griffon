@@ -28,7 +28,7 @@ sync-dev-deps:
 shell:
 	ipython
 
-venv:
+setup-venv:
 	virtualenv --python=/usr/bin/python3.9 venv
 
 docs:
@@ -39,3 +39,8 @@ clean:
 	rm -Rf man
 	rm -Rf griffon.egg-info
 	rm -Rf build
+
+update:
+	git fetch --all
+	git rebase origin/main
+	pip install .

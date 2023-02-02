@@ -3,7 +3,7 @@ import inspect
 from click.testing import CliRunner
 
 from griffon.cli import cli
-from griffon.service_layer import Query, core_queries
+from griffon.services import Query, core_queries
 
 
 def test_queries():

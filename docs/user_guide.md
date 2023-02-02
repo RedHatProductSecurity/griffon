@@ -1,5 +1,12 @@
 # User documentation
 
+## Usage
+
+Learn how to use griffon cli by using its built in autocompletion 
+and help information provided at the command line.
+
+Otherwise, please read the (under development) [tutorial](tutorial.md). 
+
 ## Installation
 
 ### Install software
@@ -13,21 +20,31 @@ You will need the following dependencies installed
 * krb5-workstation (provides access to OSIDB)
 * virtualenv (if you do not want to install python deps into your system)
 
-Download repo, install requirements and install griffon with pip
-
+Clone git repo
 ```commandline
-git clone https://github.com/RedHatProductSecurity/griffon.git
-cd griffon
-pip install -r requirements/base.txt
-pip install .
+> git clone https://github.com/RedHatProductSecurity/griffon.git
+> cd griffon
 ```
-or directly install it from github repo:
+Setup virtualenv (if you do not want griffon installed in your system)
 ```commandline
-pip install -e git+https://github.com/RedHatProductSecurity/griffon.git#egg=griffon
+> python3.9 -m venv venv
+> source venv/bin/activate
 ```
-or download zip of repo and expand.
+Install python requirements and the griffon app
+```commandline
+> pip install -r requirements/base.txt
+> pip install .
+```
+As we are under heavy development ... to pick up latest changes (after initial
+installation)
+```commandline
+> git fetch --all
+> git rebase origin/main
+> pip install .
+```
 
-Eventually we will distribute via PyPI (**NOT SUPPORTED YET**)
+**Note**- Eventually we will distribute via PyPI (**NOT SUPPORTED YET**) where 
+the installation process should just be:
 ```commandline
 pip install griffon
 ```
@@ -35,13 +52,19 @@ pip install griffon
 ### Set env vars
 
 Set the following env vars
+
+Ensure REQUESTS_CA_BUNDLE is set and accessible in your environment
+```commandline
+export REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt
+```
+and set service urls.
 ```commandline
 export OSIDB_API_URL=https://<INSERT OSIDB API URL>
 export CORGI_API_URL=https://<INSERT COMPONENT REGISTRY API URL>
 ```
-And ensure your system is properly authorised to access these systems.
+And you must ensure your system is properly authorised to access these systems.
 
-**hint**- typically that means run > kinit
+**hint**- usually that means run > kinit
 
 ### Enable autocompletion
 Enable shell autocompletion by following these instructions for your specific shell.
@@ -62,33 +85,12 @@ ensuring to source (ex. source ~/.zshrc) to pickup the change.
 
 https://click.palletsprojects.com/en/8.1.x/shell-completion/
 
-## Usage
-
-......
-
-
-
-
-Some more examples
-
-```commandline
-griffon entities components list --re_name ansible --version 1.1.1
-griffon entities components get --purl "pkg:rpm/redhat/curl@7.29.0-19.el7?arch=aarch64" 
-griffon entities product-streams get_latest_components --ofuri o:redhat:rhel:9.1.0.z
-griffon queries component_cves --purl "pkg:rpm/redhat/systemd@239-45.el8_4.11?arch=aarch64" --affectedness AFFECTED
-griffon entities components list --name curl | jq '.results[].purl'
-
-griffon queries products_containing_specific_component --purl "pkg:rpm/redhat/systemd@239-45.el8_4.11?arch=aarch64" | jq ".product_streams"
-
-```
-
-
 ## Writing custom plugins
 
 Griffon can be extended with custom plugins - handy for integrating with 
 3rd party services.
 
-To create plugins emulate provided [examples](griffon/commands/plugins)
+To create plugins emulate provided [examples](https://github.com/RedHatProductSecurity/griffon/tree/main/griffon/commands/plugins)
 
 The **griffon/commands/plugins** directory (in your python site packages) will dynamically
 register custom plugins.
