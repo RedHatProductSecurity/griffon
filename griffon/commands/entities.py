@@ -323,7 +323,7 @@ def product_streams(ctx):
 
 @product_streams.command(name="list")
 @click.option("--inactive", is_flag=True, default=False, help="Show inactive project streams")
-@click.option("--re-name", "re_name")
+@click.option("--re-name", "re_name", type=click.STRING, shell_complete=get_product_stream_names)
 @click.pass_context
 def list_product_streams(ctx, inactive, re_name):
     """Retrieve a list of product_streams."""
@@ -361,8 +361,10 @@ def get_product_stream(ctx, inactive, ofuri, product_stream_name):
 
 @product_streams.command(name="get-latest-components")
 @click.option("--namespace", type=click.Choice(CorgiService.get_component_namespaces()), help="")
-@click.option("--ofuri", "ofuri")
-@click.option("--name", "product_stream_name")
+@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
+@click.option(
+    "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
+)
 @click.option("--view", default="summary")
 @click.pass_context
 def get_product_stream_components(ctx, namespace, ofuri, product_stream_name, view):
@@ -374,8 +376,10 @@ def get_product_stream_components(ctx, namespace, ofuri, product_stream_name, vi
 
 
 @product_streams.command(name="get-manifest")
-@click.option("--ofuri", "ofuri")
-@click.option("--name", "product_stream_name")
+@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
+@click.option(
+    "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
+)
 @click.pass_context
 def get_product_stream_manifest(ctx, ofuri, product_stream_name):
     """Retrieve a product_stream manifest."""

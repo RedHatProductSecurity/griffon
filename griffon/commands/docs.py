@@ -58,9 +58,3 @@ def corgi_tutorial():
     click.launch(
         "https://github.com/RedHatProductSecurity/component-registry/blob/main/docs/user_guide.md"
     )
-
-
-@docs_grp.command()
-def corgi_bindings():
-    pass
-    # click.launch("test")

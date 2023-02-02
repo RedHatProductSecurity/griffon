@@ -248,6 +248,7 @@ class products_containing_specific_component_query:
         }
 
 
+
 class products_containing_component_query:
     """What products contain a component?"""
 
