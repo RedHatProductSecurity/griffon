@@ -105,7 +105,6 @@ class product_stream_summary:
 
     name = "product_stream_summary"
     description = "retrieve product_stream summary"
-    params = ["name", "ofuri"]
 
     def __init__(self) -> None:
         self.corgi_session = CorgiService.create_session()

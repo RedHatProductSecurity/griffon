@@ -126,7 +126,6 @@ class components_affected_by_specific_cve_query:
 class cves_for_specific_product_query:
     name = "cves-for-product"
     description = "What cves affect a specific product ?"
-    params = []
 
     def __init__(self) -> None:
         self.corgi_session = CorgiService.create_session()

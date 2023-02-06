@@ -63,7 +63,13 @@ def get_product_contain_component(ctx, component_name, purl):
     help="Get Product Stream summary.",
 )
 @click.option("--inactive", is_flag=True, default=False, help="Show inactive project streams")
-@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
+@click.option(
+    "--ofuri",
+    "ofuri",
+    type=click.STRING,
+    shell_complete=get_product_stream_ofuris,
+    help="UNDER DEVELOPMENT",
+)
 @click.option(
     "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
 )
@@ -123,6 +129,32 @@ def get_product_latest_components_query(ctx, ofuri, product_stream_name):
         ofuri = q.execute(product_stream_name, None)["ofuri"]
         cond["ofuri"] = ofuri
     ctx.invoke(list_components, **cond)
+
+
+@queries_grp.command(
+    name="get-all-product-components",
+    help="Get Product Stream all components (UNDER DEV).",
+)
+@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
+@click.option(
+    "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
+)
+@click.pass_context
+def get_product_all_components_query(ctx, ofuri, product_stream_name):
+    """List components of a specific product version."""
+    # if not ofuri and not product_stream_name:
+    #     click.echo(ctx.get_help())
+    #     exit(0)
+    # cond = {}
+    # if ofuri:
+    #     cond["ofuri"] = ofuri
+    # if product_stream_name:
+    #     # lookup ofuri
+    #     q = core_queries.product_stream_summary()
+    #     ofuri = q.execute(product_stream_name, None)["ofuri"]
+    #     cond["product_stream"] = ofuri
+    # ctx.invoke(list_components, **cond)
+    pass
 
 
 # TODO - depends on future shipped filter
