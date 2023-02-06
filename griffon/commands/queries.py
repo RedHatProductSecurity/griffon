@@ -59,6 +59,27 @@ def get_product_contain_component(ctx, component_name, purl):
 
 
 @queries_grp.command(
+    name="get-components-contain-component",
+    help="List components contain component.",
+)
+@click.option("--name", "component_name")
+@click.option("--purl")
+@click.pass_context
+@progress_bar
+def get_component_contain_component(ctx, component_name, purl):
+    """List components that contain component."""
+    if not purl and not component_name:
+        click.echo(ctx.get_help())
+        exit(0)
+    if component_name:
+        q = core_queries.components_containing_component_query()
+        cprint(q.execute({"component_name": component_name}))
+    if purl:
+        q = core_queries.components_containing_specific_component_query()
+        cprint(q.execute({"purl": purl}))
+
+
+@queries_grp.command(
     name="get-product",
     help="Get Product Stream summary.",
 )

@@ -70,6 +70,29 @@ class products_containing_specific_component_query:
         }
 
 
+class components_containing_specific_component_query:
+    """What components contain a specific component?"""
+
+    name = "components_containing_specific_component_query"
+    description = "What components contain a specific component?"
+    params = ["purl"]
+
+    def __init__(self) -> None:
+        self.corgi_session = CorgiService.create_session()
+
+    def execute(self, ctx) -> dict:
+        purl = ctx["purl"]
+        c = self.corgi_session.components.retrieve_list(
+            purl=purl,
+        )
+        return {
+            "link": c["link"],
+            "name": c["name"],
+            "purl": c["purl"],
+            "sources": c["sources"],
+        }
+
+
 class products_containing_component_query:
     """What products contain a component?"""
 
@@ -95,6 +118,38 @@ class products_containing_component_query:
                     "name": c.name,
                     "component_link": c["component_link"],
                     "component_purl": c["component_purl"],
+                }
+            )
+        return results
+
+
+class components_containing_component_query:
+    """What components contain a component?"""
+
+    name = "components_containing_component_query"
+    description = "What components contain a component?"
+    params = ["name"]
+
+    def __init__(self) -> None:
+        self.corgi_session = CorgiService.create_session()
+
+    def execute(self, ctx) -> dict:
+        component_name = ctx["component_name"]
+        # TODO: narrow down with includes_fields when it emerges in corgi bindings
+        components = self.corgi_session.components.retrieve_list(
+            name=component_name, namespace="REDHAT"
+        )
+        results = []
+        for c in components.results:
+            sources = []
+            for source in c.sources:
+                sources.append({"link": source["link"], "purl": source["purl"]})
+            results.append(
+                {
+                    "link": c.link,
+                    "name": c.name,
+                    "purl": c.purl,
+                    "sources": sources,
                 }
             )
         return results
