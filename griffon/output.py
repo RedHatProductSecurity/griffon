@@ -1,14 +1,29 @@
+import enum
 import json
+import logging
 
 import click
 from rich.console import Console
 
 console = Console()
 
+logger = logging.getLogger("rich")
 
-def cprint(data, dest="console", format="json", filename=None, ctx=None, show_count=True):
-    """handle format and output"""
-    if type(data) == list:
+
+class OUTPUT_FORMAT(enum.Enum):
+    JSON = "json"
+    TEXT = "text"
+    TABLE = "table"
+
+
+class DEST(enum.Enum):
+    CONSOLE = "console"
+    FILE = "file"
+
+
+def raw_json_transform(data, show_count: bool):
+    """normalise all data to raw json"""
+    if type(data) is list:
         results = []
         for d in data:
             if type(d) is dict:
@@ -17,16 +32,33 @@ def cprint(data, dest="console", format="json", filename=None, ctx=None, show_co
                 results.append(d.to_dict())
         output = {
             "results": results,
-            "count": len(data),
         }
         if show_count:
-            output["count"] = len(data)
-        console.print_json(json.dumps(output))
+            output["count"] = len(results)
     else:
-        try:
-            console.print_json(json.dumps(data))
-        except Exception as exc:  # noqa
-            console.print_json(json.dumps(data.to_dict()))
+        if type(data) is dict:
+            output = data
+        else:
+            output = data.to_dict()
+    return json.dumps(output)
+
+
+def cprint(
+    data,
+    dest=DEST.CONSOLE,
+    format: OUTPUT_FORMAT = OUTPUT_FORMAT.JSON,
+    filename: str = None,
+    ctx=None,
+    show_count: bool = True,
+):
+    """handle format and output"""
+    output = raw_json_transform(data, show_count)
+    if format is OUTPUT_FORMAT.JSON:
+        if dest is DEST.CONSOLE:
+            console.print_json(output)
+    else:
+        if dest is DEST.CONSOLE:
+            console.print_json(output)
         if ctx:
             if "link" in data and "open_browser" in ctx.obj:
                 if ctx.obj["open_browser"]:

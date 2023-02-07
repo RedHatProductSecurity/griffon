@@ -1,17 +1,20 @@
 import inspect
 
+import pytest
 from click.testing import CliRunner
 
 from griffon.cli import cli
 from griffon.services import Process, core_process
 
 
+@pytest.mark.unit
 def test_processes():
     runner = CliRunner()
-    result = runner.invoke(cli, ["process"])
+    result = runner.invoke(cli, ["service", "process"])
     assert result.exit_code == 0
 
 
+@pytest.mark.integration
 def test_process_defs():
     for name, obj in inspect.getmembers(core_process):
         if inspect.isclass(obj) and inspect.ismodule(obj):
