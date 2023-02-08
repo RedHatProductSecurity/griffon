@@ -1,6 +1,9 @@
+import pytest
 from click.testing import CliRunner
 
 from griffon.cli import cli
+
+pytestmark = pytest.mark.unit
 
 # @pytest.skip
 # def test_cli_verbose():

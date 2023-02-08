@@ -8,6 +8,9 @@ test-all:
 	$(tox)
 
 test:
+	black .
+	$(tox) -e isort
+	$(tox) -e flake8
 	$(tox) -e griffon
 
 compile-deps:

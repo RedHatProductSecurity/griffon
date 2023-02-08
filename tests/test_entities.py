@@ -1,6 +1,9 @@
+import pytest
 from click.testing import CliRunner
 
 from griffon.cli import cli
+
+pytestmark = pytest.mark.unit
 
 
 def test_cli_flaws():

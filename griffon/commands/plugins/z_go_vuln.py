@@ -28,4 +28,4 @@ def get(ctx, go_id):
         exit(0)
 
     res = requests.get(f"{api_url}/{go_id}.json")
-    cprint(res.json())
+    cprint(res.json(), ctx=ctx)

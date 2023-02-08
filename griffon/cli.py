@@ -15,6 +15,7 @@ from .commands.manage import manage_grp
 from .commands.plugin_commands import plugin_commands
 from .commands.process import process_grp
 from .commands.queries import queries_grp
+from .output import OUTPUT_FORMAT
 
 logger = logging.getLogger("rich")
 
@@ -84,8 +85,14 @@ docs.add_command(docs_grp)
     sources=(configure, entities, services_grp, manage, docs, plugin_commands),
 )
 @click.option("--debug", is_flag=True)
+@click.option(
+    "--format",
+    type=click.Choice([el.value for el in OUTPUT_FORMAT]),
+    default="json",
+    help=f"{[el.value for el in OUTPUT_FORMAT]}",
+)
 @click.pass_context
-def cli(ctx, debug):
+def cli(ctx, debug, format):
     """Red Hat product security CLI"""
 
     if ctx.invoked_subcommand is None:
@@ -96,6 +103,7 @@ def cli(ctx, debug):
 
     ctx.ensure_object(dict)
     ctx.obj["DEBUG"] = debug
+    ctx.obj["FORMAT"] = format
 
 
 cli.help = "Red Hat Product Security CLI"
