@@ -27,10 +27,11 @@ def osidb(ctx):
 
 
 @osidb.command(name="status")
-def osidb_status():
+@click.pass_context
+def osidb_status(ctx):
     session = OSIDBService.create_session()
     data = session.status()
-    return cprint(data)
+    return cprint(data, ctx=ctx)
 
 
 @osidb.command(name="api_doc")
@@ -47,10 +48,11 @@ def corgi(ctx):
 
 
 @corgi.command(name="status")
-def corgi_status():
+@click.pass_context
+def corgi_status(ctx):
     session = CorgiService.create_session()
     data = session.status()
-    return cprint(data.additional_properties)
+    return cprint(data.additional_properties, ctx=ctx)
 
 
 @corgi.command(name="data")

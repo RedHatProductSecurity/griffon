@@ -34,4 +34,4 @@ def generate_affects_for_component_process(ctx, purl, cve_id):
         exit(0)
     q = core_process.generate_affects_for_specific_component_process()
     assert isinstance(q, Process)
-    cprint(q.execute({"purl": purl}))
+    cprint(q.execute({"purl": purl}), ctx=ctx)

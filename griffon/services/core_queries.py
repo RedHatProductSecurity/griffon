@@ -61,13 +61,7 @@ class products_containing_specific_component_query:
         c = self.corgi_session.components.retrieve_list(
             purl=purl,
         )
-        return {
-            "products": c["products"],
-            "product_versions": c["product_versions"],
-            "product_streams": c["product_streams"],
-            "product_variants": c["product_variants"],
-            "channels": c["channels"],
-        }
+        return c["product_streams"]
 
 
 class components_containing_specific_component_query:

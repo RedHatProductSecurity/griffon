@@ -52,10 +52,10 @@ def get_product_contain_component(ctx, component_name, purl):
         exit(0)
     if component_name:
         q = core_queries.products_containing_component_query()
-        cprint(q.execute({"component_name": component_name}))
+        cprint(q.execute({"component_name": component_name}), ctx=ctx)
     if purl:
         q = core_queries.products_containing_specific_component_query()
-        cprint(q.execute({"purl": purl}))
+        cprint(q.execute({"purl": purl}), ctx=ctx)
 
 
 @queries_grp.command(
@@ -73,10 +73,10 @@ def get_component_contain_component(ctx, component_name, purl):
         exit(0)
     if component_name:
         q = core_queries.components_containing_component_query()
-        cprint(q.execute({"component_name": component_name}))
+        cprint(q.execute({"component_name": component_name}), ctx=ctx)
     if purl:
         q = core_queries.components_containing_specific_component_query()
-        cprint(q.execute({"purl": purl}))
+        cprint(q.execute({"purl": purl}), ctx=ctx)
 
 
 @queries_grp.command(
@@ -102,7 +102,7 @@ def get_product_query(ctx, inactive, ofuri, product_stream_name):
         click.echo(ctx.get_help())
         exit(0)
     q = core_queries.product_stream_summary()
-    cprint(q.execute(product_stream_name, ofuri))
+    cprint(q.execute(product_stream_name, ofuri), ctx=ctx)
 
 
 @queries_grp.command(
@@ -240,7 +240,7 @@ def cves_for_specific_component_query(ctx, purl, affectedness):
         exit(0)
     q = exp.cves_for_specific_component_query()
     assert isinstance(q, Query)
-    cprint(q.execute({"purl": purl, "affectedness": affectedness}))
+    cprint(q.execute({"purl": purl, "affectedness": affectedness}), ctx=ctx)
 
 
 @core_grp.command(
@@ -257,7 +257,7 @@ def components_affected_by_specific_cve_query(ctx, cve_id):
         exit(0)
     q = exp.components_affected_by_specific_cve_query()
     assert isinstance(q, Query)
-    cprint(q.execute({"cve_id": cve_id}))
+    cprint(q.execute({"cve_id": cve_id}), ctx=ctx)
 
 
 @core_grp.command(
@@ -302,7 +302,8 @@ def cves_for_specific_product_query(
                 "flaw_state": flaw_state,
                 "flaw_resolution": flaw_resolution,
             }
-        )
+        ),
+        ctx=ctx,
     )
 
 
@@ -322,4 +323,4 @@ def product_versions_affected_by_cve_query(ctx, cve_id):
         click.echo(ctx.get_help())
         exit(0)
     q = core_queries.products_versions_affected_by_specific_cve_query()
-    cprint(q.execute({"cve_id": cve_id}))
+    cprint(q.execute({"cve_id": cve_id}), ctx=ctx)

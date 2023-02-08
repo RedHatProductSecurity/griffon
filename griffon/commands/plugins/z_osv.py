@@ -41,7 +41,7 @@ def query_by_version(ctx, package_version, package_name, ecosystem):
         data=data,
         headers={"Content-type": "application/json"},
     )
-    cprint(res.json())
+    cprint(res.json(), ctx=ctx)
 
 
 @plugins.command()
@@ -57,4 +57,4 @@ def query_by_commit_hash(ctx, commit_hash):
         data=data,
         headers={"Content-type": "application/json"},
     )
-    cprint(res.json())
+    cprint(res.json(), ctx=ctx)
