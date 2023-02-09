@@ -208,8 +208,7 @@ def components(ctx):
 
 @components.command(name="list")
 @click.option("--namespace", type=click.Choice(CorgiService.get_component_namespaces()), help="")
-@click.option("--ofuri")
-@click.option("--product-stream-name")
+@click.option("--ofuri", shell_complete=get_product_stream_ofuris)
 @click.option("--re_purl", shell_complete=get_component_purls)
 @click.option("--name", shell_complete=get_component_names)
 @click.option("--re_name", shell_complete=get_component_names)
@@ -224,19 +223,22 @@ def components(ctx):
     "--arch",
     type=click.Choice(CorgiService.get_component_arches()),
 )
+@click.option("--product-stream-name", shell_complete=get_product_stream_names)
+@click.option("--product-stream-ofuri", shell_complete=get_product_stream_ofuris)
 @click.pass_context
 @progress_bar
 def list_components(
     ctx,
     namespace,
     ofuri,
-    product_stream_name,
     re_purl,
     name,
     re_name,
     version,
     component_type,
     arch,
+    product_stream_name,
+    product_stream_ofuri,
 ):
     """Retrieve a list of components."""
 
@@ -249,13 +251,14 @@ def list_components(
         and not arch
         and not namespace
         and not component_type
+        and not product_stream_name
+        and not product_stream_ofuri
     ):
         click.echo(ctx.get_help())
         exit(0)
     session = CorgiService.create_session()
 
     conditions = default_conditions
-    # conditions["view"] = view
     conditions["include_fields"] = "link,purl,type,name"
 
     # TODO- condition union could be a separate helper function
@@ -276,12 +279,14 @@ def list_components(
         conditions["arch"] = arch
     if component_type:
         conditions["type"] = component_type
+    if product_stream_ofuri:
+        conditions["product_streams"] = product_stream_ofuri
 
     # TODO- This kind of optimisation should probably be developed in the
     #       service binding itself rather then here
     logger.debug("starting parallel http requests")
     component_cnt = session.components.retrieve_list(**conditions).count
-    if component_cnt < 50000:
+    if component_cnt < 3000000:
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
             components = list()

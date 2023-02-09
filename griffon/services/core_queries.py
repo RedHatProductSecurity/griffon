@@ -169,8 +169,15 @@ class components_containing_component_query:
     def execute(self, ctx) -> dict:
         component_type = ctx.get("component_type")
         component_name = ctx.get("component_name")
+        namespace = ctx.get("namespace")
+
+        cond = {}
+        cond["name"] = component_name
+        if namespace:
+            cond["namespace"] = namespace
+
         components = self.corgi_session.components.retrieve_list(
-            name=component_name, namespace="REDHAT", include_fields="link,name,purl,sources"
+            **cond, limit=10000, include_fields="link,name,purl,sources"
         )
         results = []
         for c in components.results:
