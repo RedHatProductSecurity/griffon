@@ -181,5 +181,5 @@ class product_stream_summary:
             "manifest_link": product_stream["manifest"],
             "shipped_components_link": "tbd",
             "latest_components_link": product_stream["components"],
-            "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={product_stream['ofuri']}&view=summary",  # noqa
+            "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={product_stream['ofuri']}&include_fields=link,name,purl",  # noqa
         }
