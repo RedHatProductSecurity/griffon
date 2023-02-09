@@ -15,6 +15,8 @@ from griffon import (
     progress_bar,
 )
 from griffon.autocomplete import (
+    get_component_names,
+    get_component_purls,
     get_cve_ids,
     get_product_stream_names,
     get_product_stream_ofuris,
@@ -208,9 +210,9 @@ def components(ctx):
 @click.option("--namespace", type=click.Choice(CorgiService.get_component_namespaces()), help="")
 @click.option("--ofuri")
 @click.option("--product-stream-name")
-@click.option("--re_purl")
-@click.option("--name")
-@click.option("--re_name")
+@click.option("--re_purl", shell_complete=get_component_purls)
+@click.option("--name", shell_complete=get_component_names)
+@click.option("--re_name", shell_complete=get_component_names)
 @click.option("--version")
 @click.option(
     "--type",
@@ -307,7 +309,7 @@ def list_components(
 
 @components.command(name="get")
 @click.option("--uuid", "component_uuid")
-@click.option("--purl", help="Purl are URI and must be quoted.")
+@click.option("--purl", shell_complete=get_component_purls, help="Purl are URI and must be quoted.")
 @click.option("--nvr")
 @click.pass_context
 @progress_bar
@@ -323,7 +325,7 @@ def get_component(ctx, component_uuid, purl, nvr):
 
 @components.command(name="get-manifest")
 @click.option("--uuid", "component_uuid")
-@click.option("--purl", help="Purl are URI and must be quoted.")
+@click.option("--purl", shell_complete=get_component_purls, help="Purl are URI and must be quoted.")
 @click.pass_context
 def get_component_manifest(ctx, component_uuid, purl):
     """Retrieve a specific component."""

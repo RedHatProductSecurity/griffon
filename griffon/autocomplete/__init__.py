@@ -2,26 +2,53 @@ import logging
 
 import requests
 
-from griffon import OSIDB_API_URL
-from griffon.autocomplete import product_streams, product_versions
+from griffon import CORGI_API_URL, OSIDB_API_URL
 
 logger = logging.getLogger("rich")
 
 
 def get_product_version_ofuris(ctx, param, incomplete):
-    return [k for k in product_versions.ofuris if k.startswith(incomplete)]
+    response = requests.get(
+        f"{CORGI_API_URL}/api/v1/product_versions?limit=1000&include_fields=ofuri"  # noqa
+    )
+    return [k["ofuri"] for k in response.json()["results"] if incomplete in k["ofuri"]]
 
 
 def get_product_version_names(ctx, param, incomplete):
-    return [k for k in product_versions.product_version_names if k.startswith(incomplete)]
+    response = requests.get(
+        f"{CORGI_API_URL}/api/v1/product_versions?limit=1000&include_fields=name"  # noqa
+    )
+    return [k["name"] for k in response.json()["results"] if incomplete in k["name"]]
 
 
 def get_product_stream_ofuris(ctx, param, incomplete):
-    return [k for k in product_streams.ofuris if k.startswith(incomplete)]
+    response = requests.get(
+        f"{CORGI_API_URL}/api/v1/product_streams?limit=1000&include_fields=ofuri"  # noqa
+    )
+    return [k["ofuri"] for k in response.json()["results"] if incomplete in k["ofuri"]]
 
 
 def get_product_stream_names(ctx, param, incomplete):
-    return [k for k in product_streams.product_stream_names if k.startswith(incomplete)]
+    response = requests.get(
+        f"{CORGI_API_URL}/api/v1/product_streams?limit=1000&include_fields=name&re_name={incomplete}"  # noqa
+    )
+    names = response.json()["results"]
+    return [k["name"] for k in names if "name" in k]
+
+
+def get_component_names(ctx, param, incomplete):
+    response = requests.get(
+        f"{CORGI_API_URL}/api/v1/components?include_fields=name&re_name={incomplete}&limit=100"  # noqa
+    )
+    names = response.json()["results"]
+    return list(set([k["name"] for k in names if "name" in k]))
+
+
+def get_component_purls(ctx, param, incomplete):
+    response = requests.get(
+        f"{CORGI_API_URL}/api/v1/components?include_fields=purl&re_purl={incomplete}&limit=20"  # noqa
+    )
+    return [k["purl"] for k in response.json()["results"]]
 
 
 def get_cve_ids(ctx, param, incomplete):
@@ -29,4 +56,4 @@ def get_cve_ids(ctx, param, incomplete):
     response = requests.get(
         f"{OSIDB_API_URL}/osidb/api/v1/flaws?limit=10&re_cve_id={incomplete}&include_fields=cve_id"  # noqa
     )
-    return [k["cve_id"] for k in response.json()["results"]]
+    return [k["cve_id"] for k in response.json()["results"] if incomplete in k["cve_id"]]
