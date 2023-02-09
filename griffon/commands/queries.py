@@ -43,16 +43,19 @@ def core_grp(ctx):
 )
 @click.option("--name", "component_name")
 @click.option("--purl")
+@click.option(
+    "--namespace", default="REDHAT", type=click.Choice(CorgiService.get_component_namespaces())
+)
 @click.pass_context
 @progress_bar
-def get_product_contain_component(ctx, component_name, purl):
+def get_product_contain_component(ctx, component_name, purl, namespace):
     """List components of a product version."""
     if not purl and not component_name:
         click.echo(ctx.get_help())
         exit(0)
     if component_name:
         q = core_queries.products_containing_component_query()
-        cprint(q.execute({"component_name": component_name}), ctx=ctx)
+        cprint(q.execute({"component_name": component_name, "namespace": namespace}), ctx=ctx)
     if purl:
         q = core_queries.products_containing_specific_component_query()
         cprint(q.execute({"purl": purl}), ctx=ctx)
@@ -65,9 +68,10 @@ def get_product_contain_component(ctx, component_name, purl):
 @click.option("--name", "component_name")
 @click.option("--purl")
 @click.option("--type", "component_type", type=click.Choice(CorgiService.get_component_types()))
+@click.option("--namespace", type=click.Choice(CorgiService.get_component_namespaces()))
 @click.pass_context
 @progress_bar
-def get_component_contain_component(ctx, component_name, purl, component_type):
+def get_component_contain_component(ctx, component_name, purl, component_type, namespace):
     """List components that contain component."""
     if not purl and not component_name:
         click.echo(ctx.get_help())
@@ -79,6 +83,7 @@ def get_component_contain_component(ctx, component_name, purl, component_type):
                 {
                     "component_name": component_name,
                     "component_type": component_type,
+                    "namespace": namespace,
                 }
             ),
             ctx=ctx,
@@ -176,20 +181,19 @@ def get_product_latest_components_query(ctx, ofuri, product_stream_name):
 )
 @click.pass_context
 def get_product_all_components_query(ctx, ofuri, product_stream_name):
-    """List components of a specific product version."""
-    # if not ofuri and not product_stream_name:
-    #     click.echo(ctx.get_help())
-    #     exit(0)
-    # cond = {}
-    # if ofuri:
-    #     cond["ofuri"] = ofuri
-    # if product_stream_name:
-    #     # lookup ofuri
-    #     q = core_queries.product_stream_summary()
-    #     ofuri = q.execute(product_stream_name, None)["ofuri"]
-    #     cond["product_stream"] = ofuri
-    # ctx.invoke(list_components, **cond)
-    pass
+    """List components of a specific product stream."""
+    if not ofuri and not product_stream_name:
+        click.echo(ctx.get_help())
+        exit(0)
+    cond = {}
+    if ofuri:
+        cond["product_stream_ofuri"] = ofuri
+    if product_stream_name:
+        # lookup ofuri
+        q = core_queries.product_stream_summary()
+        ofuri = q.execute(product_stream_name, None)["ofuri"]
+        cond["product_stream_ofuri"] = ofuri
+    ctx.invoke(list_components, **cond)
 
 
 # TODO - depends on future shipped filter
