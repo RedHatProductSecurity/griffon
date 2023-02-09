@@ -5,7 +5,7 @@ import logging
 
 import click
 
-from griffon import OSIDBService, progress_bar
+from griffon import CorgiService, OSIDBService, progress_bar
 from griffon.autocomplete import get_cve_ids, get_product_version_names
 from griffon.commands.entities import (
     get_component_manifest,
@@ -64,19 +64,33 @@ def get_product_contain_component(ctx, component_name, purl):
 )
 @click.option("--name", "component_name")
 @click.option("--purl")
+@click.option("--type", "component_type", type=click.Choice(CorgiService.get_component_types()))
 @click.pass_context
 @progress_bar
-def get_component_contain_component(ctx, component_name, purl):
+def get_component_contain_component(ctx, component_name, purl, component_type):
     """List components that contain component."""
     if not purl and not component_name:
         click.echo(ctx.get_help())
         exit(0)
     if component_name:
         q = core_queries.components_containing_component_query()
-        cprint(q.execute({"component_name": component_name}), ctx=ctx)
+        cprint(
+            q.execute(
+                {
+                    "component_name": component_name,
+                    "component_type": component_type,
+                }
+            ),
+            ctx=ctx,
+        )
     if purl:
         q = core_queries.components_containing_specific_component_query()
-        cprint(q.execute({"purl": purl}), ctx=ctx)
+        cprint(
+            q.execute(
+                {"purl": purl, "component_type": component_type},
+            ),
+            ctx=ctx,
+        )
 
 
 @queries_grp.command(
@@ -305,9 +319,6 @@ def cves_for_specific_product_query(
         ),
         ctx=ctx,
     )
-
-
-# cves_for_product_stream_query
 
 
 @core_grp.command(
