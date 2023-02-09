@@ -64,35 +64,11 @@ class products_containing_specific_component_query:
         return c["product_streams"]
 
 
-class components_containing_specific_component_query:
-    """What components contain a specific component?"""
-
-    name = "components_containing_specific_component_query"
-    description = "What components contain a specific component?"
-    params = ["purl"]
-
-    def __init__(self) -> None:
-        self.corgi_session = CorgiService.create_session()
-
-    def execute(self, ctx) -> dict:
-        purl = ctx["purl"]
-        c = self.corgi_session.components.retrieve_list(
-            purl=purl,
-        )
-        return {
-            "link": c["link"],
-            "name": c["name"],
-            "purl": c["purl"],
-            "sources": c["sources"],
-        }
-
-
 class products_containing_component_query:
     """What products contain a component?"""
 
     name = "products_containing_component_query"
     description = "What products contain a component?"
-    params = ["name"]
 
     def __init__(self) -> None:
         self.corgi_session = CorgiService.create_session()
@@ -112,38 +88,6 @@ class products_containing_component_query:
                     "name": c.name,
                     "component_link": c["component_link"],
                     "component_purl": c["component_purl"],
-                }
-            )
-        return results
-
-
-class components_containing_component_query:
-    """What components contain a component?"""
-
-    name = "components_containing_component_query"
-    description = "What components contain a component?"
-    params = ["name"]
-
-    def __init__(self) -> None:
-        self.corgi_session = CorgiService.create_session()
-
-    def execute(self, ctx) -> dict:
-        component_name = ctx["component_name"]
-        # TODO: narrow down with includes_fields when it emerges in corgi bindings
-        components = self.corgi_session.components.retrieve_list(
-            name=component_name, namespace="REDHAT"
-        )
-        results = []
-        for c in components.results:
-            sources = []
-            for source in c.sources:
-                sources.append({"link": source["link"], "purl": source["purl"]})
-            results.append(
-                {
-                    "link": c.link,
-                    "name": c.name,
-                    "purl": c.purl,
-                    "sources": sources,
                 }
             )
         return results
@@ -183,3 +127,64 @@ class product_stream_summary:
             "latest_components_link": product_stream["components"],
             "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={product_stream['ofuri']}&include_fields=link,name,purl",  # noqa
         }
+
+
+class components_containing_specific_component_query:
+    """What components contain a specific component?"""
+
+    name = "components_containing_specific_component_query"
+    description = "What components contain a specific component?"
+
+    def __init__(self) -> None:
+        self.corgi_session = CorgiService.create_session()
+
+    def execute(self, ctx) -> dict:
+        purl = ctx.get("purl")
+        if purl:
+            c = self.corgi_session.components.retrieve_list(
+                purl=purl,
+            )
+            component_type = ctx.get("component_type")
+            sources = c["sources"]
+            if component_type:
+                sources = [source for source in sources if component_type.lower() in source["purl"]]
+            return {
+                "link": c["link"],
+                "type": component_type,
+                "name": c["name"],
+                "purl": c["purl"],
+                "sources": sources,
+            }
+
+
+class components_containing_component_query:
+    """What components contain a component?"""
+
+    name = "components_containing_component_query"
+    description = "What components contain a component?"
+
+    def __init__(self) -> None:
+        self.corgi_session = CorgiService.create_session()
+
+    def execute(self, ctx) -> dict:
+        component_type = ctx.get("component_type")
+        component_name = ctx.get("component_name")
+        components = self.corgi_session.components.retrieve_list(
+            name=component_name, namespace="REDHAT", include_fields="link,name,purl,sources"
+        )
+        results = []
+        for c in components.results:
+            sources = []
+            for source in c.sources:
+                sources.append({"link": source["link"], "purl": source["purl"]})
+            if component_type:
+                sources = [source for source in sources if component_type.lower() in source["purl"]]
+            results.append(
+                {
+                    "link": c.link,
+                    "name": c.name,
+                    "purl": c.purl,
+                    "sources": sources,
+                }
+            )
+        return results

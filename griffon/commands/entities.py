@@ -224,7 +224,6 @@ def components(ctx):
     "--arch",
     type=click.Choice(CorgiService.get_component_arches()),
 )
-@click.option("--view", default="summary")
 @click.pass_context
 @progress_bar
 def list_components(
@@ -238,7 +237,6 @@ def list_components(
     version,
     component_type,
     arch,
-    view,
 ):
     """Retrieve a list of components."""
 
@@ -257,7 +255,8 @@ def list_components(
     session = CorgiService.create_session()
 
     conditions = default_conditions
-    conditions["view"] = view
+    # conditions["view"] = view
+    conditions["include_fields"] = "link,purl,type,name"
 
     # TODO- condition union could be a separate helper function
 
@@ -275,6 +274,8 @@ def list_components(
         conditions["version"] = version
     if arch:
         conditions["arch"] = arch
+    if component_type:
+        conditions["type"] = component_type
 
     # TODO- This kind of optimisation should probably be developed in the
     #       service binding itself rather then here
