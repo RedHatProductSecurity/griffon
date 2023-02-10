@@ -2,6 +2,7 @@
     read only queries
 
 """
+import concurrent
 import logging
 
 from griffon import CORGI_API_URL, OSIDB_API_URL, CorgiService, OSIDBService
@@ -54,8 +55,6 @@ class products_containing_specific_component_query:
         self.corgi_session = CorgiService.create_session()
 
     def execute(self, ctx) -> dict:
-
-        # for param in required_params:
 
         purl = ctx["purl"]
         c = self.corgi_session.components.retrieve_list(
@@ -200,3 +199,160 @@ class components_containing_component_query:
                 }
             )
         return results
+
+
+class components_affected_by_specific_cve_query1:
+    """Given a specific CVE ID, what components are affected?"""
+
+    name = "components_affected_by_specific_cve_query"
+    description = "Given a CVE ID, what components are affected?"
+
+    def __init__(self) -> None:
+        self.corgi_session = CorgiService.create_session()
+        self.osidb_session = OSIDBService.create_session()
+
+    def execute(self, ctx) -> dict:
+        cve_id = ctx["cve_id"]
+        affectedness = ctx["affectedness"]
+        affect_resolution = ctx["affect_resolution"]
+        affect_impact = ctx["affect_impact"]
+        cond = {}
+        if affectedness:
+            cond["affectedness"] = affectedness
+        if affect_resolution:
+            cond["resolution"] = affect_resolution
+        if affect_impact:
+            cond["impact"] = affect_impact
+
+        flaw = self.osidb_session.flaws.retrieve(cve_id)
+        affects = self.osidb_session.affects.retrieve_list(
+            flaw=flaw.uuid, **cond, limit=10000
+        ).results
+        components: list = list()
+        for affect in affects:
+            product_versions = self.corgi_session.product_versions.retrieve_list(
+                name=affect.ps_module
+            ).results
+
+            for pv in product_versions:
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    futures = []
+                    for ps in pv.product_streams:
+                        futures.append(
+                            executor.submit(
+                                self.corgi_session.components.retrieve_list,
+                                ofuri=ps["ofuri"],
+                                name=affect.ps_component,
+                                include_fields="link,purl,name,type",
+                                limit=50000,
+                            )
+                        )
+                    for future in concurrent.futures.as_completed(futures):
+                        try:
+                            for c in future.result().results:
+                                components.append(c)
+                        except Exception as exc:
+                            logger.error("%r generated an exception: %s" % (future, exc))
+                            exit(0)
+
+        distinct_components: list = list()
+        for c in components:
+            distinct_components.append(
+                {
+                    "link": f"{CORGI_API_URL}/api/v1/components?purl={c.purl}",
+                    "type": c.type,
+                    "purl": c.purl,
+                    "name": c.name,
+                }
+            )
+        return {
+            "link": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
+            "cve_id": flaw.cve_id,
+            "title": flaw.title,
+            "description": flaw.description,
+            "components": distinct_components,
+        }
+
+
+class components_affected_by_specific_cve_query:
+    """Given a specific CVE ID, what components are affected?"""
+
+    name = "components_affected_by_specific_cve_query"
+    description = "Given a CVE ID, what components are affected?"
+
+    def __init__(self) -> None:
+        self.corgi_session = CorgiService.create_session()
+        self.osidb_session = OSIDBService.create_session()
+
+    def execute(self, ctx) -> dict:
+        cve_id = ctx["cve_id"]
+        affectedness = ctx["affectedness"]
+        affect_resolution = ctx["affect_resolution"]
+        affect_impact = ctx["affect_impact"]
+        cond = {}
+        if affectedness:
+            cond["affectedness"] = affectedness
+        if affect_resolution:
+            cond["resolution"] = affect_resolution
+        if affect_impact:
+            cond["impact"] = affect_impact
+        component_type = ctx["component_type"]
+        namespace = ctx["namespace"]
+        component_cond = {}
+        if namespace:
+            component_cond["namespace"] = namespace
+        if component_type:
+            component_cond["type"] = component_type
+        flaw = self.osidb_session.flaws.retrieve(cve_id)
+        affects = self.osidb_session.affects.retrieve_list(
+            flaw=flaw.uuid, **cond, limit=10000
+        ).results
+        results = list()
+        for affect in affects:
+            try:
+                product_version = self.corgi_session.product_versions.retrieve_list(
+                    name=affect.ps_module
+                ).results[0]
+                components = []
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    futures = []
+                    for ps in product_version.product_streams:
+                        futures.append(
+                            executor.submit(
+                                self.corgi_session.components.retrieve_list,
+                                **component_cond,
+                                ofuri=ps["ofuri"],
+                                name=affect.ps_component,
+                                include_fields="link,purl,name,type",
+                                limit=50000,
+                            )
+                        )
+                    for future in concurrent.futures.as_completed(futures):
+                        try:
+                            for c in future.result().results:
+                                components.append(c.to_dict())
+                        except Exception as exc:
+                            logger.error("%r generated an exception: %s" % (future, exc))
+                            exit(0)
+
+                results.append(
+                    {
+                        "link": "link to affect",
+                        "product_version_name": affect.ps_module,
+                        "component_name": affect.ps_component,
+                        "affectedness": affect.affectedness,
+                        "affect_impact": affect.impact,
+                        "affect_resolution": affect.resolution,
+                        "components": components,
+                    }
+                )
+            except IndexError as err:
+                logger.info(f"product stream not in component-registry: {err}")
+
+        return {
+            "link": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
+            "cve_id": flaw.cve_id,
+            "title": flaw.title,
+            "description": flaw.description,
+            "affects": results,
+        }
