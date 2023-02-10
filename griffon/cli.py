@@ -89,7 +89,6 @@ docs.add_command(docs_grp)
     "--format",
     type=click.Choice([el.value for el in OUTPUT_FORMAT]),
     default="json",
-    help=f"{[el.value for el in OUTPUT_FORMAT]}",
 )
 @click.pass_context
 def cli(ctx, debug, format):

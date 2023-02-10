@@ -74,9 +74,14 @@ class products_containing_component_query:
         self.corgi_session = CorgiService.create_session()
 
     def execute(self, ctx) -> dict:
-        component_name = ctx["component_name"]
+        component_name = ctx.get("component_name")
+        namespace = ctx.get("namespace")
+        cond = {}
+        cond["name"] = component_name
+        if namespace:
+            cond["namespace"] = namespace
         components = self.corgi_session.components.retrieve_list(
-            name=component_name,
+            **cond,
             view="product",
         )
         results = []
