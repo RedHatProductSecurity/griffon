@@ -15,7 +15,7 @@ from griffon.commands.entities import (
     list_components,
 )
 from griffon.output import cprint
-from griffon.services import Query, core_queries, core_reports, exp
+from griffon.services import Query, core_queries, exp
 
 logger = logging.getLogger("rich")
 
@@ -32,32 +32,6 @@ def queries_grp(ctx):
 def core_grp(ctx):
     """Query operations."""
     pass
-
-
-# ------------------------------------------------------------------------- Reports
-
-
-@queries_grp.group(name="reports", help="Generate reports.")
-@click.pass_context
-def reports_grp(ctx):
-    """Report operations."""
-    pass
-
-
-@reports_grp.command(name="affects", help="Generate Affects example report.")
-@click.option(
-    "--show-components", is_flag=True, default=False, help="Show specific component counts."
-)
-@click.option("--show-products", is_flag=True, default=False, help="Show specific product counts.")
-@click.pass_context
-@progress_bar
-def generate_affects_report(ctx, show_components, show_products):
-    """A report operation"""
-    q = core_reports.example_affects_report()
-    cprint(q.execute({"show_components": show_components, "show_products": show_products}), ctx=ctx)
-
-
-# ------------------------------------------------------------------------- Queries
 
 
 @queries_grp.command(
@@ -390,15 +364,15 @@ def cves_for_specific_product_query(
     )
 
 
-@core_grp.command(
-    name="product-versions-affected-by-cve",
-    help="List product versions affected by a CVE.",
+@queries_grp.command(
+    name="products-affected-by-cve",
+    help="(Under development) List products affected by CVE.",
 )
 @click.option("--cve-id", shell_complete=get_cve_ids)
 @click.pass_context
 @progress_bar
 def product_versions_affected_by_cve_query(ctx, cve_id):
-    """List cves of a specific product."""
+    """List products affected by a CVE."""
     if not cve_id:
         click.echo(ctx.get_help())
         exit(0)
