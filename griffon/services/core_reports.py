@@ -49,8 +49,8 @@ class example_affects_report:
                 critical_products[product_version_name] = 0
             critical_products[product_version_name] += 1
 
-        top_critical_component = max(critical_components, key=critical_components.get)
-        top_critical_product = max(critical_products, key=critical_products.get)
+        top_critical_component = max(critical_components, key=critical_components.get)  # type: ignore # noqa
+        top_critical_product = max(critical_products, key=critical_products.get)  # type: ignore
 
         affect_important_res = requests.get(
             f"{OSIDB_API_URL}/osidb/api/v1/affects?affectedness=AFFECTED&impact=IMPORTANT&include_fields=ps_component,ps_module,impact&limit=10000"  # noqa
@@ -68,8 +68,8 @@ class example_affects_report:
             if product_version_name not in important_products:
                 important_products[product_version_name] = 0
             important_products[product_version_name] += 1
-        top_important_component = max(important_components, key=important_components.get)
-        top_important_product = max(important_products, key=important_products.get)
+        top_important_component = max(important_components, key=important_components.get)  # type: ignore # noqa
+        top_important_product = max(important_products, key=important_products.get)  # type: ignore # noqa
 
         affect_moderate_res = requests.get(
             f"{OSIDB_API_URL}/osidb/api/v1/affects?affectedness=AFFECTED&impact=MODERATE&include_fields=ps_component,ps_module,impact&limit=10000"  # noqa
@@ -87,8 +87,8 @@ class example_affects_report:
             if product_version_name not in moderate_products:
                 moderate_products[product_version_name] = 0
             moderate_products[product_version_name] += 1
-        top_moderate_component = max(moderate_components, key=moderate_components.get)
-        top_moderate_product = max(moderate_products, key=moderate_products.get)
+        top_moderate_component = max(moderate_components, key=moderate_components.get)  # type: ignore # noqa
+        top_moderate_product = max(moderate_products, key=moderate_products.get)  # type: ignore
 
         affect_low_res = requests.get(
             f"{OSIDB_API_URL}/osidb/api/v1/affects?affectedness=AFFECTED&impact=LOW&include_fields=ps_component,ps_module,impact&limit=10000"  # noqa
@@ -106,8 +106,8 @@ class example_affects_report:
             if product_version_name not in low_products:
                 low_products[product_version_name] = 0
             low_products[product_version_name] += 1
-        top_low_component = max(low_components, key=low_components.get)
-        top_low_product = max(low_products, key=low_products.get)
+        top_low_component = max(low_components, key=low_components.get)  # type: ignore
+        top_low_product = max(low_products, key=low_products.get)  # type: ignore
 
         critical = {
             "affected": affects_critical["count"],

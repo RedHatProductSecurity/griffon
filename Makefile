@@ -9,9 +9,7 @@ test-all:
 
 test:
 	black .
-	$(tox) -e isort
-	$(tox) -e flake8
-	$(tox) -e griffon
+	$(tox)
 
 compile-deps:
 	$(pc) --generate-hashes --allow-unsafe requirements/base.in

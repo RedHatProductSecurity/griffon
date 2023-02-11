@@ -28,10 +28,10 @@ def process_grp(ctx):
 @click.pass_context
 @progress_bar
 def generate_affects_for_component_process(ctx, purl, cve_id):
-    """List cves of a specific component."""
+    """Generate affects for specific component."""
     if not purl and not cve_id:
         click.echo(ctx.get_help())
         exit(0)
-    q = core_process.generate_affects_for_specific_component_process()
+    q = core_process.generate_affects_for_specific_component_process(ctx.params)
     assert isinstance(q, Process)
-    cprint(q.execute({"purl": purl}), ctx=ctx)
+    cprint(q.execute(), ctx=ctx)

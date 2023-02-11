@@ -1,6 +1,6 @@
 # define interface for query which is asserted by mypy as well as runtime checking
-
-from typing import Protocol, runtime_checkable
+import typing
+from typing import Any, Dict, List, Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -10,7 +10,11 @@ class Query(Protocol):
     name: str
     description: str
 
-    def execute(self, ctx: dict) -> dict:
+    def __init__(self, params: dict):
+        """Use generic params dict to pass in all parameters"""
+        pass
+
+    def execute(self) -> typing.Union[dict, List[Dict[str, Any]]]:
         """execute() uses a generic ctx dict to pass in all parameters"""
         return {}
 
@@ -22,13 +26,9 @@ class Process(Protocol):
     name: str
     description: str
 
-    def update(self, payload: dict) -> dict:
-        return {}
+    def __init__(self, params: dict):
+        """Use generic params dict to pass in all parameters"""
+        pass
 
-    def payload(self, ctx: dict) -> dict:
-        """execute() uses a generic ctx dict to pass in all parameters"""
-        return {}
-
-    def execute(self, ctx: dict) -> dict:
-        """execute() uses a generic ctx dict to pass in all parameters"""
+    def update(self) -> typing.Union[dict, List[Dict[str, Any]]]:
         return {}
