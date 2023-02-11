@@ -34,6 +34,20 @@ def core_grp(ctx):
     pass
 
 
+@queries_grp.group(name="reports", help="Generate reports.")
+@click.pass_context
+def reports_grp(ctx):
+    """Report operations."""
+    pass
+
+
+@reports_grp.group(name="stub", help="stub.")
+@click.pass_context
+def generate_report(ctx):
+    """A report operations"""
+    pass
+
+
 # ------------------------------------------------------------------------- Queries
 
 
@@ -261,21 +275,63 @@ def cves_for_specific_component_query(ctx, purl, affectedness):
     cprint(q.execute({"purl": purl, "affectedness": affectedness}), ctx=ctx)
 
 
-@core_grp.command(
+@queries_grp.command(
     name="components-affected-by-cve",
-    help="List components affected by CVE.",
+    help="(Under development) List components affected by CVE.",
 )
 @click.option("--cve-id", shell_complete=get_cve_ids)
+@click.option(
+    "--affectedness",
+    help="Filter by affect affectedness.",
+    type=click.Choice(OSIDBService.get_affect_affectedness()),
+)
+@click.option(
+    "--resolution",
+    "affect_resolution",
+    help="Filter by affect resolution.",
+    type=click.Choice(OSIDBService.get_affect_resolution()),
+)
+@click.option(
+    "--impact",
+    "affect_impact",
+    help="Filter by affect impact.",
+    type=click.Choice(OSIDBService.get_affect_impact()),
+)
+@click.option(
+    "--type",
+    "component_type",
+    type=click.Choice(CorgiService.get_component_types()),
+    help="Filter by component type.",
+)
+@click.option(
+    "--namespace",
+    type=click.Choice(CorgiService.get_component_namespaces()),
+    help="filter by component namespace.",
+)
 @click.pass_context
 @progress_bar
-def components_affected_by_specific_cve_query(ctx, cve_id):
-    """List unfixed cves of a specific component."""
+def components_affected_by_specific_cve_query(
+    ctx, cve_id, affectedness, affect_resolution, affect_impact, component_type, namespace
+):
+    """List components affected by specific CVE."""
     if not cve_id:
         click.echo(ctx.get_help())
         exit(0)
-    q = exp.components_affected_by_specific_cve_query()
+    q = core_queries.components_affected_by_specific_cve_query()
     assert isinstance(q, Query)
-    cprint(q.execute({"cve_id": cve_id}), ctx=ctx)
+    cprint(
+        q.execute(
+            {
+                "cve_id": cve_id,
+                "affectedness": affectedness,
+                "affect_resolution": affect_resolution,
+                "affect_impact": affect_impact,
+                "component_type": component_type,
+                "namespace": namespace,
+            }
+        ),
+        ctx=ctx,
+    )
 
 
 @core_grp.command(

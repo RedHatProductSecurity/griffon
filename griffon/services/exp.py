@@ -2,7 +2,6 @@
     read only queries
 
 """
-import concurrent
 import logging
 
 from griffon import CORGI_API_URL, OSIDB_API_URL, CorgiService, OSIDBService
@@ -62,64 +61,6 @@ class cves_for_specific_component_query:
             "nvr": c["nvr"],
             "arch": c["arch"],
             "affects": affects,
-        }
-
-
-class components_affected_by_specific_cve_query:
-    """Given a specific CVE ID, what components are affected?"""
-
-    name = "components_affected_by_specific_cve_query"
-    description = "Given a CVE ID, what components are affected?"
-
-    def __init__(self) -> None:
-        self.corgi_session = CorgiService.create_session()
-        self.osidb_session = OSIDBService.create_session()
-
-    # TODO - needs to be optimised
-    def execute(self, ctx) -> dict:
-        cve_id = ctx["cve_id"]
-        flaw = self.osidb_session.flaws.retrieve_list(cve_id=cve_id).results[0]
-        affects = self.osidb_session.affects.retrieve_list(flaw=flaw.uuid, limit=10000).results
-        components: list = list()
-        for affect in affects:
-            product_versions = self.corgi_session.product_versions.retrieve_list(
-                name=affect.ps_module
-            ).results
-            for pv in product_versions:
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    futures = []
-                    for ps in pv.product_streams:
-                        futures.append(
-                            executor.submit(
-                                self.corgi_session.components.retrieve_list,
-                                ofuri=ps["ofuri"],
-                                name=affect.ps_component,
-                                view="summary",
-                                limit=10000,
-                            )
-                        )
-                    for future in concurrent.futures.as_completed(futures):
-                        try:
-                            for c in future.result().results:
-                                components.append(c.purl)
-                        except Exception as exc:
-                            logger.error("%r generated an exception: %s" % (future, exc))
-                            exit(0)
-
-        distinct_components: list = list()
-        for purl in components:
-            distinct_components.append(
-                {
-                    "link": f"{CORGI_API_URL}/api/v1/components?purl={purl}",
-                    "purl": purl,
-                }
-            )
-        return {
-            "link": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
-            "cve_id": flaw.cve_id,
-            "title": flaw.title,
-            "description": flaw.description,
-            "components": distinct_components,
         }
 
 
