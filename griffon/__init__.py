@@ -13,6 +13,8 @@ __version__ = "0.1.0"
 CORGI_API_URL = os.environ["CORGI_API_URL"]
 OSIDB_API_URL = os.environ["OSIDB_API_URL"]
 
+logger = logging.getLogger("rich")
+
 
 def get_logging(level="INFO"):
     FORMAT = "%(message)s"
@@ -28,7 +30,11 @@ class CorgiService:
     @staticmethod
     def create_session():
         """init corgi session"""
-        return corgi_bindings.new_session(corgi_server_uri=CORGI_API_URL)
+        try:
+            return corgi_bindings.new_session(corgi_server_uri=CORGI_API_URL)
+        except:  # noqa
+            console.log(f"{CORGI_API_URL} is not accessible.")
+            exit(1)
 
     @staticmethod
     def get_component_types():
@@ -66,7 +72,11 @@ class OSIDBService:
     @staticmethod
     def create_session():
         """init osidb session"""
-        return osidb_bindings.new_session(osidb_server_uri=OSIDB_API_URL)
+        try:
+            return osidb_bindings.new_session(osidb_server_uri=OSIDB_API_URL)
+        except:  # noqa
+            console.log(f"{OSIDB_API_URL} is not accessible.")
+            exit(1)
 
     @staticmethod
     def get_flaw_states():
