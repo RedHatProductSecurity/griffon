@@ -305,7 +305,7 @@ class components_affected_by_specific_cve_query:
             component_cond["type"] = component_type
         flaw = self.osidb_session.flaws.retrieve(cve_id)
         affects = self.osidb_session.affects.retrieve_list(
-            flaw=flaw.uuid, **cond, limit=10000
+            flaw=flaw.uuid, **cond, limit=1000
         ).results
         results = list()
         for affect in affects:
@@ -337,7 +337,7 @@ class components_affected_by_specific_cve_query:
 
                 results.append(
                     {
-                        "link": "link to affect",
+                        "link": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect.uuid}",
                         "product_version_name": affect.ps_module,
                         "component_name": affect.ps_component,
                         "affectedness": affect.affectedness,

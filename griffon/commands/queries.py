@@ -15,7 +15,7 @@ from griffon.commands.entities import (
     list_components,
 )
 from griffon.output import cprint
-from griffon.services import Query, core_queries, exp
+from griffon.services import Query, core_queries, core_reports, exp
 
 logger = logging.getLogger("rich")
 
@@ -34,6 +34,9 @@ def core_grp(ctx):
     pass
 
 
+# ------------------------------------------------------------------------- Reports
+
+
 @queries_grp.group(name="reports", help="Generate reports.")
 @click.pass_context
 def reports_grp(ctx):
@@ -41,11 +44,17 @@ def reports_grp(ctx):
     pass
 
 
-@reports_grp.group(name="stub", help="stub.")
+@reports_grp.command(name="affects", help="Generate Affects example report.")
+@click.option(
+    "--show-components", is_flag=True, default=False, help="Show specific component counts."
+)
+@click.option("--show-products", is_flag=True, default=False, help="Show specific product counts.")
 @click.pass_context
-def generate_report(ctx):
+@progress_bar
+def generate_affects_report(ctx, show_components, show_products):
     """A report operation"""
-    click.echo("generate report")
+    q = core_reports.example_affects_report()
+    cprint(q.execute({"show_components": show_components, "show_products": show_products}), ctx=ctx)
 
 
 # ------------------------------------------------------------------------- Queries
