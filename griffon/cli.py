@@ -14,7 +14,7 @@ from .commands.entities import entities_grp
 from .commands.manage import manage_grp
 from .commands.plugin_commands import plugin_commands
 from .commands.process import process_grp
-from .commands.queries import queries_grp
+from .commands.queries import queries_grp, reports_grp
 from .output import OUTPUT_FORMAT
 
 logger = logging.getLogger("rich")
@@ -63,6 +63,7 @@ def services(ctx):
 
 services.add_command(queries_grp)
 services.add_command(process_grp)
+services.add_command(reports_grp)
 
 
 @click.group()

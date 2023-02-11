@@ -44,8 +44,8 @@ def reports_grp(ctx):
 @reports_grp.group(name="stub", help="stub.")
 @click.pass_context
 def generate_report(ctx):
-    """A report operations"""
-    pass
+    """A report operation"""
+    click.echo("generate report")
 
 
 # ------------------------------------------------------------------------- Queries
