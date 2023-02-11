@@ -51,11 +51,11 @@ def get_product_contain_component(ctx, component_name, purl, namespace):
         click.echo(ctx.get_help())
         exit(0)
     if component_name:
-        q = core_queries.products_containing_component_query()
-        cprint(q.execute({"component_name": component_name, "namespace": namespace}), ctx=ctx)
+        q = core_queries.products_containing_component_query(ctx.params)
+        cprint(q.execute(), ctx=ctx)
     if purl:
-        q = core_queries.products_containing_specific_component_query()
-        cprint(q.execute({"purl": purl}), ctx=ctx)
+        q = core_queries.products_containing_specific_component_query(ctx.params)
+        cprint(q.execute(), ctx=ctx)
 
 
 @queries_grp.command(
@@ -74,23 +74,15 @@ def get_component_contain_component(ctx, component_name, purl, component_type, n
         click.echo(ctx.get_help())
         exit(0)
     if component_name:
-        q = core_queries.components_containing_component_query()
+        q = core_queries.components_containing_component_query(ctx.params)
         cprint(
-            q.execute(
-                {
-                    "component_name": component_name,
-                    "component_type": component_type,
-                    "namespace": namespace,
-                }
-            ),
+            q.execute(),
             ctx=ctx,
         )
     if purl:
-        q = core_queries.components_containing_specific_component_query()
+        q = core_queries.components_containing_specific_component_query(ctx.params)
         cprint(
-            q.execute(
-                {"purl": purl, "component_type": component_type},
-            ),
+            q.execute(),
             ctx=ctx,
         )
 
@@ -117,8 +109,8 @@ def get_product_query(ctx, inactive, ofuri, product_stream_name):
     if not product_stream_name and not ofuri:
         click.echo(ctx.get_help())
         exit(0)
-    q = core_queries.product_stream_summary()
-    cprint(q.execute(product_stream_name, ofuri), ctx=ctx)
+    q = core_queries.product_stream_summary(ctx.params)
+    cprint(q.execute(), ctx=ctx)
 
 
 @queries_grp.command(
@@ -162,8 +154,8 @@ def get_product_latest_components_query(ctx, ofuri, product_stream_name):
         cond["ofuri"] = ofuri
     if product_stream_name:
         # lookup ofuri
-        q = core_queries.product_stream_summary()
-        ofuri = q.execute(product_stream_name, None)["ofuri"]
+        q = core_queries.product_stream_summary(ctx.params)
+        ofuri = q.execute()["ofuri"]
         cond["ofuri"] = ofuri
     ctx.invoke(list_components, **cond)
 
@@ -187,37 +179,10 @@ def get_product_all_components_query(ctx, ofuri, product_stream_name):
         cond["product_stream_ofuri"] = ofuri
     if product_stream_name:
         # lookup ofuri
-        q = core_queries.product_stream_summary()
-        ofuri = q.execute(product_stream_name, None)["ofuri"]
+        q = core_queries.product_stream_summary(ctx.params)
+        ofuri = q.execute()["ofuri"]
         cond["product_stream_ofuri"] = ofuri
     ctx.invoke(list_components, **cond)
-
-
-# TODO - depends on future shipped filter
-# @queries_grp.command(
-#     name="get-product-shipped-components",
-#     help="(FUTURE DEV) Get Product Stream shipped components.",
-# )
-# @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
-# @click.option(
-#     "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
-# )
-# @click.pass_context
-# def get_product_shipped_components_query(ctx, ofuri, product_stream_name):
-#     """List components of a specific product version."""
-#     if not ofuri and not product_stream_name:
-#         click.echo(ctx.get_help())
-#         exit(0)
-#     cond = {}
-#     if ofuri:
-#         cond["ofuri"] = ofuri
-#     if product_stream_name:
-#         # lookup ofuri
-#         q = core_queries.product_stream_summary()
-#         ofuri = q.execute(product_stream_name, None)["ofuri"]
-#         cond["ofuri"] = ofuri
-#     ctx.invoke(list_components, **cond)
-#
 
 
 @queries_grp.command(
@@ -238,24 +203,6 @@ def retrieve_component_manifest(ctx, component_uuid, purl):
     if purl:
         cond["purl"] = purl
     ctx.invoke(get_component_manifest, **cond)
-
-
-# ----------------------------------------------------------- Expiremental
-
-
-@core_grp.command(name="component-cves", help="List CVEs affecting a component.")
-@click.option("--purl")
-@click.option("--affectedness")
-@click.pass_context
-@progress_bar
-def cves_for_specific_component_query(ctx, purl, affectedness):
-    """List cves of a specific component."""
-    if not purl:
-        click.echo(ctx.get_help())
-        exit(0)
-    q = exp.cves_for_specific_component_query()
-    assert isinstance(q, Query)
-    cprint(q.execute({"purl": purl, "affectedness": affectedness}), ctx=ctx)
 
 
 @queries_grp.command(
@@ -300,21 +247,46 @@ def components_affected_by_specific_cve_query(
     if not cve_id:
         click.echo(ctx.get_help())
         exit(0)
-    q = core_queries.components_affected_by_specific_cve_query()
+    q = core_queries.components_affected_by_specific_cve_query(ctx.params)
     assert isinstance(q, Query)
     cprint(
-        q.execute(
-            {
-                "cve_id": cve_id,
-                "affectedness": affectedness,
-                "affect_resolution": affect_resolution,
-                "affect_impact": affect_impact,
-                "component_type": component_type,
-                "namespace": namespace,
-            }
-        ),
+        q.execute(),
         ctx=ctx,
     )
+
+
+@queries_grp.command(
+    name="products-affected-by-cve",
+    help="(Under development) List products affected by CVE.",
+)
+@click.option("--cve-id", shell_complete=get_cve_ids)
+@click.pass_context
+@progress_bar
+def product_versions_affected_by_cve_query(ctx, cve_id):
+    """List products affected by a CVE."""
+    if not cve_id:
+        click.echo(ctx.get_help())
+        exit(0)
+    q = core_queries.products_versions_affected_by_specific_cve_query(ctx.params)
+    cprint(q.execute(), ctx=ctx)
+
+
+# ----------------------------------------------------------- Expiremental
+
+
+@core_grp.command(name="component-cves", help="List CVEs affecting a component.")
+@click.option("--purl")
+@click.option("--affectedness")
+@click.pass_context
+@progress_bar
+def cves_for_specific_component_query(ctx, purl, affectedness):
+    """List cves of a specific component."""
+    if not purl:
+        click.echo(ctx.get_help())
+        exit(0)
+    q = exp.cves_for_specific_component_query()
+    assert isinstance(q, Query)
+    cprint(q.execute({"purl": purl, "affectedness": affectedness}), ctx=ctx)
 
 
 @core_grp.command(
@@ -362,19 +334,3 @@ def cves_for_specific_product_query(
         ),
         ctx=ctx,
     )
-
-
-@queries_grp.command(
-    name="products-affected-by-cve",
-    help="(Under development) List products affected by CVE.",
-)
-@click.option("--cve-id", shell_complete=get_cve_ids)
-@click.pass_context
-@progress_bar
-def product_versions_affected_by_cve_query(ctx, cve_id):
-    """List products affected by a CVE."""
-    if not cve_id:
-        click.echo(ctx.get_help())
-        exit(0)
-    q = core_queries.products_versions_affected_by_specific_cve_query()
-    cprint(q.execute({"cve_id": cve_id}), ctx=ctx)

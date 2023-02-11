@@ -25,7 +25,7 @@ class DEST(enum.Enum):
     FILE = "file"
 
 
-def raw_json_transform(data, show_count: bool):
+def raw_json_transform(data, show_count: bool) -> dict:
     """normalise all data to dict"""
     if type(data) is list:
         results = []
@@ -38,7 +38,7 @@ def raw_json_transform(data, show_count: bool):
             "results": results,
         }
         if show_count:
-            output["count"] = len(results)
+            output["count"] = len(results)  # type: ignore
     else:
         if type(data) is dict:
             output = data
@@ -63,7 +63,7 @@ def entity_type(data):
 def cprint(
     data,
     dest=DEST.CONSOLE,
-    filename: str = None,
+    filename=None,
     ctx=None,
     show_count: bool = True,
 ):
@@ -115,8 +115,6 @@ def cprint(
 
     if format is OUTPUT_FORMAT.TABLE:
         table = Table(title="Output")
-        if type(output) == list:
-            pass
         if "results" in output:
             for row in output["results"]:
                 if "affectedness" in row:
