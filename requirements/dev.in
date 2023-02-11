@@ -2,5 +2,5 @@
 -r lint.txt
 -r test.txt
 ipdb
-ipython
+ipython == 8.10
 pip-tools
