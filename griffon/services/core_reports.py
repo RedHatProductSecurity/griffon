@@ -15,17 +15,23 @@ logger = logging.getLogger("rich")
 class example_affects_report:
     """ """
 
-    name = "top_ten_affected_components"
+    name = "example_affects_report"
     description = " "
+    allowed_params = ["show_components", "show_products", "purl", "name", "ofuri", "product_name"]
 
-    def __init__(self) -> None:
+    def __init__(self, params) -> None:
         self.corgi_session = CorgiService.create_session()
         self.osidb_session = OSIDBService.create_session()
+        self.params = params
 
-    def execute(self, ctx) -> dict:
+    def generate(self) -> dict:
 
-        show_components = ctx.get("show_components")
-        show_products = ctx.get("show_components")
+        show_components = self.params["show_components"]
+        show_products = self.params["show_products"]
+        purl = self.params["purl"]
+        component_name = self.params["name"]
+        ofuri = self.params["ofuri"]
+        product_name = self.params["product_name"]
 
         affects = self.osidb_session.affects.retrieve_list()
 
@@ -141,6 +147,26 @@ class example_affects_report:
             important["products"] = important_products
             moderate["products"] = moderate_products
             low["products"] = low_products
+
+        report = {
+            "title": "Example Affects report",
+            "ts": str(datetime.now()),
+            "total_affects": affects.count,
+            "total_affected": affects_affected.count,
+            "critical": critical,
+            "important": important,
+            "moderate": moderate,
+            "low": low,
+        }
+
+        if purl:
+            report["purl"] = purl
+        if component_name:
+            report["component_name"] = component_name
+        if ofuri:
+            report["product_ofuri"] = ofuri
+        if product_name:
+            report["product"] = product_name
 
         return {
             "title": "Example Affects report",

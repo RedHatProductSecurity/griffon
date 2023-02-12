@@ -16,6 +16,7 @@ class products_versions_affected_by_specific_cve_query:
 
     name = "product-versions-affected-by-specific-cve"
     description = "Given a specific CVE ID, what product versions are affected?"
+    allowed_params = ["cve_id"]
 
     def __init__(self, params: dict) -> None:
         self.osidb_session = OSIDBService.create_session()
@@ -50,6 +51,7 @@ class products_containing_specific_component_query:
 
     name = "products_containing_specific_component_query"
     description = "What products contain a specific component?"
+    allowed_params = ["component_name", "purl", "namespace"]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
@@ -68,6 +70,7 @@ class products_containing_component_query:
 
     name = "products_containing_component_query"
     description = "What products contain a component?"
+    allowed_params = ["component_name", "purl", "namespace"]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
@@ -103,6 +106,7 @@ class product_stream_summary:
 
     name = "product_stream_summary"
     description = "retrieve product_stream summary"
+    allowed_params = ["product_stream_name", "ofuri", "inactive"]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
@@ -142,6 +146,7 @@ class components_containing_specific_component_query:
 
     name = "components_containing_specific_component_query"
     description = "What components contain a specific component?"
+    allowed_params = ["component_name", "purl", "component_type", "namespace"]
 
     def __init__(self, params: dict):
         self.corgi_session = CorgiService.create_session()
@@ -171,6 +176,7 @@ class components_containing_component_query:
 
     name = "components_containing_component_query"
     description = "What components contain a component?"
+    allowed_params = ["component_name", "purl", "component_type", "namespace"]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
@@ -212,6 +218,14 @@ class components_affected_by_specific_cve_query:
 
     name = "components_affected_by_specific_cve_query"
     description = "Given a CVE ID, what components are affected?"
+    allowed_params = [
+        "cve_id",
+        "affectedness",
+        "affect_resolution",
+        "affect_impact",
+        "component_type",
+        "namespace",
+    ]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
