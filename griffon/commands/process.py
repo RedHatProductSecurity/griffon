@@ -9,9 +9,11 @@ from requests import HTTPError
 from griffon import progress_bar
 from griffon.exceptions import catch_exception
 from griffon.output import cprint
-from griffon.services import Process, core_process
+from griffon.services import ProcessService, core_process
 
 logger = logging.getLogger("rich")
+
+process_service = ProcessService()
 
 
 @click.group(name="process", help="Service operations that perform mutations/write.")
@@ -32,6 +34,9 @@ def generate_affects_for_component_process(ctx, purl, cve_id):
     if not purl and not cve_id:
         click.echo(ctx.get_help())
         exit(0)
-    q = core_process.generate_affects_for_specific_component_process(ctx.params)
-    assert isinstance(q, Process)
-    cprint(q.execute(), ctx=ctx)
+    cprint(
+        process_service.invoke(
+            core_process.generate_affects_for_specific_component_process, ctx.params
+        ),
+        ctx=ctx,
+    )

@@ -1,8 +1,12 @@
-python3=`which python3`
+podman=`which podman`
+tox=python3=`which python3`
 tox=`which tox`
 pc=`which pip-compile`
 ps=`which pip-sync`
 openssl=`which openssl`
+
+build: Containerfile
+	$(podman) build --tag localhost/griffon .
 
 test-all:
 	$(tox)
@@ -11,20 +15,23 @@ test:
 	black .
 	$(tox)
 
+smoke-tests:
+	scripts/smoke-tests.sh
+
 compile-deps:
 	$(pc) --generate-hashes --allow-unsafe requirements/base.in
 	$(pc) --generate-hashes --allow-unsafe requirements/test.in
 	$(pc) --generate-hashes --allow-unsafe requirements/lint.in
 	$(pc) --generate-hashes --allow-unsafe requirements/dev.in
 
-install:
-	pip install .
-
 install-dev-deps:
 	pip3 install -r requirements/dev.txt
 
 sync-dev-deps:
 	pip-sync requirements/dev.txt
+
+install:
+	pip install .
 
 shell:
 	ipython
