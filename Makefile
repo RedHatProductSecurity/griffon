@@ -1,8 +1,12 @@
-python3=`which python3`
+podman=`which podman`
+tox=python3=`which python3`
 tox=`which tox`
 pc=`which pip-compile`
 ps=`which pip-sync`
 openssl=`which openssl`
+
+build: Containerfile
+	$(podman) build --tag localhost/griffon .
 
 test-all:
 	$(tox)
