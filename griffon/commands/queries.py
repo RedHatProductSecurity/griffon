@@ -160,7 +160,7 @@ def get_product_latest_components_query(ctx, ofuri, product_stream_name):
         cond["ofuri"] = ofuri
     if product_stream_name:
         # lookup ofuri
-        q = core_queries.product_stream_summary(ctx.params)
+        q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
         ofuri = q["ofuri"]
         cond["ofuri"] = ofuri
     ctx.invoke(list_components, **cond)

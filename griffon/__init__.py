@@ -75,7 +75,7 @@ class OSIDBService:
         try:
             return osidb_bindings.new_session(osidb_server_uri=OSIDB_API_URL)
         except:  # noqa
-            console.log(f"{OSIDB_API_URL} is not accessible.")
+            console.log(f"{OSIDB_API_URL} is not accessible (or krb ticket has expired).")
             exit(1)
 
     @staticmethod
