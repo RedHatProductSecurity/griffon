@@ -109,6 +109,10 @@ osidb-bindings==2.1.0 \
     --hash=sha256:9f5f3811c82c81d0451e0353abc7dd382979681e1c047a7d0db41b661f7f04cd \
     --hash=sha256:a7d6b0189fed00538485b216d5169f36f655b58124f8bf10fb7f23285b037121
     # via -r requirements/base.in
+packageurl-python==0.10.4 \
+    --hash=sha256:5c91334f942cd55d45eb0c67dd339a535ef90e25f05b9ec016ad188ed0ef9048 \
+    --hash=sha256:bf8a1ffe755634776f6563904d792fb0aa13b377fc86115c36fe17f69b6e59db
+    # via -r requirements/base.in
 pygments==2.14.0 \
     --hash=sha256:b3ed06a9e8ac9a9aae5a6f5dbe78a8a58655d17b43b93c078f094ddc476ae297 \
     --hash=sha256:fa7bd7bd2771287c0de303af8bfdfc731f51bd2c6a47ab69d117138893b82717

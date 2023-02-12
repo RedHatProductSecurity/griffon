@@ -3,6 +3,7 @@ import json
 import logging
 
 import click
+from packageurl import PackageURL
 from rich import inspect
 from rich.console import Console
 from rich.table import Table
@@ -89,8 +90,24 @@ def cprint(
                         "sources:",
                     )
                     ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
-                    for source in ordered_sources:
-                        console.print(source["purl"])
+                    for row in ordered_sources:
+                        purl = PackageURL.from_string(row["purl"])
+                        if not purl.namespace:
+                            namespace = "UPSTREAM"
+                            ns = Text(namespace)
+                            ns.stylize("bold magenta")
+                        else:
+                            namespace = purl.namespace.upper()
+                            ns = Text(namespace)
+                            ns.stylize("bold red")
+
+                        console.print(
+                            ns,
+                            purl.type.upper(),
+                            Text(purl.name, style="bold white"),
+                            purl.version,
+                            purl.qualifiers.get("arch"),
+                        )
             else:
                 console.print("link:", output["link"])
                 console.print("name:", output["name"])
@@ -112,7 +129,7 @@ def cprint(
                     product_name.stylize("bold magenta")
                     if "component_purl" in row:
                         component_purl = row["component_purl"]
-                    console.print(product_name, " ", component_purl, no_wrap=True)
+                    console.print(product_name, component_purl, no_wrap=True)
             ctx.exit(0)
 
         if ctx.info_name == "product-summary":
@@ -132,11 +149,23 @@ def cprint(
             ordered_affects = sorted(output["affects"], key=lambda d: d["product_version_name"])
             for affect in ordered_affects:
                 for component in affect["components"]:
+                    purl = PackageURL.from_string(component["purl"])
+                    if not purl.namespace:
+                        namespace = "UPSTREAM"
+                        ns = Text(namespace)
+                        ns.stylize("bold magenta")
+                    else:
+                        namespace = purl.namespace.upper()
+                        ns = Text(namespace)
+                        ns.stylize("bold red")
+
                     console.print(
                         affect["product_version_name"],
-                        " ",
-                        affect["component_name"],
-                        component["purl"],
+                        ns,
+                        purl.type.upper(),
+                        Text(purl.name, style="bold white"),
+                        purl.version,
+                        purl.qualifiers.get("arch"),
                         no_wrap=True,
                     )
             ctx.exit(0)
@@ -155,31 +184,47 @@ def cprint(
 
         if ctx.info_name == "list":
             if "results" in output and output["count"] > 0:
-                for row in output["results"]:
-                    if "purl" in row:
-                        console.print(row["purl"], no_wrap=True)
-                    if "cve_id" in row:
+                if "purl" in output["results"][0]:
+                    ordered_components = sorted(output["results"], key=lambda d: d["name"])
+                    for row in ordered_components:
+                        if "purl" in row:
+                            purl = PackageURL.from_string(row["purl"])
+                            if not purl.namespace:
+                                namespace = "UPSTREAM"
+                                ns = Text(namespace)
+                                ns.stylize("bold magenta")
+                            else:
+                                namespace = purl.namespace.upper()
+                                ns = Text(namespace)
+                                ns.stylize("bold red")
+
+                            console.print(
+                                ns,
+                                purl.type.upper(),
+                                Text(purl.name, style="bold white"),
+                                purl.version,
+                                purl.qualifiers.get("arch"),
+                            )
+                if "cve_id" in output["results"][0]:
+                    for row in output["results"]:
                         console.print(
                             row["title"],
-                            " ",
                             row["state"],
-                            " ",
                             row["impact"],
-                            " ",
                             row["resolution"],
                             no_wrap=True,
                         )
-                    if "external_system_id" in row:
+                if "external_system_id" in output["results"][0]:
+                    for row in output["results"]:
                         console.print(
                             row["external_system_id"],
-                            " ",
                             row["type"],
-                            " ",
                             row["status"],
                             no_wrap=True,
                         )
-                    if "ofuri" in row:
-                        console.print(row["name"], " ", row["ofuri"], no_wrap=True)
+                if "ofuri" in output["results"][0]:
+                    for row in output["results"]:
+                        console.print(row["name"], row["ofuri"], no_wrap=True)
             ctx.exit(0)
 
         if ctx.info_name == "get":
