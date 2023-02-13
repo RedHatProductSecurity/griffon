@@ -117,7 +117,23 @@ def cprint(
                 )
                 ordered_sources = sorted(output["sources"], key=lambda d: d["purl"])
                 for source in ordered_sources:
-                    console.print(source["purl"])
+                    purl = PackageURL.from_string(source["purl"])
+                    if not purl.namespace:
+                        namespace = "UPSTREAM"
+                        ns = Text(namespace)
+                        ns.stylize("bold magenta")
+                    else:
+                        namespace = purl.namespace.upper()
+                        ns = Text(namespace)
+                        ns.stylize("bold red")
+
+                    console.print(
+                        ns,
+                        purl.type.upper(),
+                        Text(purl.name, style="bold white"),
+                        purl.version,
+                        purl.qualifiers.get("arch"),
+                    )
             ctx.exit(0)
 
         if ctx.info_name == "product-contain-component":
@@ -125,11 +141,27 @@ def cprint(
             if "results" in output and output["count"] > 0:
                 ordered_results = sorted(output["results"], key=lambda d: d["name"])
                 for row in ordered_results:
-                    product_name = Text(row["name"])
-                    product_name.stylize("bold magenta")
                     if "component_purl" in row:
                         component_purl = row["component_purl"]
-                    console.print(product_name, component_purl, no_wrap=True)
+                    purl = PackageURL.from_string(component_purl)
+                    if not purl.namespace:
+                        namespace = "UPSTREAM"
+                        ns = Text(namespace)
+                        ns.stylize("bold magenta")
+                    else:
+                        namespace = purl.namespace.upper()
+                        ns = Text(namespace)
+                        ns.stylize("bold red")
+
+                    console.print(
+                        Text(row["name"], style="bold white"),
+                        ns,
+                        purl.type.upper(),
+                        Text(purl.name, style="bold white"),
+                        purl.version,
+                        purl.qualifiers.get("arch"),
+                        no_wrap=True,
+                    )
             ctx.exit(0)
 
         if ctx.info_name == "product-summary":
