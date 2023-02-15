@@ -1,5 +1,7 @@
+import configparser
 import logging
 import os
+from configparser import ConfigParser
 from functools import partial, wraps
 
 import corgi_bindings
@@ -13,6 +15,9 @@ __version__ = "0.1.0"
 CORGI_API_URL = os.environ["CORGI_API_URL"]
 OSIDB_API_URL = os.environ["OSIDB_API_URL"]
 
+GRIFFON_CONFIG_DIR = os.getenv("GRIFFON_API_URL", "~/.griffon")
+GRIFFON_RC_FILE = "~/.griffonrc"
+
 logger = logging.getLogger("rich")
 
 
@@ -20,6 +25,20 @@ def get_logging(level="INFO"):
     FORMAT = "%(message)s"
     logging.basicConfig(level=level, format=FORMAT, datefmt="[%X]", handlers=[RichHandler()])
     return logging.getLogger("rich")
+
+
+def get_config():
+    """read ~/.griffonrc ini file, if it does not exist then return some default config"""
+    if not os.path.exists(os.path.expanduser(GRIFFON_RC_FILE)):
+        config = configparser.ConfigParser(allow_no_value=True)
+        config.optionxform = str
+        config.add_section("default")
+        config["default"]["format"] = "text"
+        config.add_section("exclude")
+        return config
+    config = ConfigParser()
+    config.read(os.path.expanduser(GRIFFON_RC_FILE))
+    return config
 
 
 class CorgiService:

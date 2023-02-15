@@ -6,7 +6,7 @@ import logging
 import click
 import click_completion
 
-from griffon import get_logging
+from griffon import get_config, get_logging
 
 from .commands.configure import configure_grp
 from .commands.docs import docs_grp
@@ -21,6 +21,8 @@ from .output import OUTPUT_FORMAT
 logger = logging.getLogger("rich")
 
 click_completion.init()
+
+griffon_config = get_config()
 
 
 @click.group()
@@ -90,7 +92,7 @@ docs.add_command(docs_grp)
 @click.option(
     "--format",
     type=click.Choice([el.value for el in OUTPUT_FORMAT]),
-    default="json",
+    default=griffon_config["default"]["format"],
 )
 @click.pass_context
 def cli(ctx, debug, format):
