@@ -11,8 +11,6 @@ Otherwise, please read the (under development) [tutorial](tutorial.md).
 
 ### Install software
 
-***WARNING-COMPONENT-REGISTRY bindings are not yet deployed on PyPI - will have to install manually from gitlab repo.***
-
 You will need the following dependencies installed
 
 * python39
@@ -35,6 +33,14 @@ Install python requirements and the griffon app
 > pip install -r requirements/base.txt
 > pip install .
 ```
+
+The component-registy-bindings dependency is not yet in PYPI (but on github) and must
+be installed manually
+```commandline
+> pip install pip install -e git+https://github.com/RedHatProductSecurity/component-registry-bindings#egg=component_registry_bindings
+```
+
+
 As we are under heavy development ... to pick up latest changes (after initial
 installation)
 ```commandline
@@ -84,6 +90,33 @@ eval "$(_GRIFFON_COMPLETE=zsh_source griffon)"
 ensuring to source (ex. source ~/.zshrc) to pickup the change. 
 
 https://click.palletsprojects.com/en/8.1.x/shell-completion/
+
+## Building and running container
+
+First set some env vars
+
+```commandline
+export CORGI_API_URL=<INSERT COMPONENT REGISTRY URL>
+export OSIDB_API_URL=<INESRT OSIDB URL>
+export REQUESTS_CA_BUNDLE=<INSERT CA BUNDLE PATH>
+export PIP_INDEX_URL=<INSERT PIP INDEX URL>
+export ROOT_CA_URL=<INSERT ROOT CA URL >
+```
+then run make target for building container
+
+```commandline
+> make build
+```
+
+Once the container is successfully built 
+
+```commandline
+> podman run --privileged -it -v /etc/krb5.conf:/etc/krb5.conf localhost/griffon:latest
+```
+then you will have to kinit with your user name (inside the container) before you use 
+griffon.
+
+**Note** - This is a temporary container eg. 
 
 ## Writing custom plugins
 
