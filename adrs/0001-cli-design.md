@@ -308,3 +308,6 @@ We could consider using https://github.com/click-contrib/click-plugins enabling 
 and dynamic registration of 3rd party plugins ... current approach is simple though we could
 consider a change at any time in the future.
 
+Providing plugins as a way to facilitate integration/automation with 3rd party services may overlap 
+with existing assembler functionality - for now we can consider such plugins as a form of incubation
+that may eventually be promoted to assembler.
