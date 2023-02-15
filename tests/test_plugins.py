@@ -16,3 +16,9 @@ def test_fcc():
     runner = CliRunner()
     result = runner.invoke(cli, ["z_fcc"])
     assert result.exit_code == 0
+
+
+def test_fcc():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["z_go_vuln"])
+    assert result.exit_code == 0
