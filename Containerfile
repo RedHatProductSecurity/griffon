@@ -36,10 +36,7 @@ RUN dnf --nodocs --setopt install_weak_deps=false -y install \
     && dnf clean all
 
 # TODO - this will be removed once we ship corgi_bindings to pypi
-RUN pip install -e "${CORGI_BINDINGS_GITLAB_INTERNAL}#egg=corgi_bindings"
-
-ENV CORGI_API_URL=https://corgi-stage.prodsec.redhat.com
-ENV OSIDB_API_URL=https://osidb.prodsec.redhat.com
+RUN  pip install pip install -e "git+https://github.com/RedHatProductSecurity/component-registry-bindings#egg=component_registry_bindings"
 
 WORKDIR /opt/app-root/src/
 

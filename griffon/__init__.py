@@ -4,7 +4,7 @@ import os
 from configparser import ConfigParser
 from functools import partial, wraps
 
-import corgi_bindings
+import component_registry_bindings
 import osidb_bindings
 from rich.logging import RichHandler
 
@@ -50,7 +50,9 @@ class CorgiService:
     def create_session():
         """init corgi session"""
         try:
-            return corgi_bindings.new_session(corgi_server_uri=CORGI_API_URL)
+            return component_registry_bindings.new_session(
+                component_registry_server_uri=CORGI_API_URL
+            )
         except:  # noqa
             console.log(f"{CORGI_API_URL} is not accessible.")
             exit(1)
@@ -58,12 +60,16 @@ class CorgiService:
     @staticmethod
     def get_component_types():
         """get component type enum"""
-        return corgi_bindings.bindings.python_client.models.component_type_enum.ComponentTypeEnum
+        return (
+            component_registry_bindings.bindings.python_client.models.component_type_enum.ComponentTypeEnum  # noqa
+        )
 
     @staticmethod
     def get_component_namespaces():
         """get component namespaces enum"""
-        return corgi_bindings.bindings.python_client.models.namespace_enum.NamespaceEnum
+        return (
+            component_registry_bindings.bindings.python_client.models.namespace_enum.NamespaceEnum
+        )
 
     @staticmethod
     def get_component_arches():
