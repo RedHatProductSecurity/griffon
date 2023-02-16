@@ -71,8 +71,8 @@ def cprint(
     """handle format and output"""
     output = raw_json_transform(data, show_count)
     format = OUTPUT_FORMAT.JSON
-    if ctx and "FORMAT" in ctx.obj:
-        format = OUTPUT_FORMAT(ctx.obj["FORMAT"])
+    if ctx and "FORMAT" in ctx.params:
+        format = OUTPUT_FORMAT(ctx.params["format"])
 
     if format is OUTPUT_FORMAT.DEBUG:
         inspect(output)

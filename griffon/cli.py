@@ -94,19 +94,19 @@ docs.add_command(docs_grp)
     type=click.Choice([el.value for el in OUTPUT_FORMAT]),
     default=griffon_config["default"]["format"],
 )
+@click.option("-v", "verbose", count=True)
 @click.pass_context
-def cli(ctx, debug, format):
+def cli(ctx, debug, format, verbose):
     """Red Hat product security CLI"""
 
     if ctx.invoked_subcommand is None:
         click.echo(ctx.parent.get_help())
 
+    get_logging(level="INFO")
     if debug:
         get_logging(level="DEBUG")
 
     ctx.ensure_object(dict)
-    ctx.obj["DEBUG"] = debug
-    ctx.obj["FORMAT"] = format
 
 
 cli.help = "Red Hat Product Security CLI"
