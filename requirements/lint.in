@@ -1,7 +1,6 @@
-black
 detect-secrets
-flake8
-isort
+flake8==6.0.0
+isort==5.11.4
 tomli
 exceptiongroup
 typing-extensions
