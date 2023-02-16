@@ -1,3 +1,4 @@
+
 FROM quay.io/fedora/fedora:37
 
 LABEL maintainer="Red Hat Product Security Dev - Red Hat, Inc." \
@@ -5,11 +6,18 @@ LABEL maintainer="Red Hat Product Security Dev - Red Hat, Inc." \
       summary="Red Hat Product Security CLI." \
       distribution-scope="public"
 
-ARG PIP_INDEX_URL="https://pypi.org/simple"
+ARG PIP_INDEX_URL
+ARG ROOT_CA_URL
+ARG REQUESTS_CA_BUNDLE
+ARG CORGI_API_URL
+ARG OSIDB_API_URL
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=off \
     PIP_INDEX_URL="${PIP_INDEX_URL}" \
-    REQUESTS_CA_BUNDLE="${REQUESTS_CA_BUNDLE}"
+    REQUESTS_CA_BUNDLE="${REQUESTS_CA_BUNDLE}" \
+    ROOT_CA_URL="${ROOT_CA_URL}" \
+    CORGI_API_URL="${CORGI_API_URL}" \
+    OSIDB_API_URL="${OSIDB_API_URL}"
 
 RUN cd /etc/pki/ca-trust/source/anchors/ && \
     # The '| true' skips this step if the ROOT_CA_URL is unset or fails in another way
@@ -35,8 +43,10 @@ RUN dnf --nodocs --setopt install_weak_deps=false -y install \
     && dnf --nodocs --setopt install_weak_deps=false -y upgrade --security \
     && dnf clean all
 
-# TODO - this will be removed once we ship corgi_bindings to pypi
-RUN  pip install pip install -e "git+https://github.com/RedHatProductSecurity/component-registry-bindings#egg=component_registry_bindings"
+# # TODO - this will be removed once we ship corgi_bindings to pypi
+RUN pip3 install -e git+https://github.com/RedHatProductSecurity/component-registry-bindings#egg=component_registry_bindings
+
+COPY ./files/.zshrc /root/.zshrc
 
 WORKDIR /opt/app-root/src/
 
@@ -46,20 +56,15 @@ COPY ./requirements ./requirements
 # docker-compose may override this in the build step).
 RUN pip3 install -r "./requirements/base.txt"
 
-# TODO - remove once corgi-bindings is in pypi
-RUN pip3 install -e "${CORGI_BINDINGS_PIP_URI}"
-
 # Limit copied files to only the ones required to run the app
-COPY ./files/krb5.conf /etc
 COPY ./*.sh ./*.py ./
 COPY ./griffon ./griffon
 COPY ./README.md ./README.md
+COPY ./LICENSE ./LICENSE
 
 RUN pip3 install .
-
-# TODO - we need to grok 'autocompletion' in a container context
 
 RUN chgrp -R 0 /opt/app-root && \
     chmod -R g=u /opt/app-root
 
-ENTRYPOINT ["griffon"]
+ENTRYPOINT ["zsh"]
