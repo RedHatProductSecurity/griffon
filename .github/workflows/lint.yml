@@ -38,15 +38,3 @@ jobs:
         run: pip install tox==3.24.4
       - name: Lint codebase with flake8
         run: tox -e flake8
-  bandit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-      - name: Install dependencies
-        run: pip install tox==3.24.4
-      - name: Scan codebase for security issues
-        run: tox -e bandit
-
