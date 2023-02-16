@@ -2,7 +2,6 @@ black==22.12.0
 detect-secrets
 flake8==6.0.0
 isort==5.11.4
-bandit
 tomli
 exceptiongroup
 typing-extensions
