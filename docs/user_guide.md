@@ -11,8 +11,6 @@ Otherwise, please read the (under development) [tutorial](tutorial.md).
 
 ### Install software
 
-***WARNING-COMPONENT-REGISTRY bindings are not yet deployed on PyPI - will have to install manually from gitlab repo.***
-
 You will need the following dependencies installed
 
 * python39
@@ -20,11 +18,6 @@ You will need the following dependencies installed
 * krb5-workstation (provides access to OSIDB)
 * virtualenv (if you do not want to install python deps into your system)
 
-Clone git repo
-```commandline
-> git clone https://github.com/RedHatProductSecurity/griffon.git
-> cd griffon
-```
 Setup virtualenv (if you do not want griffon installed in your system)
 ```commandline
 > python3.9 -m venv venv
@@ -32,15 +25,7 @@ Setup virtualenv (if you do not want griffon installed in your system)
 ```
 Install python requirements and the griffon app
 ```commandline
-> pip install -r requirements/base.txt
-> pip install .
-```
-As we are under heavy development ... to pick up latest changes (after initial
-installation)
-```commandline
-> git fetch --all
-> git rebase origin/main
-> pip install .
+> pip install -e git+https://github.com/RedHatProductSecurity/griffon#egg=griffon
 ```
 
 **Note**- Eventually we will distribute via PyPI (**NOT SUPPORTED YET**) where 

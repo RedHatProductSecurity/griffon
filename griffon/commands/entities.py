@@ -259,7 +259,7 @@ def list_components(
     session = CorgiService.create_session()
 
     conditions = default_conditions
-    conditions["include_fields"] = "link,purl,type,name"
+    conditions["include_fields"] = "link,purl,nvr,version,type,name,upstreams,related_url"
 
     # TODO- condition union could be a separate helper function
 
@@ -304,8 +304,7 @@ def list_components(
                 try:
                     components.extend(future.result().results)
                 except Exception as exc:
-                    logger.info("%r generated an exception: %s" % (future, exc))
-                    exit(0)
+                    logger.warning("%r generated an exception: %s" % (future, exc))
 
             data = sorted(components, key=lambda d: d.purl)
             return cprint(data, ctx=ctx)

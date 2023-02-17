@@ -88,25 +88,36 @@ docs.add_command(docs_grp)
     cls=click.CommandCollection,
     sources=(configure, entities, services_grp, manage, docs, plugin_commands),
 )
-@click.option("--debug", is_flag=True)
+@click.option("--debug", is_flag=True, help="Debug log level.")
+@click.option("--show-purl", is_flag=True, help="Display full purl.")
 @click.option(
     "--format",
     type=click.Choice([el.value for el in OUTPUT_FORMAT]),
     default=griffon_config["default"]["format"],
+    help="Result format (default is text).",
 )
+@click.option(
+    "-v",
+    "verbose",
+    count=True,
+    help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
+)  # noqa
 @click.pass_context
-def cli(ctx, debug, format):
+def cli(ctx, debug, show_purl, format, verbose):
     """Red Hat product security CLI"""
 
     if ctx.invoked_subcommand is None:
         click.echo(ctx.parent.get_help())
 
+    get_logging(level="INFO")
     if debug:
         get_logging(level="DEBUG")
 
     ctx.ensure_object(dict)
     ctx.obj["DEBUG"] = debug
+    ctx.obj["SHOW_PURL"] = show_purl
     ctx.obj["FORMAT"] = format
+    ctx.obj["VERBOSE"] = verbose
 
 
 cli.help = "Red Hat Product Security CLI"

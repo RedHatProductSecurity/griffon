@@ -4,12 +4,11 @@ import logging
 
 import click
 from packageurl import PackageURL
-from rich import inspect
 from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 
-console = Console()
+console = Console(color_system="auto")
 
 logger = logging.getLogger("rich")
 
@@ -18,7 +17,6 @@ class OUTPUT_FORMAT(enum.Enum):
     JSON = "json"
     TEXT = "text"
     TABLE = "table"
-    DEBUG = "debug"
 
 
 class DEST(enum.Enum):
@@ -61,6 +59,27 @@ def entity_type(data):
     return entity_type
 
 
+def component_type_style(type):
+    from griffon import CorgiService
+
+    types = [type.value for type in CorgiService.get_component_types()]
+    colors = (
+        "cornflower_blue",
+        "red",
+        "dark_slate_gray1",
+        "magenta",
+        "navy_blue",
+        "green1",
+        "blue",
+        "dark_orange",
+        "deep_pink1",
+        "red1",
+        "green1",
+    )
+    color = colors[types.index(type)]
+    return f"[{color}]{type}[/{color}]"
+
+
 def cprint(
     data,
     dest=DEST.CONSOLE,
@@ -74,132 +93,196 @@ def cprint(
     if ctx and "FORMAT" in ctx.obj:
         format = OUTPUT_FORMAT(ctx.obj["FORMAT"])
 
-    if format is OUTPUT_FORMAT.DEBUG:
-        inspect(output)
-
     if format is OUTPUT_FORMAT.TEXT:
         # TODO - we may want something a bit more full featured for templating ... opting for
-        #    simple for now.
-        if ctx.info_name == "components-contain-component":
-            if "results" in output:
-                for item in output["results"]:
-                    console.print("link:", item["link"])
-                    console.print("name:", item["name"])
-                    console.print("purl:", item["purl"])
-                    console.print(
-                        "sources:",
-                    )
-                    ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
-                    for row in ordered_sources:
-                        purl = PackageURL.from_string(row["purl"])
-                        if not purl.namespace:
-                            namespace = "UPSTREAM"
-                            ns = Text(namespace)
-                            ns.stylize("bold magenta")
-                        else:
-                            namespace = purl.namespace.upper()
-                            ns = Text(namespace)
-                            ns.stylize("bold red")
-
-                        console.print(
-                            ns,
-                            purl.type.upper(),
-                            Text(purl.name, style="bold white"),
-                            purl.version,
-                            purl.qualifiers.get("arch"),
-                        )
-            else:
-                console.print("link:", output["link"])
-                console.print("name:", output["name"])
-                console.print("purl:", output["purl"])
-                console.print(
-                    "sources:",
-                )
-                ordered_sources = sorted(output["sources"], key=lambda d: d["purl"])
-                for source in ordered_sources:
-                    purl = PackageURL.from_string(source["purl"])
-                    if not purl.namespace:
-                        namespace = "UPSTREAM"
-                        ns = Text(namespace)
-                        ns.stylize("bold magenta")
-                    else:
-                        namespace = purl.namespace.upper()
-                        ns = Text(namespace)
-                        ns.stylize("bold red")
-
-                    console.print(
-                        ns,
-                        purl.type.upper(),
-                        Text(purl.name, style="bold white"),
-                        purl.version,
-                        purl.qualifiers.get("arch"),
-                    )
-            ctx.exit(0)
-
-        if ctx.info_name == "product-contain-component":
-            component_purl = ctx.params["purl"]
-            if "results" in output and output["count"] > 0:
-                ordered_results = sorted(output["results"], key=lambda d: d["name"])
-                for row in ordered_results:
-                    if "component_purl" in row:
-                        component_purl = row["component_purl"]
-                    purl = PackageURL.from_string(component_purl)
-                    if not purl.namespace:
-                        namespace = "UPSTREAM"
-                        ns = Text(namespace)
-                        ns.stylize("bold magenta")
-                    else:
-                        namespace = purl.namespace.upper()
-                        ns = Text(namespace)
-                        ns.stylize("bold red")
-
-                    console.print(
-                        Text(row["name"], style="bold white"),
-                        ns,
-                        purl.type.upper(),
-                        Text(purl.name, style="bold white"),
-                        purl.version,
-                        purl.qualifiers.get("arch"),
-                        no_wrap=True,
-                    )
-            ctx.exit(0)
+        #    simple for now ... will DRY this once it stabilises.
 
         if ctx.info_name == "product-summary":
             for k, v in output.items():
-                key_name = Text(k)
-                key_name.stylize("bold magenta")
+                key_name = Text(k, style="bold magenta")
                 console.print(key_name, " : ", v, no_wrap=True)
             ctx.exit(0)
 
+        if ctx.info_name == "product-contain-component":
+            if "results" in output and output["count"] > 0:
+                ordered_results = sorted(output["results"], key=lambda d: d["name"])
+                for item in ordered_results:
+                    component = f"({item['component_purl']})"
+                    ns = ""
+                    arch = ""
+                    related_url = item["component_related_url"] or ""
+                    if not ctx.obj["SHOW_PURL"]:
+                        purl = PackageURL.from_string(item["component_purl"])
+                        component = f"([bold turquoise2]{ns}[/bold turquoise2] [white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
+                        if purl.qualifiers:
+                            if "arch" in purl.qualifiers and ctx.obj["VERBOSE"] > 0:
+                                arch = purl.qualifiers["arch"]
+                        ns = "UPSTREAM"
+                        if purl.namespace:
+                            ns = purl.namespace.upper()
+                            component = f"([white]{ns}[/white] [white]{purl.name}-{purl.version}[/white],{arch},{component_type_style(purl.type.upper())})"  # noqa
+                        if purl.namespace == "redhat":
+                            ns = purl.namespace.upper()
+                            component = f"([bold red]{ns}[/bold red] [white]{purl.name}-{purl.version}[/white],{arch},{component_type_style(purl.type.upper())})"  # noqa
+
+                    source_url = ""
+                    if "source" in item["component_software_build"]:
+                        source_url = item["component_software_build"].get("source")
+                    root_components = item["component_root_components"]
+                    if root_components:
+                        for component_root_component in root_components:
+                            root_component = component_root_component
+                            if not ctx.obj["SHOW_PURL"]:
+                                purl = PackageURL.from_string(component_root_component)
+                                root_component = purl.name
+                                if ctx.obj["VERBOSE"] > 0:
+                                    root_component = f"{purl.name}-{purl.version}"
+                            if ctx.obj["VERBOSE"] == 0:
+                                console.print(
+                                    Text(item["name"], style="bold magenta u"),
+                                    Text(root_component, style="white"),
+                                    component,
+                                    no_wrap=False,
+                                )
+                            if ctx.obj["VERBOSE"] == 1:
+                                console.print(
+                                    Text(item["name"], style="bold magenta u"),
+                                    Text(root_component, style="white"),
+                                    component,
+                                    related_url,
+                                    no_wrap=False,
+                                )
+                                console.print()
+                            if ctx.obj["VERBOSE"] > 1:
+                                purl = PackageURL.from_string(item["component_purl"])
+                                console.print(
+                                    Text(item["name"], style="bold magenta u"),
+                                    Text(root_component, style="white"),
+                                    component,
+                                    related_url,
+                                    Text(source_url, style="i"),
+                                    no_wrap=False,
+                                )
+                    else:
+                        root_component = component_root_component
+                        if not ctx.obj["SHOW_PURL"]:
+                            purl = PackageURL.from_string(component_root_component)
+                            root_component = purl.name
+                            if ctx.obj["VERBOSE"] > 0:
+                                root_component = f"{purl.name}-{purl.version}"
+
+                            purl = PackageURL.from_string(item["component_purl"])
+                            component = f"([bold turquoise2]{ns}[/bold turquoise2] [white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
+                            if purl.qualifiers:
+                                if "arch" in purl.qualifiers and ctx.obj["VERBOSE"] > 0:
+                                    arch = purl.qualifiers["arch"]
+                            ns = "UPSTREAM"
+                            if purl.namespace:
+                                ns = purl.namespace.upper()
+                                component = f"([white]{ns}[/white] [white]{purl.name}-{purl.version}[/white],{arch},{component_type_style(purl.type.upper())})"  # noqa
+                            if purl.namespace == "redhat":
+                                ns = purl.namespace.upper()
+                                component = f"([bold red]{ns}[/bold red] [white]{purl.name}-{purl.version}[/white],{arch},{component_type_style(purl.type.upper())})"  # noqa
+
+                        if ctx.obj["VERBOSE"] == 0:
+                            console.print(
+                                Text(item["name"], style="bold magenta u"),
+                                Text("none", style="white"),
+                                component,
+                                no_wrap=False,
+                            )
+                        if ctx.obj["VERBOSE"] == 1:
+                            console.print(
+                                Text(item["name"], style="bold magenta u"),
+                                Text("none", style="white"),
+                                component,
+                                related_url,
+                                no_wrap=False,
+                            )
+                            console.print()
+                        if ctx.obj["VERBOSE"] > 1:
+                            purl = PackageURL.from_string(item["component_purl"])
+                            console.print(
+                                Text(item["name"], style="bold magenta u"),
+                                Text("none", style="white"),
+                                component,
+                                related_url,
+                                Text(source_url, style="i"),
+                                no_wrap=False,
+                            )
+                ctx.exit(0)
+                # TODO - need specific purl output
+
+        if ctx.info_name == "components-contain-component":
+            console.print("source component | component")
+            if "results" in output:
+                for item in output["results"]:
+                    component = item["purl"]
+                    if not ctx.obj["SHOW_PURL"]:
+                        purl = PackageURL.from_string(item["purl"])
+                        ns = "UPSTREAM"
+                        component = f"([bold turquoise2]{ns}[/bold turquoise2] [white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
+                        if purl.namespace == "redhat":
+                            ns = purl.namespace.upper()
+                            component = f"([bold red]{ns}[/bold red] [white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
+                        if purl.namespace:
+                            ns = purl.namespace.upper()
+                            component = f"([white]{ns}[/white] [white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
+                    ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
+                    for source in ordered_sources:
+                        root_component = source["purl"]
+                        if not ctx.obj["SHOW_PURL"]:
+                            purl = PackageURL.from_string(source["purl"])
+                            root_component = f"[u magenta]{purl.name}-{purl.version}[/u magenta]"
+
+                        if ctx.obj["VERBOSE"] == 0:
+                            console.print(
+                                root_component,
+                                component,
+                                no_wrap=False,
+                            )
+                        if ctx.obj["VERBOSE"] == 1:
+                            console.print(
+                                root_component,
+                                component,
+                                no_wrap=False,
+                            )
+
+                        console.print(
+                            root_component,
+                            component,
+                        )
+                ctx.exit(0)
+            # TODO handle specific purl
+
         if ctx.info_name == "components-affected-by-cve":
-            console.print("link:", output["link"])
-            console.print("cve_id:", output["cve_id"])
-            console.print("title:", output["title"])
+            console.print("Flaw Title:", output["title"])
             console.print(
                 "affects:",
             )
             ordered_affects = sorted(output["affects"], key=lambda d: d["product_version_name"])
             for affect in ordered_affects:
-                for component in affect["components"]:
-                    purl = PackageURL.from_string(component["purl"])
-                    if not purl.namespace:
-                        namespace = "UPSTREAM"
-                        ns = Text(namespace)
-                        ns.stylize("bold magenta")
-                    else:
-                        namespace = purl.namespace.upper()
-                        ns = Text(namespace)
-                        ns.stylize("bold red")
-
-                    console.print(
-                        affect["product_version_name"],
-                        ns,
-                        purl.type.upper(),
-                        Text(purl.name, style="bold white"),
-                        purl.version,
-                        purl.qualifiers.get("arch"),
-                        no_wrap=True,
-                    )
+                if "components" in affect:
+                    for component in affect["components"]:
+                        affected_component1 = f"({component['purl']})"  # type: ignore
+                        if not ctx.obj["SHOW_PURL"]:
+                            purl = PackageURL.from_string(component["purl"])  # type: ignore
+                            ns = "UPSTREAM"
+                            if purl.namespace:
+                                ns = purl.namespace.upper()
+                            affected_component1 = f"([bold cyan]{ns}[/bold cyan] {purl.name}-{purl.version},{purl.type.upper()})"  # noqa
+                            if ctx.obj["VERBOSE"] == 0:
+                                console.print(
+                                    ns,
+                                    affected_component1,
+                                    no_wrap=True,
+                                )
+                            if ctx.obj["VERBOSE"] == 1:
+                                console.print(
+                                    ns,
+                                    affected_component1,
+                                    no_wrap=True,
+                                )
             ctx.exit(0)
 
         if ctx.info_name == "products-affected-by-cve":
@@ -222,19 +305,16 @@ def cprint(
                         if "purl" in row:
                             purl = PackageURL.from_string(row["purl"])
                             if not purl.namespace:
-                                namespace = "UPSTREAM"
-                                ns = Text(namespace)
-                                ns.stylize("bold magenta")
+                                component_ns = Text("UPSTREAM", style="bold magenta")
                             else:
-                                namespace = purl.namespace.upper()
-                                ns = Text(namespace)
-                                ns.stylize("bold red")
+                                component_ns = Text(purl.namespace.upper(), style="bold red")
 
                             console.print(
-                                ns,
+                                component_ns,
                                 purl.type.upper(),
                                 Text(purl.name, style="bold white"),
                                 purl.version,
+                                row["related_url"],
                                 purl.qualifiers.get("arch"),
                             )
                 if "cve_id" in output["results"][0]:
@@ -256,7 +336,9 @@ def cprint(
                         )
                 if "ofuri" in output["results"][0]:
                     for row in output["results"]:
-                        console.print(row["name"], row["ofuri"], no_wrap=True)
+                        console.print(
+                            Text(row["name"], style="magenta bold u"), row["ofuri"], no_wrap=True
+                        )
             ctx.exit(0)
 
         if ctx.info_name == "get":
@@ -266,8 +348,10 @@ def cprint(
                 console.print(key_name, " : ", v, no_wrap=True)
             ctx.exit(0)
 
+        if "results" in output and output["count"] == 0:
+            console.print("No results")
+            ctx.exit(1)
         console.print("WARNING: text version unsupported")
-        ctx.exit(1)
 
     # if "results" in output and output["count"] > 0:
     #     et = entity_type(output["results"][0])
@@ -306,16 +390,39 @@ def cprint(
     #         console.print(key_name, " : ", v, no_wrap=True)
 
     if format is OUTPUT_FORMAT.TABLE:
-        table = Table(title="Output")
-        if "results" in output:
-            for row in output["results"]:
-                if "affectedness" in row:
-                    table.add_row(row["ps_module"], row["ps_component"], row["affectedness"])
-                if "cve_id" in row:
-                    table.add_row(row["title"])
-                if "purl" in row:
-                    table.add_row(row["purl"])
-            console.print(table)
+        if ctx.info_name == "product-contain-component":
+            table = Table(title="Products containing component")
+            table.add_column("Product")
+            table.add_column("Source Component")
+            table.add_column("Component", justify="right")
+            table.add_column("Related url", justify="right")
+            table.add_column("Package source", justify="right")
+
+            if "results" in output and output["count"] > 0:
+                ordered_results = sorted(output["results"], key=lambda d: d["name"])
+                for row in ordered_results:
+                    component = row["component_purl"]
+                    if not ctx.obj["SHOW_PURL"]:
+                        purl = PackageURL.from_string(row["component_purl"])
+                        ns = "UPSTREAM"
+                        if purl.namespace:
+                            ns = purl.namespace.upper()
+                        component = f"([bold cyan]{ns}[/bold cyan] {purl.name}-{purl.version},{purl.type.upper()})"  # noqa
+
+                    for root_component in row["component_root_components"]:
+                        if not ctx.obj["SHOW_PURL"]:
+                            purl = PackageURL.from_string(root_component)
+                            root_component = purl.name
+
+                        table.add_row(
+                            Text(row["name"], style="bold magenta"),
+                            root_component,
+                            component,
+                            Text(row["component_related_url"], style="i"),
+                            row["component_software_build"].get("source"),
+                        )
+                console.print(table)
+                ctx.exit(0)
 
     if format is OUTPUT_FORMAT.JSON:
         if dest is DEST.CONSOLE:

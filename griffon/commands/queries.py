@@ -43,14 +43,23 @@ def core_grp(ctx):
 @click.option("--name", "component_name")
 @click.option("--purl")
 @click.option(
-    "--namespace", default="REDHAT", type=click.Choice(CorgiService.get_component_namespaces())
+    "--arch",
+    default="src",
+    type=click.Choice(CorgiService.get_component_arches()),
+    help="Default arch=src.",
 )
+@click.option(
+    "--namespace", default=None, type=click.Choice(CorgiService.get_component_namespaces())
+)
+@click.option("--type", "component_type", type=click.Choice(CorgiService.get_component_types()))
 @click.pass_context
 @progress_bar
-def get_product_contain_component(ctx, component_name, purl, namespace):
+def get_product_contain_component(ctx, component_name, purl, arch, namespace, component_type):
     """List components of a product version."""
     if not purl and not component_name:
         click.echo(ctx.get_help())
+        click.echo("")
+        click.echo("Must supply --name or --purl.")
         exit(0)
     if component_name:
         q = query_service.invoke(core_queries.products_containing_component_query, ctx.params)
