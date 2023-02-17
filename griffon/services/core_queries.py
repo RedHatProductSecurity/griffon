@@ -80,13 +80,32 @@ class products_containing_component_query:
         component_name = self.params["component_name"]
         cond = {}
         cond["name"] = component_name
-        components = self.corgi_session.components.retrieve_list(
-            **cond,
-            include_fields="uuid,name,purl,nvr,related_url,software_build,product_streams,sources",
-            limit=20,  # we need to do parallel queries here
-        )
+
+        components: List[Any] = []
+        logger.debug("starting parallel http requests")
+        component_cnt = self.corgi_session.components.retrieve_list(**cond).count
+        if component_cnt < 3000000:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = []
+                components = list()
+                for batch in range(0, component_cnt, 30):
+                    futures.append(
+                        executor.submit(
+                            self.corgi_session.components.retrieve_list,
+                            **cond,
+                            offset=batch,
+                            include_fields="uuid,name,purl,nvr,related_url,software_build,product_streams,sources",  # noqa
+                            limit=30,
+                        )
+                    )
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        components.extend(future.result().results)
+                    except Exception as exc:
+                        logger.warning("%r generated an exception: %s" % (future, exc))
+
         results = []
-        for component in components.results:
+        for component in components:
             logger.debug(component.sources)
             sources = []
             for source in component.sources:
@@ -198,12 +217,31 @@ class components_containing_component_query:
         if namespace:
             cond["namespace"] = namespace
 
-        # candidate for paralell multithreads
-        components = self.corgi_session.components.retrieve_list(
-            **cond, limit=20, include_fields="link,name,purl,sources"
-        )
+        components: List[Any] = []
+        logger.debug("starting parallel http requests")
+        component_cnt = self.corgi_session.components.retrieve_list(**cond).count
+        if component_cnt < 3000000:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = []
+                components = list()
+                for batch in range(0, component_cnt, 30):
+                    futures.append(
+                        executor.submit(
+                            self.corgi_session.components.retrieve_list,
+                            **cond,
+                            offset=batch,
+                            include_fields="link,name,purl,sources",
+                            limit=30,  # noqa
+                        )
+                    )
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        components.extend(future.result().results)
+                    except Exception as exc:
+                        logger.warning("%r generated an exception: %s" % (future, exc))
+
         results = []
-        for c in components.results:
+        for c in components:
             sources = []
             for source in c.sources:
                 sources.append({"link": source["link"], "purl": source["purl"]})

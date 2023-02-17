@@ -164,13 +164,7 @@ def cprint(
                                     no_wrap=False,
                                 )
                     else:
-                        root_component = component_root_component
                         if not ctx.obj["SHOW_PURL"]:
-                            purl = PackageURL.from_string(component_root_component)
-                            root_component = purl.name
-                            if ctx.obj["VERBOSE"] > 0:
-                                root_component = f"{purl.name}-{purl.version}"
-
                             purl = PackageURL.from_string(item["component_purl"])
                             component = f"([bold turquoise2]{ns}[/bold turquoise2] [white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
                             if purl.qualifiers:
@@ -201,7 +195,6 @@ def cprint(
                             )
                             console.print()
                         if ctx.obj["VERBOSE"] > 1:
-                            purl = PackageURL.from_string(item["component_purl"])
                             console.print(
                                 Text(item["name"], style="bold magenta u"),
                                 Text("none", style="white"),
