@@ -36,7 +36,8 @@ setup(
         "click-completion",
         "rich",
         "osidb-bindings",
-        # "corgi-bindings", UNCOMMENT WHEN COMPONENT REGISTRY BINDINGS ARE IN PYPI
+        "component-registry-bindings",
+        "packageurl-python",
     ],
     entry_points={"console_scripts": ["griffon=griffon.cli:cli"]},
     author="James Fuller",

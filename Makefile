@@ -6,9 +6,6 @@ ps=`which pip-sync`
 openssl=`which openssl`
 
 build: Containerfile
-	$(podman) build --tag localhost/griffon .
-
-build: Containerfile
 	$(podman) build --build-arg CORGI_API_URL="${CORGI_API_URL}" \
 					--build-arg OSIDB_API_URL="${OSIDB_API_URL}" \
 					--build-arg REQUESTS_CA_BUNDLE="${REQUESTS_CA_BUNDLE}" \
@@ -26,7 +23,7 @@ test:
 	$(tox)
 
 smoke-tests:
-	scripts/smoke-tests.sh
+	scripts/smoke-tests.sh > smoke-tests.log
 
 compile-deps:
 	$(pc) --generate-hashes --allow-unsafe requirements/base.in

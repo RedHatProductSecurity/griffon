@@ -70,7 +70,7 @@ class products_containing_component_query:
 
     name = "products_containing_component_query"
     description = "What products contain a component?"
-    allowed_params = ["component_name", "purl", "namespace"]
+    allowed_params = ["component_name", "purl", "arch", "namespace", "component_type"]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
@@ -78,26 +78,32 @@ class products_containing_component_query:
 
     def execute(self) -> List[Dict[str, Any]]:
         component_name = self.params["component_name"]
-        namespace = self.params["namespace"]
         cond = {}
         cond["name"] = component_name
-        if namespace:
-            cond["namespace"] = namespace
         components = self.corgi_session.components.retrieve_list(
             **cond,
-            view="product",
+            include_fields="uuid,name,purl,nvr,related_url,software_build,product_streams,sources",
+            limit=20,  # we need to do parallel queries here
         )
         results = []
-        for c in components.results:
-            results.append(
-                {
-                    "link": c.link,
-                    "ofuri": c["ofuri"],
-                    "name": c.name,
-                    "component_link": c["component_link"],
-                    "component_purl": c["component_purl"],
+        for component in components.results:
+            logger.debug(component.sources)
+            sources = []
+            for source in component.sources:
+                if "arch=src" in source["purl"]:
+                    sources.append(source["purl"])
+            for ps in component.product_streams:
+                result = {
+                    "link": ps["link"],
+                    "ofuri": ps["ofuri"],
+                    "name": ps["name"],
+                    "component_purl": component.purl,
+                    "component_name": component.name,
+                    "component_related_url": component.related_url,
+                    "component_software_build": component.software_build.to_dict(),
+                    "component_root_components": sources,
                 }
-            )
+                results.append(result)
         return results
 
 
@@ -192,8 +198,9 @@ class components_containing_component_query:
         if namespace:
             cond["namespace"] = namespace
 
+        # candidate for paralell multithreads
         components = self.corgi_session.components.retrieve_list(
-            **cond, limit=10000, include_fields="link,name,purl,sources"
+            **cond, limit=20, include_fields="link,name,purl,sources"
         )
         results = []
         for c in components.results:
@@ -294,8 +301,10 @@ class components_affected_by_specific_cve_query:
                         "components": components,
                     }
                 )
-            except IndexError as err:
-                logger.info(f"product stream not in component-registry: {err}")
+            except IndexError:
+                logger.warning(
+                    f"{affect.ps_module} product stream not found in component-registry (may not exist or a community product)."  # noqa
+                )
 
         return {
             "link": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
