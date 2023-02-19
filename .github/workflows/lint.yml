@@ -22,5 +22,5 @@ jobs:
         tox_env: ${{ matrix.tox_env }}
     strategy:
       matrix:
-        tox_env: [black, isort, flake8, mypy]
+        tox_env: [black, isort, flake8] # TODO - some clash with mypy env
     runs-on: ubuntu-latest

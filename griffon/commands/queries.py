@@ -158,8 +158,6 @@ def get_product_manifest_query(ctx, ofuri, product_stream_name):
 @click.option(
     "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
 )
-@click.pass_context
-@progress_bar
 def get_product_latest_components_query(ctx, ofuri, product_stream_name):
     """List components of a specific product version."""
     if not ofuri and not product_stream_name:
@@ -184,7 +182,6 @@ def get_product_latest_components_query(ctx, ofuri, product_stream_name):
 @click.option(
     "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
 )
-@click.pass_context
 def get_product_all_components_query(ctx, ofuri, product_stream_name):
     """List components of a specific product stream."""
     if not ofuri and not product_stream_name:
