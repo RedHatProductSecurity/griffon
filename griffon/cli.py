@@ -102,8 +102,10 @@ docs.add_command(docs_grp)
     count=True,
     help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
 )  # noqa
+@click.option("--no-progress-bar", is_flag=True, help="Disable progress bar.")
+@click.option("--no-color", is_flag=True, help="Disable output of color ansi esc sequences.")
 @click.pass_context
-def cli(ctx, debug, show_purl, format, verbose):
+def cli(ctx, debug, show_purl, format, verbose, no_progress_bar, no_color):
     """Red Hat product security CLI"""
 
     if ctx.invoked_subcommand is None:
@@ -118,6 +120,8 @@ def cli(ctx, debug, show_purl, format, verbose):
     ctx.obj["SHOW_PURL"] = show_purl
     ctx.obj["FORMAT"] = format
     ctx.obj["VERBOSE"] = verbose
+    ctx.obj["NO_PROGRESS_BAR"] = no_progress_bar
+    ctx.obj["NO_COLOR"] = no_color
 
 
 cli.help = "Red Hat Product Security CLI"
