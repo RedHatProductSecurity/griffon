@@ -19,6 +19,8 @@ griffon service queries products-affected-by-cve --cve-id CVE-2023-25166
 griffon --format text service queries product-contain-component --name is-svg
 griffon --format text service queries components-affected-by-cve --cve-id CVE-2023-25166
 griffon --format text service queries product-contain-component --name nmap
+griffon service queries product-contain-component --purl "pkg:rpm/curl@7.29.0"
+
 
 # reports
 griffon service reports affects
