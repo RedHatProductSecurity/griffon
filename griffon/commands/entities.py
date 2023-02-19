@@ -70,7 +70,6 @@ def flaws(ctx):
 )
 @click.option("--major-incident", "is_major_incident", is_flag=True, help="Only major incidents.")
 @click.pass_context
-@progress_bar
 def list_flaws(ctx, flaw_state, resolution, impact, is_embargoed, is_major_incident):
     if not flaw_state and not resolution and not impact:
         click.echo(ctx.get_help())
@@ -95,7 +94,6 @@ def list_flaws(ctx, flaw_state, resolution, impact, is_embargoed, is_major_incid
     help="Flaw UUID.",
 )
 @click.pass_context
-@progress_bar
 def get_flaw(ctx, cve_id, flaw_uuid):
     if not cve_id and not flaw_uuid:
         click.echo(ctx.get_help())
@@ -126,7 +124,6 @@ def affects(ctx):
 )
 @click.option("--impact", type=click.Choice(OSIDBService.get_affect_impact()))
 @click.pass_context
-@progress_bar
 def list_affects(ctx, product_version, component_name, affectedness, resolution, impact):
     if (
         not product_version
@@ -156,7 +153,6 @@ def list_affects(ctx, product_version, component_name, affectedness, resolution,
 @affects.command(name="get")
 @click.option("--uuid", "affect_uuid")
 @click.pass_context
-@progress_bar
 def get_affect(ctx, affect_uuid):
     if not affect_uuid:
         click.echo(ctx.get_help())
@@ -169,7 +165,6 @@ def get_affect(ctx, affect_uuid):
 # trackers
 @entities_grp.group(help=f"{OSIDB_API_URL}/osidb/api/v1/trackers")
 @click.pass_context
-@progress_bar
 def trackers(ctx):
     """OSIDB Trackers."""
     pass
@@ -177,7 +172,6 @@ def trackers(ctx):
 
 @trackers.command(name="list")
 @click.pass_context
-@progress_bar
 def list_trackers(ctx):
     session = OSIDBService.create_session()
     conditions = default_conditions
@@ -188,7 +182,6 @@ def list_trackers(ctx):
 @trackers.command(name="get")
 @click.option("--uuid", "tracker_uuid")
 @click.pass_context
-@progress_bar
 def get_tracker(ctx, tracker_uuid):
     if not tracker_uuid:
         click.echo(ctx.get_help())
@@ -201,7 +194,6 @@ def get_tracker(ctx, tracker_uuid):
 # components
 @entities_grp.group(help=f"{CORGI_API_URL}/api/v1/components")
 @click.pass_context
-@progress_bar
 def components(ctx):
     pass
 
@@ -332,6 +324,7 @@ def get_component(ctx, component_uuid, purl, nvr):
 @click.option("--uuid", "component_uuid")
 @click.option("--purl", shell_complete=get_component_purls, help="Purl are URI and must be quoted.")
 @click.pass_context
+@progress_bar
 def get_component_manifest(ctx, component_uuid, purl):
     """Retrieve a specific component."""
     if not component_uuid and not purl:
@@ -351,7 +344,6 @@ def get_component_manifest(ctx, component_uuid, purl):
 # product streams
 @entities_grp.group(help=f"{CORGI_API_URL}/api/v1/product_streams")
 @click.pass_context
-@progress_bar
 def product_streams(ctx):
     pass
 
@@ -360,7 +352,6 @@ def product_streams(ctx):
 @click.option("--inactive", is_flag=True, default=False, help="Show inactive project streams")
 @click.option("--re-name", "re_name", type=click.STRING, shell_complete=get_product_stream_names)
 @click.pass_context
-@progress_bar
 def list_product_streams(ctx, inactive, re_name):
     """Retrieve a list of product_streams."""
     session = CorgiService.create_session()
@@ -378,7 +369,6 @@ def list_product_streams(ctx, inactive, re_name):
     "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
 )
 @click.pass_context
-@progress_bar
 def get_product_stream(ctx, inactive, ofuri, product_stream_name):
     """Retrieve a specific product_stream."""
     if not ofuri and not product_stream_name:
@@ -416,7 +406,6 @@ def get_product_stream_components(ctx, namespace, ofuri, product_stream_name, vi
     "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
 )
 @click.pass_context
-@progress_bar
 def get_product_stream_manifest(ctx, ofuri, product_stream_name):
     """Retrieve a product_stream manifest."""
     if not ofuri and not product_stream_name:

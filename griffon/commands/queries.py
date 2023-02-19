@@ -158,7 +158,6 @@ def get_product_manifest_query(ctx, ofuri, product_stream_name):
 @click.option(
     "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
 )
-@click.pass_context
 def get_product_latest_components_query(ctx, ofuri, product_stream_name):
     """List components of a specific product version."""
     if not ofuri and not product_stream_name:
@@ -183,7 +182,6 @@ def get_product_latest_components_query(ctx, ofuri, product_stream_name):
 @click.option(
     "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
 )
-@click.pass_context
 def get_product_all_components_query(ctx, ofuri, product_stream_name):
     """List components of a specific product stream."""
     if not ofuri and not product_stream_name:
@@ -294,7 +292,6 @@ def product_versions_affected_by_cve_query(ctx, cve_id):
 # @click.option("--purl")
 # @click.option("--affectedness")
 # @click.pass_context
-# @progress_bar
 # def cves_for_specific_component_query(ctx, purl, affectedness):
 #     """List cves of a specific component."""
 #     if not purl:
@@ -320,7 +317,6 @@ def product_versions_affected_by_cve_query(ctx, cve_id):
 # @click.option("--flaw-state", type=click.Choice(OSIDBService.get_flaw_states()))
 # @click.option("--flaw-resolution", type=click.Choice(OSIDBService.get_flaw_resolutions()))
 # @click.pass_context
-# @progress_bar
 # def cves_for_specific_product_query(
 #     ctx,
 #     product_version_name,

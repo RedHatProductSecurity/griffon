@@ -143,7 +143,11 @@ def progress_bar(
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        with console.status("griffoning...", spinner="line"):
+        obj: dict = args[0].obj
+        if obj.get("NO_PROGRESS_BAR"):
             func(*args, **kwargs)
+        else:
+            with console.status("griffoning", spinner="line"):
+                func(*args, **kwargs)
 
     return wrapper

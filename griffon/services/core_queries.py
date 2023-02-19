@@ -78,8 +78,11 @@ class products_containing_component_query:
 
     def execute(self) -> List[Dict[str, Any]]:
         component_name = self.params["component_name"]
+        component_type = self.params["component_type"]
         cond = {}
         cond["name"] = component_name
+        if component_type:
+            cond["type"] = component_type
 
         components: List[Any] = []
         logger.debug("starting parallel http requests")
