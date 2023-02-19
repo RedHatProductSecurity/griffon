@@ -1,5 +1,7 @@
+import click
 import pytest
 
+from griffon.commands.queries import product_versions_affected_by_cve_query
 from griffon.output import OUTPUT_FORMAT, cprint
 
 pytestmark = pytest.mark.unit
@@ -25,7 +27,11 @@ def test_output_formats():
         "latest_component_count": 246,
     }
     with pytest.raises(SystemExit) as capture_err:
-        assert cprint(single_result_data)
+        ctx = click.Context(
+            product_versions_affected_by_cve_query,
+            obj={"NO_COLOR": False, "NO_PROGRESS_BAR": False},
+        )
+        assert cprint(single_result_data, ctx=ctx)
     assert capture_err
     assert capture_err.type == SystemExit
     assert capture_err.value.code == 0
