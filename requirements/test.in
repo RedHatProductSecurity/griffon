@@ -7,3 +7,4 @@ tomli
 exceptiongroup
 types-requests
 vcrpy
+behave
