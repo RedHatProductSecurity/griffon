@@ -97,7 +97,6 @@ def cprint(
         format = OUTPUT_FORMAT(ctx.obj["FORMAT"])
 
     if format is OUTPUT_FORMAT.TEXT:
-        click.echo(ctx.info_name)
         # TODO - we may want something a bit more full featured for templating ... opting for
         #    simple for now ... will DRY this once it stabilises.
 
