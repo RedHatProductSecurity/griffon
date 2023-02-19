@@ -107,7 +107,16 @@ def cprint(
             ctx.exit(0)
 
         if ctx.info_name == "product-contain-component":
-            if "results" in output and output["count"] > 0:
+            if ctx.params["purl"]:
+                ordered_results = sorted(output["results"], key=lambda d: d["ofuri"])
+                for item in ordered_results:
+                    console.print(
+                        Text(item["ofuri"], style="bold magenta u"),
+                        no_wrap=False,
+                    )
+
+                ctx.exit(0)
+            if ctx.params["name"] and "results" in output and output["count"] > 0:
                 ordered_results = sorted(output["results"], key=lambda d: d["name"])
                 for item in ordered_results:
                     component = f"({item['component_purl']})"
