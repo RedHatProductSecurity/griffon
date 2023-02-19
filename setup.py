@@ -40,7 +40,7 @@ setup(
         "packageurl-python",
     ],
     entry_points={"console_scripts": ["griffon=griffon.cli:cli"]},
-    author="James Fuller",
+    author="James Fuller, Red Hat Product Security",
     license="MIT",
     classifiers=[
         "Topic :: Security",
