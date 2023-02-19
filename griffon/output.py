@@ -97,6 +97,7 @@ def cprint(
         format = OUTPUT_FORMAT(ctx.obj["FORMAT"])
 
     if format is OUTPUT_FORMAT.TEXT:
+        click.echo(ctx.info_name)
         # TODO - we may want something a bit more full featured for templating ... opting for
         #    simple for now ... will DRY this once it stabilises.
 
@@ -291,6 +292,11 @@ def cprint(
             ordered_product_versions = sorted(output["product_versions"], key=lambda d: d["name"])
             for product_version in ordered_product_versions:
                 console.print(product_version["name"], no_wrap=True)
+            ctx.exit(0)
+
+        if ctx.info_name == "get-manifest":
+            for component in output["packages"]:
+                console.print(component["externalRefs"][0]["referenceLocator"], no_wrap=False)  # type: ignore # noqa
             ctx.exit(0)
 
         if ctx.info_name == "list":
