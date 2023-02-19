@@ -1,4 +1,4 @@
-name: Run CI
+name: Run lint CI
 
 on:
   push:
@@ -22,5 +22,5 @@ jobs:
         tox_env: ${{ matrix.tox_env }}
     strategy:
       matrix:
-        tox_env: [black, isort, flake8] # TODO we will add griffon tests once corgi_bindings are in pypi
+        tox_env: [black, isort, flake8, mypy]
     runs-on: ubuntu-latest
