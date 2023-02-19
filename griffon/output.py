@@ -116,7 +116,7 @@ def cprint(
                     )
 
                 ctx.exit(0)
-            if ctx.params["name"] and "results" in output and output["count"] > 0:
+            if "results" in output and output["count"] > 0:
                 ordered_results = sorted(output["results"], key=lambda d: d["name"])
                 for item in ordered_results:
                     component = f"({item['component_purl']})"
