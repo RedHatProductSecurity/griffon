@@ -51,7 +51,7 @@ class products_containing_specific_component_query:
 
     name = "products_containing_specific_component_query"
     description = "What products contain a specific component?"
-    allowed_params = ["component_name", "purl", "namespace"]
+    allowed_params = ["component_name", "purl", "arch", "namespace", "component_type"]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
