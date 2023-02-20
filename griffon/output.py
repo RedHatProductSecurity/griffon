@@ -303,8 +303,27 @@ def cprint(
             ctx.exit(0)
 
         if ctx.info_name == "get-manifest":
-            for component in output["packages"]:
-                console.print(component["externalRefs"][0]["referenceLocator"], no_wrap=False)  # type: ignore # noqa
+            if not ctx.obj["SHOW_PURL"]:
+                for component in output["packages"]:
+                    if "pkg:" in component["externalRefs"][0]["referenceLocator"]:  # type: ignore
+                        purl = PackageURL.from_string(
+                            component["externalRefs"][0]["referenceLocator"]  # type: ignore
+                        )
+                        ns = "[cyan]UPSTREAM[/cyan]"
+                        component = f"([bold turquoise2]{ns}[/bold turquoise2] [white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
+                        if purl.namespace == "redhat":
+                            ns = f"[red]{purl.namespace.upper()}[/red]"
+                            component = f"([white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
+                        else:
+                            if purl.namespace:
+                                ns = f"[white]{purl.namespace}[/white]"
+                            component = f"([white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
+                        console.print(ns, component, no_wrap=False)  # noqa
+            else:
+                for component in output["packages"]:
+                    purl = component["externalRefs"][0]["referenceLocator"]  # type: ignore
+                    console.print(purl, no_wrap=False)  # noqa
+
             ctx.exit(0)
 
         if ctx.info_name == "list":
