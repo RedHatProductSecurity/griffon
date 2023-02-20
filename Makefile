@@ -20,7 +20,7 @@ build-container: Containerfile
 					--build-arg ROOT_CA_URL="${ROOT_CA_URL}" \
 					--tag localhost/griffon:dev .
 run-container:
-	podman run --privileged -it -v /etc/krb5.conf:/etc/krb5.conf localhost/griffon:dev
+	podman run --privileged -it -v ~/.griffonrc:/root/.griffonrc -v /etc/krb5.conf:/etc/krb5.conf localhost/griffon:dev
 
 ############################################################################
 # test targets
