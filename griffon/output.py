@@ -316,7 +316,7 @@ def cprint(
                             component = f"([white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
                         else:
                             if purl.namespace:
-                                ns = f"[white]{purl.namespace.upper}[/white]"
+                                ns = f"[white]{purl.namespace.upper()}[/white]"
                             component = f"([white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
                         console.print(ns, component, no_wrap=False)  # noqa
             else:
