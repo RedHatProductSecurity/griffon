@@ -70,6 +70,7 @@ def flaws(ctx):
 )
 @click.option("--major-incident", "is_major_incident", is_flag=True, help="Only major incidents.")
 @click.pass_context
+@progress_bar
 def list_flaws(ctx, flaw_state, resolution, impact, is_embargoed, is_major_incident):
     if not flaw_state and not resolution and not impact:
         click.echo(ctx.get_help())
@@ -124,6 +125,7 @@ def affects(ctx):
 )
 @click.option("--impact", type=click.Choice(OSIDBService.get_affect_impact()))
 @click.pass_context
+@progress_bar
 def list_affects(ctx, product_version, component_name, affectedness, resolution, impact):
     if (
         not product_version
@@ -182,6 +184,7 @@ def list_trackers(ctx):
 @trackers.command(name="get")
 @click.option("--uuid", "tracker_uuid")
 @click.pass_context
+@progress_bar
 def get_tracker(ctx, tracker_uuid):
     if not tracker_uuid:
         click.echo(ctx.get_help())
@@ -369,6 +372,7 @@ def list_product_streams(ctx, inactive, re_name):
     "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
 )
 @click.pass_context
+@progress_bar
 def get_product_stream(ctx, inactive, ofuri, product_stream_name):
     """Retrieve a specific product_stream."""
     if not ofuri and not product_stream_name:

@@ -10,7 +10,7 @@ from griffon.services import Process, core_process
 @pytest.mark.unit
 def test_processes():
     runner = CliRunner()
-    result = runner.invoke(cli, ["service", "process"])
+    result = runner.invoke(cli, ["service"])
     assert result.exit_code == 0
 
 

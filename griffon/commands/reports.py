@@ -27,7 +27,7 @@ def reports_grp(ctx):
     pass
 
 
-@reports_grp.command(name="affects", help="Generate Affects example report.")
+@reports_grp.command(name="report-affects", help="Generate Affects example report.")
 @click.option(
     "--show-components", is_flag=True, default=False, help="Show specific component counts."
 )
