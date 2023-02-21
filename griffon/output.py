@@ -390,17 +390,16 @@ def cprint(
                         )
             ctx.exit(0)
 
-        if ctx.info_name == "get":
-            for k, v in output.items():
-                key_name = Text(k)
-                key_name.stylize("bold magenta")
-                console.print(key_name, " : ", v, no_wrap=True)
-            ctx.exit(0)
-
         if "results" in output and output["count"] == 0:
             console.print("No results")
-            ctx.exit(1)
-        console.print("WARNING: text version unsupported (try --format json).")
+            ctx.exit(0)
+
+        for k, v in output.items():
+            key_name = Text(k)
+            key_name.stylize("bold magenta")
+            console.print(key_name, " : ", v, no_wrap=True)
+        console.print("WARNING: using generic text format (try --format json).")
+        ctx.exit(0)
 
     # if "results" in output and output["count"] > 0:
     #     et = entity_type(output["results"][0])
