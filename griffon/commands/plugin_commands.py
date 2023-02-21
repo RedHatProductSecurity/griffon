@@ -10,7 +10,7 @@ plugin_folder = os.path.join(os.path.dirname(__file__), "plugins")
 
 
 class plugin_commands(click.MultiCommand):
-    def list_commands(self):
+    def list_commands(self, ctx):
         """Dynamically generate list of commands."""
         rv = []
         for filename in os.listdir(plugin_folder):
@@ -19,7 +19,7 @@ class plugin_commands(click.MultiCommand):
         rv.sort()
         return rv
 
-    def get_command(self, name):
+    def get_command(self, ctx, name):
         """Invoke command."""
         ns = {}
         try:
