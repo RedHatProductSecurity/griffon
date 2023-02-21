@@ -106,7 +106,7 @@ def cprint(
                 console.print(key_name, " : ", v, no_wrap=True)
             ctx.exit(0)
 
-        if ctx.info_name == "product-contain-component":
+        if ctx.info_name == "products-contain-component":
             if ctx.params["purl"]:
                 ordered_results = sorted(output["results"], key=lambda d: d["ofuri"])
                 for item in ordered_results:
@@ -439,7 +439,7 @@ def cprint(
     #         console.print(key_name, " : ", v, no_wrap=True)
 
     if format is OUTPUT_FORMAT.TABLE:
-        if ctx.info_name == "product-contain-component":
+        if ctx.info_name == "products-contain-component":
             table = Table(title="Products containing component")
             table.add_column("Product")
             table.add_column("Source Component")
