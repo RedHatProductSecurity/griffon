@@ -68,6 +68,18 @@ def docs(ctx):
 docs.add_command(docs_grp)
 
 
+@click.group()
+@click.pass_context
+def plugins(ctx):
+    pass
+
+
+@plugins.command(name="plugins", help="3rd party plugins.", cls=plugin_commands)
+@click.pass_context
+def plugins_grp(ctx):
+    pass
+
+
 # CLI entry point
 #
 #   A click.CommandCollection is used to aggregate up all CLI sub commands.
@@ -76,7 +88,7 @@ docs.add_command(docs_grp)
 
 @click.group(
     cls=click.CommandCollection,
-    sources=(configure, entities, services_grp, manage, docs, plugin_commands),
+    sources=(configure, entities, services_grp, manage, docs, plugins),
 )
 @click.option("--debug", is_flag=True, help="Debug log level.")
 @click.option("--show-purl", is_flag=True, help="Display full purl.")
