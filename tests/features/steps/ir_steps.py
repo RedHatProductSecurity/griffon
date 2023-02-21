@@ -16,7 +16,7 @@ def step_impl(context):
 
 
 @then(
-    "running > griffon --format {format} service queries {operation} --name {product_stream} should find following latest components"  # noqa
+    "running > griffon --format {format} service {operation} --name {product_stream} should find following latest components"  # noqa
 )
 def invoke_find_components(context, format, operation, product_stream):
     runner = CliRunner()
@@ -50,7 +50,7 @@ def invoke_find_components(context, format, operation, product_stream):
 
 
 @then(
-    "running > griffon --format {format} service queries {operation} --name {component} should find following product_streams"  # noqa
+    "running > griffon --format {format} service {operation} --name {component} should find following product_streams"  # noqa
 )
 def invoke_find_product_streams(context, format, operation, component):
     runner = CliRunner()
