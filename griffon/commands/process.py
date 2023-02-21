@@ -16,14 +16,14 @@ logger = logging.getLogger("rich")
 process_service = ProcessService()
 
 
-@click.group(name="process", help="Service operations that perform mutations/write.")
-@click.pass_context
-def process_grp(ctx):
-    """Mutation operations."""
-    pass
+# @click.group(name="process", help="Service operations that perform mutations/write.")
+# @click.pass_context
+# def process_grp(ctx):
+#     """Mutation operations."""
+#     pass
 
 
-@process_grp.command(name="generate_affects_for_component", help="Generate affects for component.")
+@click.command(name="generate_affects_for_component", help="Generate affects for component.")
 @click.option("--purl")
 @click.option("--cve_id")
 @catch_exception(handle=(HTTPError))

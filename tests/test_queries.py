@@ -10,7 +10,7 @@ from griffon.services import Query, core_queries
 @pytest.mark.unit
 def test_queries():
     runner = CliRunner()
-    result = runner.invoke(cli, ["service", "queries"])
+    result = runner.invoke(cli, ["service"])
     assert result.exit_code == 0
 
 

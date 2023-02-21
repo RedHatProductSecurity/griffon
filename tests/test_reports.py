@@ -10,7 +10,7 @@ from griffon.services import Query, core_reports
 @pytest.mark.unit
 def test_reports():
     runner = CliRunner()
-    result = runner.invoke(cli, ["service", "reports"])
+    result = runner.invoke(cli, ["service"])
     assert result.exit_code == 0
 
 

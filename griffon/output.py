@@ -291,15 +291,28 @@ def cprint(
             ctx.exit(0)
 
         if ctx.info_name == "products-affected-by-cve":
-            console.print("link:", output["link"])
-            console.print("cve_id:", output["cve_id"])
-            console.print("title:", output["title"])
+            console.print("[white]link:[/white]", output["link"])
+            console.print("[white]cve_id:[/white]", output["cve_id"])
+            console.print("[white]title:[/white]", output["title"])
             console.print(
-                "product_versions:",
+                "[white]product_versions:[/white]",
             )
-            ordered_product_versions = sorted(output["product_versions"], key=lambda d: d["name"])
-            for product_version in ordered_product_versions:
-                console.print(product_version["name"], no_wrap=True)
+            if ctx.obj["VERBOSE"] == 0:
+                ordered_product_versions = sorted(
+                    output["product_versions"], key=lambda d: d["name"]
+                )
+                for product_version in ordered_product_versions:
+                    console.print(
+                        Text(product_version["name"], style="bold magenta u"), no_wrap=True
+                    )
+            if ctx.obj["VERBOSE"] > 0:
+                ordered_affects = sorted(output["affects"], key=lambda d: d["product_version_name"])
+                for affect in ordered_affects:
+                    console.print(
+                        Text(affect["product_version_name"], style="bold magenta u"),
+                        affect["component_name"],
+                        no_wrap=True,
+                    )
             ctx.exit(0)
 
         if ctx.info_name == "get-manifest":
@@ -387,7 +400,7 @@ def cprint(
         if "results" in output and output["count"] == 0:
             console.print("No results")
             ctx.exit(1)
-        console.print("WARNING: text version unsupported")
+        console.print("WARNING: text version unsupported (try --format json).")
 
     # if "results" in output and output["count"] > 0:
     #     et = entity_type(output["results"][0])
