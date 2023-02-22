@@ -29,7 +29,12 @@ def test_output_formats():
     with pytest.raises(SystemExit) as capture_err:
         ctx = click.Context(
             product_versions_affected_by_cve_query,
-            obj={"NO_COLOR": False, "NO_PROGRESS_BAR": False},
+            obj={
+                "NO_COLOR": False,
+                "NO_PROGRESS_BAR": False,
+                "SHOW_INACTIVE": False,
+                "SHOW_UPSTREAM": False,
+            },
         )
         assert cprint(single_result_data, ctx=ctx)
     assert capture_err

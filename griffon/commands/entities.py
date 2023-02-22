@@ -352,10 +352,9 @@ def product_streams(ctx):
 
 
 @product_streams.command(name="list")
-@click.option("--inactive", is_flag=True, default=False, help="Show inactive project streams")
 @click.option("--re-name", "re_name", type=click.STRING, shell_complete=get_product_stream_names)
 @click.pass_context
-def list_product_streams(ctx, inactive, re_name):
+def list_product_streams(ctx, re_name):
     """Retrieve a list of product_streams."""
     session = CorgiService.create_session()
     cond = default_conditions

@@ -9,28 +9,36 @@ logger = logging.getLogger("rich")
 
 def get_product_version_ofuris(ctx, param, incomplete):
     response = requests.get(
-        f"{CORGI_API_URL}/api/v1/product_versions?limit=1000&include_fields=ofuri"  # noqa
+        f"{CORGI_API_URL}/api/v1/product_versions?limit=1000&include_fields=ofuri&re_ofuri={incomplete}"  # noqa
     )
     return [k["ofuri"] for k in response.json()["results"] if incomplete in k["ofuri"]]
 
 
 def get_product_version_names(ctx, param, incomplete):
     response = requests.get(
-        f"{CORGI_API_URL}/api/v1/product_versions?limit=1000&include_fields=name"  # noqa
+        f"{CORGI_API_URL}/api/v1/product_versions?limit=1000&include_fields=name&re_name={incomplete}"  # noqa
     )
     return [k["name"] for k in response.json()["results"] if incomplete in k["name"]]
 
 
 def get_product_stream_ofuris(ctx, param, incomplete):
+    payload = {"limit": 2000, "include_fields": "ofuri", "re_ofuri": incomplete}
+    if ctx.obj["SHOW_INACTIVE"]:
+        payload["active"] = "all"
     response = requests.get(
-        f"{CORGI_API_URL}/api/v1/product_streams?limit=1000&include_fields=ofuri"  # noqa
+        f"{CORGI_API_URL}/api/v1/product_streams",
+        params=payload,
     )
     return [k["ofuri"] for k in response.json()["results"] if incomplete in k["ofuri"]]
 
 
 def get_product_stream_names(ctx, param, incomplete):
+    payload = {"limit": 2000, "include_fields": "name", "re_name": incomplete}
+    if ctx.obj["SHOW_INACTIVE"]:
+        payload["active"] = "all"
     response = requests.get(
-        f"{CORGI_API_URL}/api/v1/product_streams?limit=1000&include_fields=name&re_name={incomplete}"  # noqa
+        f"{CORGI_API_URL}/api/v1/product_streams",
+        params=payload,
     )
     names = response.json()["results"]
     return [k["name"] for k in names if "name" in k]

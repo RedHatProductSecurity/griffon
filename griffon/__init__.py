@@ -151,3 +151,10 @@ def progress_bar(
                 func(*args, **kwargs)
 
     return wrapper
+
+
+def print_version(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    print(f"Version {__version__}")
+    ctx.exit()
