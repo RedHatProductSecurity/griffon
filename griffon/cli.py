@@ -6,7 +6,7 @@ import logging
 import click
 import click_completion
 
-from griffon import get_config, get_logging
+from griffon import get_config, get_logging, print_version
 
 from .commands.configure import configure_grp
 from .commands.docs import docs_grp
@@ -90,8 +90,18 @@ def plugins_grp(ctx):
     cls=click.CommandCollection,
     sources=(configure, entities, services_grp, manage, docs, plugins),
 )
+@click.option(
+    "--version",
+    is_flag=True,
+    callback=print_version,
+    expose_value=False,
+    is_eager=True,
+    help="Display Griffon version.",
+)
 @click.option("--debug", is_flag=True, help="Debug log level.")
+@click.option("--show-inactive", is_flag=True, default=False, help="Show inactive Products.")
 @click.option("--show-purl", is_flag=True, help="Display full purl.")
+@click.option("--show-upstream", is_flag=True, default=False, help="Show UPSTREAM components.")
 @click.option(
     "--format",
     type=click.Choice([el.value for el in OUTPUT_FORMAT]),
@@ -107,7 +117,9 @@ def plugins_grp(ctx):
 @click.option("--no-progress-bar", is_flag=True, help="Disable progress bar.")
 @click.option("--no-color", is_flag=True, help="Disable output of color ansi esc sequences.")
 @click.pass_context
-def cli(ctx, debug, show_purl, format, verbose, no_progress_bar, no_color):
+def cli(
+    ctx, debug, show_inactive, show_purl, show_upstream, format, verbose, no_progress_bar, no_color
+):
     """Red Hat product security CLI"""
 
     if ctx.invoked_subcommand is None:
@@ -119,7 +131,9 @@ def cli(ctx, debug, show_purl, format, verbose, no_progress_bar, no_color):
 
     ctx.ensure_object(dict)
     ctx.obj["DEBUG"] = debug
+    ctx.obj["SHOW_INACTIVE"] = show_inactive
     ctx.obj["SHOW_PURL"] = show_purl
+    ctx.obj["SHOW_UPSTREAM"] = show_upstream
     ctx.obj["FORMAT"] = format
     ctx.obj["VERBOSE"] = verbose
     ctx.obj["NO_PROGRESS_BAR"] = no_progress_bar

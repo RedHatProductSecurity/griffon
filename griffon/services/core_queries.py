@@ -84,11 +84,13 @@ class products_containing_component_query:
     def execute(self) -> List[Dict[str, Any]]:
         component_name = self.params["component_name"]
         component_type = self.params["component_type"]
+        ns = self.params["namespace"]
         cond = {}
         cond["name"] = component_name
         if component_type:
             cond["type"] = component_type
-
+        if ns == "REDHAT":
+            cond["namespace"] = "REDHAT"
         components: List[Any] = []
         logger.debug("starting parallel http requests")
         component_cnt = self.corgi_session.components.retrieve_list(**cond).count
@@ -102,7 +104,7 @@ class products_containing_component_query:
                             self.corgi_session.components.retrieve_list,
                             **cond,
                             offset=batch,
-                            include_fields="uuid,name,purl,nvr,related_url,software_build,product_streams,sources",  # noqa
+                            include_fields="uuid,name,namespace,purl,nvr,related_url,software_build,product_streams,sources",  # noqa
                             limit=30,
                         )
                     )
