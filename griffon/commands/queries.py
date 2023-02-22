@@ -39,6 +39,7 @@ queries_grp.add_command(generate_affects_for_component_process)
     name="products-contain-component",
     help="List Products containing Component.",
 )
+@click.option("--re-name", "component_re_name", help="Search name by regex.")
 @click.option("--name", "component_name")
 @click.option("--purl")
 @click.option(
@@ -53,14 +54,16 @@ queries_grp.add_command(generate_affects_for_component_process)
 @click.option("--type", "component_type", type=click.Choice(CorgiService.get_component_types()))
 @click.pass_context
 @progress_bar
-def get_product_contain_component(ctx, component_name, purl, arch, namespace, component_type):
+def get_product_contain_component(
+    ctx, component_re_name, component_name, purl, arch, namespace, component_type
+):
     """List components of a product version."""
-    if not purl and not component_name:
+    if not purl and not component_name and not component_re_name:
         click.echo(ctx.get_help())
         click.echo("")
         click.echo("Must supply --name or --purl.")
         exit(0)
-    if component_name:
+    if component_name or component_re_name:
         q = query_service.invoke(core_queries.products_containing_component_query, ctx.params)
         cprint(q, ctx=ctx)
     if purl:
@@ -74,18 +77,21 @@ def get_product_contain_component(ctx, component_name, purl, arch, namespace, co
     name="components-contain-component",
     help="List Components contain component.",
 )
+@click.option("--re-name", "component_re_name", help="Search name by regex.")
 @click.option("--name", "component_name")
 @click.option("--purl")
 @click.option("--type", "component_type", type=click.Choice(CorgiService.get_component_types()))
 @click.option("--namespace", type=click.Choice(CorgiService.get_component_namespaces()))
 @click.pass_context
 @progress_bar
-def get_component_contain_component(ctx, component_name, purl, component_type, namespace):
+def get_component_contain_component(
+    ctx, component_re_name, component_name, purl, component_type, namespace
+):
     """List components that contain component."""
-    if not purl and not component_name:
+    if not purl and not component_name and not component_re_name:
         click.echo(ctx.get_help())
         exit(0)
-    if component_name:
+    if component_name or component_re_name:
         q = query_service.invoke(core_queries.components_containing_component_query, ctx.params)
         cprint(
             q,
@@ -114,13 +120,19 @@ def get_component_contain_component(ctx, component_name, purl, component_type, n
     help="UNDER DEVELOPMENT",
 )
 @click.option(
+    "--re-name",
+    "product_stream_re_name",
+    type=click.STRING,
+    shell_complete=get_product_stream_names,
+)
+@click.option(
     "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
 )
 @click.pass_context
 @progress_bar
-def get_product_query(ctx, inactive, ofuri, product_stream_name):
+def get_product_query(ctx, inactive, ofuri, product_stream_re_name, product_stream_name):
     """get product stream."""
-    if not product_stream_name and not ofuri:
+    if not product_stream_name and not ofuri or not product_stream_re_name:
         click.echo(ctx.get_help())
         exit(0)
     q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
@@ -305,6 +317,12 @@ def cves_for_specific_component_query(ctx, purl, affectedness):
     help="(UNDER DEV) List Flaws affecting a Product.",
 )
 @click.option(
+    "--re-name",
+    "product_version_re_name",
+    help="product_version name (eg. ps_module)",
+    shell_complete=get_product_version_names,
+)
+@click.option(
     "--name",
     "product_version_name",
     help="product_version name (eg. ps_module)",
@@ -318,6 +336,7 @@ def cves_for_specific_component_query(ctx, purl, affectedness):
 @click.pass_context
 def cves_for_specific_product_query(
     ctx,
+    product_version_re_name,
     product_version_name,
     affectedness,
     affect_impact,
