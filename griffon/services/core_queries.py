@@ -56,7 +56,14 @@ class products_containing_specific_component_query:
 
     name = "products_containing_specific_component_query"
     description = "What products contain a specific component?"
-    allowed_params = ["component_name", "purl", "arch", "namespace", "component_type"]
+    allowed_params = [
+        "component_re_name",
+        "component_name",
+        "purl",
+        "arch",
+        "namespace",
+        "component_type",
+    ]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
@@ -75,7 +82,14 @@ class products_containing_component_query:
 
     name = "products_containing_component_query"
     description = "What products contain a component?"
-    allowed_params = ["component_name", "purl", "arch", "namespace", "component_type"]
+    allowed_params = [
+        "component_re_name",
+        "component_name",
+        "purl",
+        "arch",
+        "namespace",
+        "component_type",
+    ]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
@@ -83,14 +97,19 @@ class products_containing_component_query:
 
     def execute(self) -> List[Dict[str, Any]]:
         component_name = self.params["component_name"]
+        component_re_name = self.params["component_re_name"]
         component_type = self.params["component_type"]
         ns = self.params["namespace"]
         cond = {}
-        cond["name"] = component_name
+        if component_re_name:
+            cond["re_name"] = component_re_name
+        else:
+            cond["name"] = component_name
         if component_type:
             cond["type"] = component_type
         if ns == "REDHAT":
             cond["namespace"] = "REDHAT"
+
         components: List[Any] = []
         logger.debug("starting parallel http requests")
         component_cnt = self.corgi_session.components.retrieve_list(**cond).count
@@ -141,7 +160,7 @@ class product_stream_summary:
 
     name = "product_stream_summary"
     description = "retrieve product_stream summary"
-    allowed_params = ["product_stream_name", "ofuri", "inactive"]
+    allowed_params = ["product_stream_re_name", "product_stream_name", "ofuri", "inactive"]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
@@ -181,7 +200,7 @@ class components_containing_specific_component_query:
 
     name = "components_containing_specific_component_query"
     description = "What components contain a specific component?"
-    allowed_params = ["component_name", "purl", "component_type", "namespace"]
+    allowed_params = ["component_re_name", "component_name", "purl", "component_type", "namespace"]
 
     def __init__(self, params: dict):
         self.corgi_session = CorgiService.create_session()
@@ -211,7 +230,7 @@ class components_containing_component_query:
 
     name = "components_containing_component_query"
     description = "What components contain a component?"
-    allowed_params = ["component_name", "purl", "component_type", "namespace"]
+    allowed_params = ["component_re_name", "component_name", "purl", "component_type", "namespace"]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
@@ -220,10 +239,15 @@ class components_containing_component_query:
     def execute(self) -> List[Dict[str, Any]]:
         component_type = self.params["component_type"]
         component_name = self.params["component_name"]
+        component_re_name = self.params["component_re_name"]
         namespace = self.params["namespace"]
 
         cond = {}
-        cond["name"] = component_name
+        if component_re_name:
+            cond["re_name"] = component_re_name
+        else:
+            cond["name"] = component_name
+
         if namespace:
             cond["namespace"] = namespace
 
@@ -427,6 +451,7 @@ class cves_for_specific_product_query:
     name = "cves-for-product"
     description = "What cves affect a specific product ?"
     allowed_params = [
+        "product_version_re_name",
         "product_version_name",
         "affectedness",
         "affect_resolution",
