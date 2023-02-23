@@ -9,3 +9,6 @@ Unreleased
 [0.0.1] - 2023-02-23
 Added
 first experimental release to the PyPI
+[0.0.2] - 2023-02-23
+Added
+another experimental release to the PyPI
