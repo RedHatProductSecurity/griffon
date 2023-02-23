@@ -4,3 +4,4 @@
 ipdb
 ipython == 8.10
 pip-tools
+twine
