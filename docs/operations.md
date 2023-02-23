@@ -10,7 +10,6 @@ define secrets
 
 Follow this procedure when performing Griffon version X.Y.Z release.
 
-
 1) Checkout main branch
 
     ```
@@ -21,11 +20,14 @@ Follow this procedure when performing Griffon version X.Y.Z release.
 
 2) Create release branch
 
-    * create a new release branch
-    * increment the patch part of the version in all necessary places (eg. x.x.1 -> x.x.2)
-    * ensure CHANGELOG.md is updated accordingly
-    * commit / push changes to release branch
-    * raise PR
+   * create a new release branch
+     ```
+     $ git checkout -b vX.Y.Z
+     ```
+   * bump version in griffon/__init__.py __version__ variable
+   * ensure CHANGELOG.md is updated accordingly
+   * commit / push changes to release branch
+   * raise PR
 
 3) Review and merge PR
 
@@ -38,6 +40,4 @@ Follow this procedure when performing Griffon version X.Y.Z release.
 
 Griffon uses [Semantic Versioning](https://semver.org/). 
 
-We start versioning with v0.1.0.
-
-Additionally, we consider Griffon 1.0.0 as the first General Availability version.
+Griffon starts official versioning at v0.1.0.
