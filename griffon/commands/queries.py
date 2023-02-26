@@ -39,8 +39,7 @@ queries_grp.add_command(generate_affects_for_component_process)
     name="products-contain-component",
     help="List Products containing Component.",
 )
-@click.option("--re-name", "component_re_name", help="Search name by regex.")
-@click.option("--name", "component_name")
+@click.argument("component_name", required=False)
 @click.option("--purl")
 @click.option(
     "--arch",
@@ -52,18 +51,47 @@ queries_grp.add_command(generate_affects_for_component_process)
     "--namespace", default=None, type=click.Choice(CorgiService.get_component_namespaces())
 )
 @click.option("--type", "component_type", type=click.Choice(CorgiService.get_component_types()))
+@click.option(
+    "-s",
+    "strict_name_search",
+    is_flag=True,
+    default=False,
+    help="Strict search, exact match of component name.",
+)
+@click.option(
+    "--affect",
+    "affect_mode",
+    is_flag=True,
+    default=False,
+    help="Generate Affects.",
+)
+@click.option(
+    "--search-deps",
+    "search_deps",
+    is_flag=True,
+    default=False,
+    help="(Under development) Search Component dependencies.",
+)
 @click.pass_context
 @progress_bar
 def get_product_contain_component(
-    ctx, component_re_name, component_name, purl, arch, namespace, component_type
+    ctx,
+    component_name,
+    purl,
+    arch,
+    namespace,
+    component_type,
+    strict_name_search,
+    affect_mode,
+    search_deps,
 ):
-    """List components of a product version."""
-    if not purl and not component_name and not component_re_name:
+    """List products of a latest component."""
+    if not purl and not component_name:
         click.echo(ctx.get_help())
         click.echo("")
         click.echo("Must supply --name or --purl.")
         exit(0)
-    if component_name or component_re_name:
+    if component_name:
         q = query_service.invoke(core_queries.products_containing_component_query, ctx.params)
         cprint(q, ctx=ctx)
     if purl:
@@ -77,21 +105,27 @@ def get_product_contain_component(
     name="components-contain-component",
     help="List Components contain component.",
 )
-@click.option("--re-name", "component_re_name", help="Search name by regex.")
-@click.option("--name", "component_name")
+@click.argument("component_name", required=False)
 @click.option("--purl")
 @click.option("--type", "component_type", type=click.Choice(CorgiService.get_component_types()))
 @click.option("--namespace", type=click.Choice(CorgiService.get_component_namespaces()))
+@click.option(
+    "-s",
+    "strict_name_search",
+    is_flag=True,
+    default=False,
+    help="Strict search, exact match of component name.",
+)
 @click.pass_context
 @progress_bar
 def get_component_contain_component(
-    ctx, component_re_name, component_name, purl, component_type, namespace
+    ctx, component_name, purl, component_type, namespace, strict_name_search
 ):
     """List components that contain component."""
-    if not purl and not component_name and not component_re_name:
+    if not component_name and not purl:
         click.echo(ctx.get_help())
         exit(0)
-    if component_name or component_re_name:
+    if component_name:
         q = query_service.invoke(core_queries.components_containing_component_query, ctx.params)
         cprint(
             q,
