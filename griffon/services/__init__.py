@@ -58,6 +58,7 @@ class Report(Protocol):
 
 def check_allowed_params(allowed_params, params):
     """Check if params are allowed."""
+    logger.debug(params)
     if allowed_params:
         for key in params.keys():
             assert key in allowed_params

@@ -6,6 +6,8 @@ import concurrent
 import logging
 from typing import Any, Dict, List
 
+import requests
+
 from griffon import CORGI_API_URL, OSIDB_API_URL, CorgiService, OSIDBService
 
 logger = logging.getLogger("rich")
@@ -63,6 +65,7 @@ class products_containing_specific_component_query:
         "arch",
         "namespace",
         "component_type",
+        "affect_mode",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -83,12 +86,14 @@ class products_containing_component_query:
     name = "products_containing_component_query"
     description = "What products contain a component?"
     allowed_params = [
-        "component_re_name",
         "component_name",
         "purl",
         "arch",
         "namespace",
         "component_type",
+        "strict_name_search",
+        "affect_mode",
+        "search_deps",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -97,62 +102,20 @@ class products_containing_component_query:
 
     def execute(self) -> List[Dict[str, Any]]:
         component_name = self.params["component_name"]
-        component_re_name = self.params["component_re_name"]
-        component_type = self.params["component_type"]
-        ns = self.params["namespace"]
-        cond = {}
-        if component_re_name:
-            cond["re_name"] = component_re_name
+        # component_type = self.params["component_type"]
+        strict_name_search = self.params["strict_name_search"]
+        # search_deps = self.params["search_deps"]
+        # ns = self.params["namespace"]
+
+        params = {"view": "latest"}
+        if not strict_name_search:
+            params["re_name"] = component_name
         else:
-            cond["name"] = component_name
-        if component_type:
-            cond["type"] = component_type
-        if ns == "REDHAT":
-            cond["namespace"] = "REDHAT"
-
-        components: List[Any] = []
-        logger.debug("starting parallel http requests")
-        component_cnt = self.corgi_session.components.retrieve_list(**cond).count
-        if component_cnt < 3000000:
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = []
-                components = list()
-                for batch in range(0, component_cnt, 30):
-                    futures.append(
-                        executor.submit(
-                            self.corgi_session.components.retrieve_list,
-                            **cond,
-                            offset=batch,
-                            include_fields="uuid,name,namespace,purl,nvr,related_url,software_build,product_streams,sources",  # noqa
-                            limit=30,
-                        )
-                    )
-                for future in concurrent.futures.as_completed(futures):
-                    try:
-                        components.extend(future.result().results)
-                    except Exception as exc:
-                        logger.warning("%r generated an exception: %s" % (future, exc))
-
-        results = []
-        for component in components:
-            logger.debug(component.sources)
-            sources = []
-            for source in component.sources:
-                if "arch=src" in source["purl"]:
-                    sources.append(source["purl"])
-            for ps in component.product_streams:
-                result = {
-                    "link": ps["link"],
-                    "ofuri": ps["ofuri"],
-                    "name": ps["name"],
-                    "component_purl": component.purl,
-                    "component_name": component.name,
-                    "component_related_url": component.related_url,
-                    "component_software_build": component.software_build.to_dict(),
-                    "component_root_components": sources,
-                }
-                results.append(result)
-        return results
+            params["name"] = component_name
+        # TODO - not yet exposed in bindings
+        response = requests.get(f"{CORGI_API_URL}/api/v1/components", params=params)
+        latest_src_results = response.json()["results"]
+        return latest_src_results
 
 
 class product_stream_summary:
@@ -230,21 +193,27 @@ class components_containing_component_query:
 
     name = "components_containing_component_query"
     description = "What components contain a component?"
-    allowed_params = ["component_re_name", "component_name", "purl", "component_type", "namespace"]
+    allowed_params = [
+        "component_name",
+        "purl",
+        "component_type",
+        "namespace",
+        "strict_name_search",
+    ]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
         self.params = params
 
     def execute(self) -> List[Dict[str, Any]]:
-        component_type = self.params["component_type"]
         component_name = self.params["component_name"]
-        component_re_name = self.params["component_re_name"]
+        component_type = self.params["component_type"]
         namespace = self.params["namespace"]
+        strict_name_search = self.params["strict_name_search"]
 
         cond = {}
-        if component_re_name:
-            cond["re_name"] = component_re_name
+        if not strict_name_search:
+            cond["re_name"] = component_name
         else:
             cond["name"] = component_name
 
@@ -258,14 +227,14 @@ class components_containing_component_query:
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 futures = []
                 components = list()
-                for batch in range(0, component_cnt, 30):
+                for batch in range(0, component_cnt, 120):
                     futures.append(
                         executor.submit(
                             self.corgi_session.components.retrieve_list,
                             **cond,
                             offset=batch,
                             include_fields="link,name,purl,sources",
-                            limit=30,  # noqa
+                            limit=120,  # noqa
                         )
                     )
                 for future in concurrent.futures.as_completed(futures):
@@ -276,9 +245,7 @@ class components_containing_component_query:
 
         results = []
         for c in components:
-            sources = []
-            for source in c.sources:
-                sources.append({"link": source["link"], "purl": source["purl"]})
+            sources = [{"link": source["link"], "purl": source["purl"]} for source in c.sources]
             if component_type:
                 sources = [source for source in sources if component_type.lower() in source["purl"]]
             results.append(

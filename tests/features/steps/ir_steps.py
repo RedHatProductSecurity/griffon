@@ -1,9 +1,16 @@
 import json
+import re
 
 from behave import given, then
 from click.testing import CliRunner
 
 from griffon.cli import cli
+
+
+def cleanup_output(data):
+    """strip output of ansi esc sequences (eg. color codes)"""
+    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+    return ansi_escape.sub("", data)
 
 
 @given("a set of product_streams")
@@ -43,14 +50,15 @@ def invoke_find_components(context, format, operation, product_stream):
         assert context.data[product_stream] == out["count"]
         for row in context.table:
             assert [item for item in out["results"] if item.get("purl") == row["component"]]
+
     if format == "text":
-        print(griffon_results.output)
+        output = cleanup_output(griffon_results.output)
         for row in context.table:
-            assert row["component"] in griffon_results.output
+            assert row["component"] in output
 
 
 @then(
-    "running > griffon --format {format} service {operation} --name {component} should find following product_streams"  # noqa
+    "running > griffon --format {format} service {operation} {component} should find following product_versions"  # noqa
 )
 def invoke_find_product_streams(context, format, operation, component):
     runner = CliRunner()
@@ -66,17 +74,39 @@ def invoke_find_product_streams(context, format, operation, component):
             format,
             "service",
             operation,
-            "--name",
             component,
         ],
     )
     assert griffon_results.exit_code == 0
-    if format == "json":
-        out = json.loads(griffon_results.output)
-        print(out)
-        for row in context.table:
-            assert [item for item in out["results"] if item.get("name") == row["product_stream"]]
+    output = cleanup_output(griffon_results.output)
     if format == "text":
-        print(griffon_results.output)
         for row in context.table:
-            assert row["product_stream"] in griffon_results.output
+            assert row["output"] in output
+
+
+@then(
+    "running strict search > griffon --format {format} service {operation} -s {component} should find following product_versions"  # noqa
+)
+def invoke_find_product_streams_strict(context, format, operation, component):
+    runner = CliRunner()
+    # griffon invoked with --no-color to disable emitting ansi escape
+    # sequences and --no-progress-bar to disable omitting extraneous text
+    # to stdout
+    griffon_results = runner.invoke(
+        cli,
+        [
+            "--no-progress-bar",
+            "--no-color",
+            "--format",
+            format,
+            "service",
+            operation,
+            "-s",
+            component,
+        ],
+    )
+    assert griffon_results.exit_code == 0
+    output = cleanup_output(griffon_results.output)
+    if format == "text":
+        for row in context.table:
+            assert row["output"] in output
