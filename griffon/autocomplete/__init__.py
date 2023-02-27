@@ -23,8 +23,8 @@ def get_product_version_names(ctx, param, incomplete):
 
 def get_product_stream_ofuris(ctx, param, incomplete):
     payload = {"limit": 2000, "include_fields": "ofuri", "re_ofuri": incomplete}
-    if ctx.obj["SHOW_INACTIVE"]:
-        payload["active"] = "all"
+    # if ctx.obj["SHOW_INACTIVE"]:
+    #     payload["active"] = "all"
     response = requests.get(
         f"{CORGI_API_URL}/api/v1/product_streams",
         params=payload,
@@ -34,8 +34,8 @@ def get_product_stream_ofuris(ctx, param, incomplete):
 
 def get_product_stream_names(ctx, param, incomplete):
     payload = {"limit": 2000, "include_fields": "name", "re_name": incomplete}
-    if ctx.obj["SHOW_INACTIVE"]:
-        payload["active"] = "all"
+    # if ctx.obj["SHOW_INACTIVE"]:
+    #     payload["active"] = "all"
     response = requests.get(
         f"{CORGI_API_URL}/api/v1/product_streams",
         params=payload,

@@ -212,11 +212,11 @@ def get_product_manifest_query(ctx, ofuri, product_stream_name):
     name="product-components",
     help="List LATEST Components of Product.",
 )
+@click.pass_context
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
 @click.option(
     "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
 )
-@click.pass_context
 def get_product_latest_components_query(ctx, ofuri, product_stream_name):
     """List components of a specific product version."""
     if not ofuri and not product_stream_name:
@@ -228,7 +228,7 @@ def get_product_latest_components_query(ctx, ofuri, product_stream_name):
     if product_stream_name:
         # lookup ofuri
         q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
-        ofuri = q["ofuri"]
+        ofuri = q[0]["ofuri"]
         cond["ofuri"] = ofuri
     ctx.invoke(list_components, **cond)
 
@@ -237,11 +237,11 @@ def get_product_latest_components_query(ctx, ofuri, product_stream_name):
     name="product-all-components",
     help="List ALL Components of Product.",
 )
+@click.pass_context
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
 @click.option(
     "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
 )
-@click.pass_context
 def get_product_all_components_query(ctx, ofuri, product_stream_name):
     """List components of a specific product stream."""
     if not ofuri and not product_stream_name:
@@ -253,7 +253,7 @@ def get_product_all_components_query(ctx, ofuri, product_stream_name):
     if product_stream_name:
         # lookup ofuri
         q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
-        ofuri = q["ofuri"]
+        ofuri = q[0]["ofuri"]
         cond["product_stream_ofuri"] = ofuri
     ctx.invoke(list_components, **cond)
 
@@ -262,9 +262,9 @@ def get_product_all_components_query(ctx, ofuri, product_stream_name):
     name="component-manifest",
     help="Get Component manifest.",
 )
+@click.pass_context
 @click.option("--uuid", "component_uuid")
 @click.option("--purl", help="Purl are URI and must be quoted.")
-@click.pass_context
 def retrieve_component_manifest(ctx, component_uuid, purl):
     """Retrieve component manifest."""
     if not component_uuid and not purl:

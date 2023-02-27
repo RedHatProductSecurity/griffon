@@ -23,9 +23,9 @@ class product_stream_summary:
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
         self.params = params
-        self.product_stream_name = self.params["product_stream_name"]
-        self.ofuri = self.params["ofuri"]
-        self.strict_name_search = self.params["strict_name_search"]
+        self.product_stream_name = self.params.get("product_stream_name")
+        self.ofuri = self.params.get("ofuri")
+        self.strict_name_search = self.params.get("strict_name_search", None)
 
     def execute(self) -> List[Dict[str, Any]]:
         cond = {}
@@ -118,11 +118,11 @@ class products_containing_specific_component_query:
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
         self.params = params
+        self.purl = self.params.get("purl")
 
     def execute(self) -> dict:
-        purl = self.params["purl"]
         c = self.corgi_session.components.retrieve_list(
-            purl=purl,
+            purl=self.purl,
         )
         return c["product_streams"]
 
@@ -146,18 +146,18 @@ class products_containing_component_query:
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
         self.params = params
-        self.component_name = self.params["component_name"]
-        self.component_type = self.params["component_type"]
-        self.strict_name_search = self.params["strict_name_search"]
-        self.search_deps = self.params["search_deps"]
-        self.ns = self.params["namespace"]
+        self.component_name = self.params.get("component_name")
+        self.component_type = self.params.get("component_type")
+        self.strict_name_search = self.params.get("strict_name_search")
+        self.search_deps = self.params.get("search_deps")
+        self.ns = self.params.get("namespace")
 
     def execute(self) -> List[Dict[str, Any]]:
         params = {"view": "latest"}
         if not self.strict_name_search:
-            params["re_name"] = self.component_name
+            params["re_name"] = self.component_name  # type: ignore
         else:
-            params["name"] = self.component_name
+            params["name"] = self.component_name  # type: ignore
         # TODO - not yet exposed in bindings
         response = requests.get(f"{CORGI_API_URL}/api/v1/components", params=params)
         latest_src_results = response.json()["results"]
@@ -183,12 +183,12 @@ class components_containing_specific_component_query:
     def __init__(self, params: dict):
         self.corgi_session = CorgiService.create_session()
         self.params = params
+        self.purl = self.params.get("purl")
 
     def execute(self) -> dict:
-        purl = self.params["purl"]
-        if purl:
+        if self.purl:
             c = self.corgi_session.components.retrieve_list(
-                purl=purl,
+                purl=self.purl,
             )
             component_type = self.params["component_type"]
             sources = c["sources"]
@@ -222,12 +222,12 @@ class components_containing_component_query:
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
         self.params = params
-        self.component_name = self.params["component_name"]
-        self.component_type = self.params["component_type"]
-        self.component_version = self.params["component_version"]
-        self.component_arch = self.params["component_arch"]
-        self.namespace = self.params["namespace"]
-        self.strict_name_search = self.params["strict_name_search"]
+        self.component_name = self.params.get("component_name")
+        self.component_type = self.params.get("component_type")
+        self.component_version = self.params.get("component_version")
+        self.component_arch = self.params.get("component_arch")
+        self.namespace = self.params.get("namespace")
+        self.strict_name_search = self.params.get("strict_name_search")
 
     def execute(self) -> List[Dict[str, Any]]:
         cond = {}
@@ -303,19 +303,19 @@ class components_affected_by_specific_cve_query:
         self.corgi_session = CorgiService.create_session()
         self.osidb_session = OSIDBService.create_session()
         self.params = params
+        self.cve_id = self.params.get("cve_id")
+        self.affectedness = self.params.get("affectedness")
+        self.affect_resolution = self.params.get("affect_resolution")
+        self.affect_impact = self.params.get("affect_impact")
 
     def execute(self) -> dict:
-        cve_id = self.params["cve_id"]
-        affectedness = self.params["affectedness"]
-        affect_resolution = self.params["affect_resolution"]
-        affect_impact = self.params["affect_impact"]
         cond = {}
-        if affectedness:
-            cond["affectedness"] = affectedness
-        if affect_resolution:
-            cond["resolution"] = affect_resolution
-        if affect_impact:
-            cond["impact"] = affect_impact
+        if self.affectedness:
+            cond["affectedness"] = self.affectedness
+        if self.affect_resolution:
+            cond["resolution"] = self.affect_resolution
+        if self.affect_impact:
+            cond["impact"] = self.affect_impact
         component_type = self.params["component_type"]
         namespace = self.params["namespace"]
         component_cond = {}
@@ -323,7 +323,7 @@ class components_affected_by_specific_cve_query:
             component_cond["namespace"] = namespace
         if component_type:
             component_cond["type"] = component_type
-        flaw = self.osidb_session.flaws.retrieve(cve_id)
+        flaw = self.osidb_session.flaws.retrieve(self.cve_id)
         affects = self.osidb_session.affects.retrieve_list(
             flaw=flaw.uuid, **cond, limit=1000
         ).results
