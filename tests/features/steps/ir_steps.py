@@ -23,9 +23,9 @@ def step_impl(context):
 
 
 @then(
-    "running > griffon --format {format} service {operation} --name {product_stream} should find following latest components"  # noqa
+    "running > griffon --format {format} service {operation} {component} should find following components"  # noqa
 )
-def invoke_find_components(context, format, operation, product_stream):
+def invoke_find_components(context, format, operation, component):
     runner = CliRunner()
     # griffon invoked with --no-color to disable emitting ansi escape
     # sequences and --no-progress-bar to disable omitting extraneous text
@@ -39,15 +39,14 @@ def invoke_find_components(context, format, operation, product_stream):
             format,
             "service",
             operation,
-            "--name",
-            product_stream,
+            component,
         ],
     )
     assert griffon_results.exit_code == 0
     if format == "json":
         out = json.loads(griffon_results.output)
         print(out)
-        assert context.data[product_stream] == out["count"]
+        assert context.data[component] == out["count"]
         for row in context.table:
             assert [item for item in out["results"] if item.get("purl") == row["component"]]
 

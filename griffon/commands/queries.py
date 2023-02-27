@@ -36,16 +36,47 @@ queries_grp.add_command(generate_affects_for_component_process)
 
 
 @queries_grp.command(
+    name="product-summary",
+    help="Get Product summary.",
+)
+@click.argument("product_stream_name", required=False)
+@click.option(
+    "--ofuri",
+    "ofuri",
+    type=click.STRING,
+    shell_complete=get_product_stream_ofuris,
+    help="UNDER DEVELOPMENT",
+)
+@click.option(
+    "-s",
+    "strict_name_search",
+    is_flag=True,
+    default=False,
+    help="Strict search, exact match of component name.",
+)
+@click.pass_context
+@progress_bar
+def get_product_query(ctx, product_stream_name, ofuri, strict_name_search):
+    """get product stream."""
+    if not product_stream_name and not ofuri:
+        click.echo(ctx.get_help())
+        exit(0)
+    q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
+    cprint(q, ctx=ctx)
+
+
+@queries_grp.command(
     name="products-contain-component",
-    help="List Products containing Component.",
+    help="List Products containing (latest) Component.",
 )
 @click.argument("component_name", required=False)
-@click.option("--purl")
+@click.option(
+    "--purl", help="Component purl, needs to be in quotes (ex. 'pkg:rpm/python-pyjwt@1.7.1')"
+)
 @click.option(
     "--arch",
     default="src",
     type=click.Choice(CorgiService.get_component_arches()),
-    help="Default arch=src.",
 )
 @click.option(
     "--namespace", default=None, type=click.Choice(CorgiService.get_component_namespaces())
@@ -63,7 +94,7 @@ queries_grp.add_command(generate_affects_for_component_process)
     "affect_mode",
     is_flag=True,
     default=False,
-    help="Generate Affects.",
+    help="(Under development) Generate Affects.",
 )
 @click.option(
     "--search-deps",
@@ -108,6 +139,13 @@ def get_product_contain_component(
 @click.argument("component_name", required=False)
 @click.option("--purl")
 @click.option("--type", "component_type", type=click.Choice(CorgiService.get_component_types()))
+@click.option("--version", "component_version")
+@click.option(
+    "--arch",
+    "component_arch",
+    type=click.Choice(CorgiService.get_component_arches()),
+    help="Default arch=src.",
+)
 @click.option("--namespace", type=click.Choice(CorgiService.get_component_namespaces()))
 @click.option(
     "-s",
@@ -119,7 +157,14 @@ def get_product_contain_component(
 @click.pass_context
 @progress_bar
 def get_component_contain_component(
-    ctx, component_name, purl, component_type, namespace, strict_name_search
+    ctx,
+    component_name,
+    purl,
+    component_type,
+    component_version,
+    component_arch,
+    namespace,
+    strict_name_search,
 ):
     """List components that contain component."""
     if not component_name and not purl:
@@ -139,38 +184,6 @@ def get_component_contain_component(
             q,
             ctx=ctx,
         )
-
-
-@queries_grp.command(
-    name="product-summary",
-    help="Get Product summary.",
-)
-@click.option("--inactive", is_flag=True, default=False, help="Show inactive project streams")
-@click.option(
-    "--ofuri",
-    "ofuri",
-    type=click.STRING,
-    shell_complete=get_product_stream_ofuris,
-    help="UNDER DEVELOPMENT",
-)
-@click.option(
-    "--re-name",
-    "product_stream_re_name",
-    type=click.STRING,
-    shell_complete=get_product_stream_names,
-)
-@click.option(
-    "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
-)
-@click.pass_context
-@progress_bar
-def get_product_query(ctx, inactive, ofuri, product_stream_re_name, product_stream_name):
-    """get product stream."""
-    if not product_stream_name and not ofuri or not product_stream_re_name:
-        click.echo(ctx.get_help())
-        exit(0)
-    q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
-    cprint(q, ctx=ctx)
 
 
 @queries_grp.command(
