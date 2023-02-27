@@ -79,6 +79,43 @@ def component_type_style(type):
     return f"[{color}]{type}[/{color}]"
 
 
+def text_output_product_summary(ctx, output, format):
+
+    ordered_results = sorted(output["results"], key=lambda d: d["name"])
+
+    if ctx.obj["VERBOSE"] == 0:
+        for item in ordered_results:
+            console.print(
+                Text(item["product"], style="bold magenta u"),
+                Text(item["product_version"], style="magenta"),
+                Text(item["name"], style="white"),
+                f"{item['brew_tags']}",
+                no_wrap=False,
+            )
+    if ctx.obj["VERBOSE"] == 1:
+        for item in ordered_results:
+            console.print(
+                Text(item["product"], style="bold magenta u"),
+                Text(item["product_version"], style="magenta"),
+                Text(item["name"], style="white"),
+                item["brew_tags"],
+                item["ofuri"],
+                no_wrap=False,
+            )
+    if ctx.obj["VERBOSE"] > 1:
+        for item in ordered_results:
+            console.print(
+                Text(item["product"], style="bold magenta u"),
+                Text(item["product_version"], style="magenta"),
+                Text(item["name"], style="white"),
+                item["brew_tags"],
+                item["ofuri"],
+                item["manifest_link"],
+                no_wrap=False,
+            )
+    ctx.exit()
+
+
 def text_output_products_contain_component(ctx, output, format):
     component_name = ctx.params["component_name"]
 
@@ -118,7 +155,7 @@ def text_output_products_contain_component(ctx, output, format):
             for item in ordered_results:
                 dep_name = item["name"].replace(component_name, f"[b]{component_name}[/b]")
                 dep = f"[white]({dep_name})[/white]"
-                root_component = ""
+                root_component = "[i]Root component[/i]"
                 if item.get("root_component"):
                     root_component = item["root_component"]
                 console.print(
@@ -131,7 +168,7 @@ def text_output_products_contain_component(ctx, output, format):
             for item in ordered_results:
                 dep_name = item["nvr"].replace(component_name, f"[b]{component_name}[/b]")
                 dep = f"[white]({dep_name})[/white]"
-                root_component = ""
+                root_component = "[i]Root component[/i]"
                 if item.get("root_component"):
                     root_component = item["root_component"]
                 console.print(
@@ -144,7 +181,7 @@ def text_output_products_contain_component(ctx, output, format):
             for item in ordered_results:
                 dep_name = item["nvr"].replace(component_name, f"[b]{component_name}[/b]")
                 dep = f"[white]({dep_name})[/white]"
-                root_component = ""
+                root_component = "[i]Root component[/i]"
                 if item.get("root_component"):
                     root_component = item["root_component"]
                 console.print(
@@ -154,11 +191,11 @@ def text_output_products_contain_component(ctx, output, format):
                     item["related_url"],
                     no_wrap=False,
                 )
-        if ctx.obj["VERBOSE"] > 3:  # source url
+        if ctx.obj["VERBOSE"] == 4:  # source url
             for item in ordered_results:
                 dep_name = item["nvr"].replace(component_name, f"[b]{component_name}[/b]")
                 dep = f"[white]({dep_name})[/white]"
-                root_component = ""
+                root_component = "[i]Root component[/i]"
                 if item.get("root_component"):
                     root_component = item["root_component"]
                 console.print(
@@ -169,46 +206,45 @@ def text_output_products_contain_component(ctx, output, format):
                     item["build_source_url"],
                     no_wrap=False,
                 )
+        if ctx.obj["VERBOSE"] > 4:  # source url, upstream
+            for item in ordered_results:
+                dep_name = item["nvr"].replace(component_name, f"[b]{component_name}[/b]")
+                dep = f"[white]({dep_name})[/white]"
+                root_component = "[i]Root component[/i]"
+                if item.get("root_component"):
+                    root_component = item["root_component"]
+                console.print(
+                    Text(item["product_stream"], style="magenta b u"),
+                    root_component,
+                    dep,
+                    item["related_url"],
+                    item["build_source_url"],
+                    item["upstream_purl"],
+                    no_wrap=False,
+                )
         ctx.exit()
 
 
 def text_output_components_contain_component(ctx, output, format):
     if "results" in output:
+
         for item in output["results"]:
-            if ctx.obj["SHOW_UPSTREAM"] or (
-                "redhat" in item["purl"] and not ctx.obj["SHOW_UPSTREAM"]
-            ):
-                component = item["purl"]
-                if not ctx.obj["SHOW_PURL"]:
-                    purl = PackageURL.from_string(item["purl"])
-                    ns = "UPSTREAM"
-                    component = f"([bold turquoise2]{ns}[/bold turquoise2] [white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
-                    if purl.namespace == "redhat":
-                        ns = purl.namespace.upper()
-                        component = f"([bold red]{ns}[/bold red] [white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
-                    if purl.namespace:
-                        ns = purl.namespace.upper()
-                        component = f"([white]{ns}[/white] [white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
+            component_name = item["name"]
+
+            if ctx.obj["VERBOSE"] == 0:
                 ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
                 for source in ordered_sources:
-                    root_component = source["purl"]
-                    if not ctx.obj["SHOW_PURL"]:
-                        purl = PackageURL.from_string(source["purl"])
-                        root_component = f"[u magenta]{purl.name}-{purl.version}[/u magenta]"
-
-                    if ctx.obj["VERBOSE"] == 0:
+                    if "arch=noarch" in source["purl"] or "arch=src" in source["purl"]:
+                        source_purl = PackageURL.from_string(source["purl"])
+                        root_component = source_purl.name
+                        if source_purl.type == "oci" and "-source" not in source_purl.name:
+                            root_component = f"[u magenta]{source_purl.name}-container[/u magenta]"
                         console.print(
                             root_component,
-                            component,
+                            component_name,
                             no_wrap=False,
                         )
-                    if ctx.obj["VERBOSE"] == 1:
-                        console.print(
-                            root_component,
-                            component,
-                            no_wrap=False,
-                        )
-        ctx.exit()
+    ctx.exit()
 
 
 def text_output_components_affected_by_cve(ctx, output, format):
@@ -371,7 +407,7 @@ def cprint(
 
     if format is OUTPUT_FORMAT.TEXT:
         if ctx.info_name == "product-summary":
-            text_output_generic(ctx, output, format)
+            text_output_product_summary(ctx, output, format)
         if ctx.info_name == "products-contain-component":
             text_output_products_contain_component(ctx, output, format)
         if ctx.info_name == "components-contain-component":

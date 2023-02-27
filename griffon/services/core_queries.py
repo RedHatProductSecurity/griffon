@@ -13,6 +13,52 @@ from griffon import CORGI_API_URL, OSIDB_API_URL, CorgiService, OSIDBService
 logger = logging.getLogger("rich")
 
 
+class product_stream_summary:
+    """retrieve product_stream summary"""
+
+    name = "product_stream_summary"
+    description = "retrieve product_stream summary"
+    allowed_params = ["strict_name_search", "product_stream_name", "ofuri"]
+
+    def __init__(self, params: dict) -> None:
+        self.corgi_session = CorgiService.create_session()
+        self.params = params
+        self.product_stream_name = self.params["product_stream_name"]
+        self.ofuri = self.params["ofuri"]
+        self.strict_name_search = self.params["strict_name_search"]
+
+    def execute(self) -> List[Dict[str, Any]]:
+        cond = {}
+
+        if self.ofuri:
+            cond["ofuri"] = self.ofuri
+        elif not self.strict_name_search:
+            cond["re_name"] = self.product_stream_name
+        else:
+            cond["name"] = self.product_stream_name
+
+        # TODO - corgi bindings need to support ofuri in product_streams
+        product_streams = self.corgi_session.product_streams.retrieve_list(
+            **cond, include_fields="link,ofuri,name,products,product_versions,brew_tags,manifest"
+        )
+        results = []
+        for ps in product_streams.results:
+            result = {
+                "link": ps.link,
+                "ofuri": ps.ofuri,
+                "name": ps.name,
+                "product": ps.products[0]["name"],
+                "product_version": ps.product_versions[0]["name"],
+                "brew_tags": [brew_tag for brew_tag in ps.brew_tags.to_dict().keys()],
+                "build_count": ps.build_count,
+                "manifest_link": ps.manifest,
+                "latest_components_link": ps.components,
+                "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={ps.ofuri}&include_fields=link,name,purl",  # noqa
+            }
+            results.append(result)
+        return results
+
+
 class products_versions_affected_by_specific_cve_query:
     """Given a specific CVE ID, what products are affected?"""
 
@@ -59,13 +105,14 @@ class products_containing_specific_component_query:
     name = "products_containing_specific_component_query"
     description = "What products contain a specific component?"
     allowed_params = [
-        "component_re_name",
         "component_name",
         "purl",
         "arch",
         "namespace",
         "component_type",
+        "strict_name_search",
         "affect_mode",
+        "search_deps",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -99,63 +146,22 @@ class products_containing_component_query:
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
         self.params = params
+        self.component_name = self.params["component_name"]
+        self.component_type = self.params["component_type"]
+        self.strict_name_search = self.params["strict_name_search"]
+        self.search_deps = self.params["search_deps"]
+        self.ns = self.params["namespace"]
 
     def execute(self) -> List[Dict[str, Any]]:
-        component_name = self.params["component_name"]
-        # component_type = self.params["component_type"]
-        strict_name_search = self.params["strict_name_search"]
-        # search_deps = self.params["search_deps"]
-        # ns = self.params["namespace"]
-
         params = {"view": "latest"}
-        if not strict_name_search:
-            params["re_name"] = component_name
+        if not self.strict_name_search:
+            params["re_name"] = self.component_name
         else:
-            params["name"] = component_name
+            params["name"] = self.component_name
         # TODO - not yet exposed in bindings
         response = requests.get(f"{CORGI_API_URL}/api/v1/components", params=params)
         latest_src_results = response.json()["results"]
         return latest_src_results
-
-
-class product_stream_summary:
-    """retrieve product_stream summary"""
-
-    name = "product_stream_summary"
-    description = "retrieve product_stream summary"
-    allowed_params = ["product_stream_re_name", "product_stream_name", "ofuri", "inactive"]
-
-    def __init__(self, params: dict) -> None:
-        self.corgi_session = CorgiService.create_session()
-        self.params = params
-
-    def execute(self) -> dict:
-        cond = {}
-        product_stream_name = self.params["product_stream_name"]
-        ofuri = self.params["ofuri"]
-        if product_stream_name:
-            cond["name"] = product_stream_name
-        if ofuri:
-            cond["ofuri"] = ofuri
-        # TODO - corgi bindings need to support ofuri in product_streams
-        product_stream = self.corgi_session.product_streams.retrieve_list(**cond)
-        components_cnt = self.corgi_session.components.retrieve_list(
-            ofuri=product_stream["ofuri"], view="summary", limit=1
-        ).count
-        return {
-            "link": product_stream["link"],
-            "ofuri": product_stream["ofuri"],
-            "name": product_stream["name"],
-            "product": product_stream["products"][0]["name"],
-            "product_version": product_stream["product_versions"][0]["name"],
-            "brew_tags": list(product_stream["brew_tags"].keys()),
-            "build_count": product_stream["build_count"],
-            "latest_component_count": components_cnt,
-            "manifest_link": product_stream["manifest"],
-            "shipped_components_link": "tbd",
-            "latest_components_link": product_stream["components"],
-            "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={product_stream['ofuri']}&include_fields=link,name,purl",  # noqa
-        }
 
 
 class components_containing_specific_component_query:
@@ -163,7 +169,16 @@ class components_containing_specific_component_query:
 
     name = "components_containing_specific_component_query"
     description = "What components contain a specific component?"
-    allowed_params = ["component_re_name", "component_name", "purl", "component_type", "namespace"]
+    allowed_params = [
+        "component_re_name",
+        "component_name",
+        "purl",
+        "component_type",
+        "component_version",
+        "component_arch",
+        "namespace",
+        "strict_name_search",
+    ]
 
     def __init__(self, params: dict):
         self.corgi_session = CorgiService.create_session()
@@ -181,8 +196,9 @@ class components_containing_specific_component_query:
                 sources = [source for source in sources if component_type.lower() in source["purl"]]
         return {
             "link": c["link"],
-            "type": component_type,
+            "type": c["type"],
             "name": c["name"],
+            "version": c["version"],
             "purl": c["purl"],
             "sources": sources,
         }
@@ -197,6 +213,8 @@ class components_containing_component_query:
         "component_name",
         "purl",
         "component_type",
+        "component_version",
+        "component_arch",
         "namespace",
         "strict_name_search",
     ]
@@ -204,21 +222,25 @@ class components_containing_component_query:
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
         self.params = params
+        self.component_name = self.params["component_name"]
+        self.component_type = self.params["component_type"]
+        self.component_version = self.params["component_version"]
+        self.component_arch = self.params["component_arch"]
+        self.namespace = self.params["namespace"]
+        self.strict_name_search = self.params["strict_name_search"]
 
     def execute(self) -> List[Dict[str, Any]]:
-        component_name = self.params["component_name"]
-        component_type = self.params["component_type"]
-        namespace = self.params["namespace"]
-        strict_name_search = self.params["strict_name_search"]
-
         cond = {}
-        if not strict_name_search:
-            cond["re_name"] = component_name
+        if not self.strict_name_search:
+            cond["re_name"] = self.component_name
         else:
-            cond["name"] = component_name
-
-        if namespace:
-            cond["namespace"] = namespace
+            cond["name"] = self.component_name
+        if self.component_version:
+            cond["version"] = self.component_version
+        if self.component_arch:
+            cond["arch"] = self.component_arch
+        if self.namespace:
+            cond["namespace"] = self.namespace
 
         components: List[Any] = []
         logger.debug("starting parallel http requests")
@@ -233,7 +255,7 @@ class components_containing_component_query:
                             self.corgi_session.components.retrieve_list,
                             **cond,
                             offset=batch,
-                            include_fields="link,name,purl,sources",
+                            include_fields="link,name,type,version,purl,sources",
                             limit=120,  # noqa
                         )
                     )
@@ -246,12 +268,16 @@ class components_containing_component_query:
         results = []
         for c in components:
             sources = [{"link": source["link"], "purl": source["purl"]} for source in c.sources]
-            if component_type:
-                sources = [source for source in sources if component_type.lower() in source["purl"]]
+            if self.component_type:
+                sources = [
+                    source for source in sources if self.component_type.lower() in source["purl"]
+                ]
             results.append(
                 {
                     "link": c.link,
+                    "type": c.type,
                     "name": c.name,
+                    "version": c.version,
                     "purl": c.purl,
                     "sources": sources,
                 }
