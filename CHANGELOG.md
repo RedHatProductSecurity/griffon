@@ -13,6 +13,10 @@ first experimental release to the PyPI
 Added
 another experimental release to the PyPI
 
+[0.0.3] - 2023-02-28
+Added
+another experimental release to the PyPI
+
 [0.0.4] - 2023-02-28
 Added
 another experimental release to the PyPI
