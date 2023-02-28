@@ -190,12 +190,10 @@ def get_component_contain_component(
     name="product-manifest",
     help="Get Product manifest.",
 )
+@click.argument("product_stream_name", required=False, shell_complete=get_product_stream_names)
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
-@click.option(
-    "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
-)
 @click.pass_context
-def get_product_manifest_query(ctx, ofuri, product_stream_name):
+def get_product_manifest_query(ctx, product_stream_name, ofuri):
     """List components of a specific product version."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
@@ -213,11 +211,9 @@ def get_product_manifest_query(ctx, ofuri, product_stream_name):
     help="List LATEST Components of Product.",
 )
 @click.pass_context
+@click.argument("product_stream_name", required=False, shell_complete=get_product_stream_names)
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
-@click.option(
-    "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
-)
-def get_product_latest_components_query(ctx, ofuri, product_stream_name):
+def get_product_latest_components_query(ctx, product_stream_name, ofuri):
     """List components of a specific product version."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
@@ -237,12 +233,10 @@ def get_product_latest_components_query(ctx, ofuri, product_stream_name):
     name="product-all-components",
     help="List ALL Components of Product.",
 )
+@click.argument("product_stream_name", required=False, shell_complete=get_product_stream_names)
 @click.pass_context
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
-@click.option(
-    "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
-)
-def get_product_all_components_query(ctx, ofuri, product_stream_name):
+def get_product_all_components_query(ctx, product_stream_name, ofuri):
     """List components of a specific product stream."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())

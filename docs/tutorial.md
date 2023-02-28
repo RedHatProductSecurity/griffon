@@ -16,3 +16,13 @@ Use of -v (up to -vvvv) to get more information
 > griffon -vvv service products-contain-component "^webkitgtk(\d)"
 > griffon -vvvv service products-contain-component "^webkitgtk(\d)"
 
+Retrieve a product summary
+> griffon service product-summary -s rhel-7.6.z
+> griffon --format json service product-summary -s rhel-7.6.z
+
+Retrieve a product manifest
+> griffon service product-components rhel-9.0.0.z
+
+Retrieve a spdx json formatted product manifest
+> griffon --format json service product-components rhel-9.0.0.z
+

@@ -39,21 +39,36 @@ class product_stream_summary:
 
         # TODO - corgi bindings need to support ofuri in product_streams
         product_streams = self.corgi_session.product_streams.retrieve_list(
-            **cond, include_fields="link,ofuri,name,products,product_versions,brew_tags,manifest"
+            **cond,
+            limit=400,
+            include_fields="link,ofuri,name,products,product_versions,brew_tags,manifest",
         )
         results = []
-        for ps in product_streams.results:
+        if product_streams.results:
+            for ps in product_streams.results:
+                result = {
+                    "link": ps.link,
+                    "ofuri": ps.ofuri,
+                    "name": ps.name,
+                    "product": ps.products[0]["name"],
+                    "product_version": ps.product_versions[0]["name"],
+                    "brew_tags": [brew_tag for brew_tag in ps.brew_tags.to_dict().keys()],
+                    "build_count": ps.build_count,
+                    "manifest_link": ps.manifest,
+                    "latest_components_link": ps.components,
+                    "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={ps.ofuri}&include_fields=link,name,purl",  # noqa
+                }
+                results.append(result)
+        else:
             result = {
-                "link": ps.link,
-                "ofuri": ps.ofuri,
-                "name": ps.name,
-                "product": ps.products[0]["name"],
-                "product_version": ps.product_versions[0]["name"],
-                "brew_tags": [brew_tag for brew_tag in ps.brew_tags.to_dict().keys()],
-                "build_count": ps.build_count,
-                "manifest_link": ps.manifest,
-                "latest_components_link": ps.components,
-                "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={ps.ofuri}&include_fields=link,name,purl",  # noqa
+                "link": product_streams["link"],
+                "ofuri": product_streams["ofuri"],
+                "name": product_streams["name"],
+                "product": product_streams["products"][0]["name"],
+                "product_version": product_streams["product_versions"][0]["name"],
+                "brew_tags": "",
+                "manifest_link": product_streams["manifest"],
+                "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={product_streams['ofuri']}&include_fields=link,name,purl",  # noqa
             }
             results.append(result)
         return results
