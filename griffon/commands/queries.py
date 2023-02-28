@@ -6,7 +6,7 @@ import logging
 import click
 
 from griffon import CorgiService, OSIDBService, progress_bar
-from griffon.autocomplete import get_cve_ids, get_product_version_names
+from griffon.autocomplete import get_cve_ids
 from griffon.commands.entities import (
     get_component_manifest,
     get_product_stream_manifest,
@@ -241,27 +241,28 @@ def get_product_latest_components_query(ctx, product_stream_name, ofuri):
     ctx.invoke(list_components, **cond)
 
 
-@queries_grp.command(
-    name="product-all-components",
-    help="List ALL Components of Product.",
-)
-@click.argument("product_stream_name", required=False, shell_complete=get_product_stream_names)
-@click.pass_context
-@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
-def get_product_all_components_query(ctx, product_stream_name, ofuri):
-    """List components of a specific product stream."""
-    if not ofuri and not product_stream_name:
-        click.echo(ctx.get_help())
-        exit(0)
-    cond = {}
-    if ofuri:
-        cond["product_stream_ofuri"] = ofuri
-    if product_stream_name:
-        # lookup ofuri
-        q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
-        ofuri = q[0]["ofuri"]
-        cond["product_stream_ofuri"] = ofuri
-    ctx.invoke(list_components, **cond)
+# TODO- can always use entity commands to achieve this, deactivating for the time being
+# @queries_grp.command(
+#     name="product-all-components",
+#     help="List ALL Components of Product.",
+# )
+# @click.argument("product_stream_name", required=False, shell_complete=get_product_stream_names)
+# @click.pass_context
+# @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
+# def get_product_all_components_query(ctx, product_stream_name, ofuri):
+#     """List components of a specific product stream."""
+#     if not ofuri and not product_stream_name:
+#         click.echo(ctx.get_help())
+#         exit(0)
+#     cond = {}
+#     if ofuri:
+#         cond["product_stream_ofuri"] = ofuri
+#     if product_stream_name:
+#         # lookup ofuri
+#         q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
+#         ofuri = q[0]["ofuri"]
+#         cond["product_stream_ofuri"] = ofuri
+#     ctx.invoke(list_components, **cond)
 
 
 @queries_grp.command(
@@ -271,11 +272,21 @@ def get_product_all_components_query(ctx, product_stream_name, ofuri):
 @click.pass_context
 @click.option("--uuid", "component_uuid")
 @click.option("--purl", help="Purl are URI and must be quoted.")
-def retrieve_component_manifest(ctx, component_uuid, purl):
+@click.option(
+    "--spdx-json",
+    "spdx_json_format",
+    is_flag=True,
+    default=False,
+    help="Generate spdx manifest (json).",
+)
+def retrieve_component_manifest(ctx, component_uuid, purl, spdx_json_format):
     """Retrieve component manifest."""
     if not component_uuid and not purl:
         click.echo(ctx.get_help())
         exit(0)
+    if spdx_json_format:
+        ctx.ensure_object(dict)
+        ctx.obj["FORMAT"] = "json"
     cond = {}
     if component_uuid:
         cond["component_uuid"] = component_uuid
@@ -334,8 +345,8 @@ def components_affected_by_specific_cve_query(
 
 
 @queries_grp.command(
-    name="products-affected-by-cve",
-    help="List Products affected by CVE.",
+    name="products-affected-by-flaw",
+    help="List Products affected by flaw.",
 )
 @click.option("--cve-id", shell_complete=get_cve_ids)
 @click.pass_context
@@ -351,54 +362,121 @@ def product_versions_affected_by_cve_query(ctx, cve_id):
     cprint(q, ctx=ctx)
 
 
-@queries_grp.command(name="flaws-component", help="(UNDER DEV) List Flaws affecting a Component.")
+@queries_grp.command(name="component-flaws", help="List Flaws affecting a Component.")
+@click.argument("component_name", required=False)
 @click.option("--purl")
-@click.option("--affectedness")
+@click.option(
+    "--flaw-state",
+    "flaw_state",
+    help="Filter by flaw state.",
+    type=click.Choice(OSIDBService.get_flaw_states()),
+)
+@click.option(
+    "--flaw-impact",
+    "flaw_impact",
+    help="Filter by flaw impact.",
+    type=click.Choice(OSIDBService.get_flaw_impacts()),
+)
+@click.option(
+    "--flaw-resolution",
+    "flaw_resolution",
+    help="Filter by flaw resolution.",
+    type=click.Choice(OSIDBService.get_flaw_resolutions()),
+)
+@click.option(
+    "--affectedness",
+    help="Filter by affect affectedness.",
+    type=click.Choice(OSIDBService.get_affect_affectedness()),
+)
+@click.option(
+    "--affect-resolution",
+    "affect_resolution",
+    help="Filter by affect resolution.",
+    type=click.Choice(OSIDBService.get_affect_resolution()),
+)
+@click.option(
+    "--affect-impact",
+    "affect_impact",
+    help="Filter by affect impact.",
+    type=click.Choice(OSIDBService.get_affect_impact()),
+)
 @click.pass_context
 @progress_bar
-def cves_for_specific_component_query(ctx, purl, affectedness):
+def cves_for_specific_component_query(
+    ctx,
+    component_name,
+    purl,
+    flaw_state,
+    flaw_impact,
+    flaw_resolution,
+    affectedness,
+    affect_resolution,
+    affect_impact,
+):
     """List cves of a specific component."""
-    if not purl:
+    if not purl and not component_name:
         click.echo(ctx.get_help())
         exit(0)
+
     q = query_service.invoke(core_queries.cves_for_specific_component_query, ctx.params)
     cprint(q, ctx=ctx)
 
 
 @queries_grp.command(
-    name="flaws-product",
-    help="(UNDER DEV) List Flaws affecting a Product.",
+    name="product-flaws",
+    help="List Flaws affecting a Product.",
+)
+@click.argument("product_version_name", required=False)
+@click.option("--ofuri")
+@click.option(
+    "--flaw-state",
+    "flaw_state",
+    help="Filter by flaw state.",
+    type=click.Choice(OSIDBService.get_flaw_states()),
 )
 @click.option(
-    "--re-name",
-    "product_version_re_name",
-    help="product_version name (eg. ps_module)",
-    shell_complete=get_product_version_names,
+    "--flaw-impact",
+    "flaw_impact",
+    help="Filter by flaw impact.",
+    type=click.Choice(OSIDBService.get_flaw_impacts()),
 )
 @click.option(
-    "--name",
-    "product_version_name",
-    help="product_version name (eg. ps_module)",
-    shell_complete=get_product_version_names,
+    "--flaw-resolution",
+    "flaw_resolution",
+    help="Filter by flaw resolution.",
+    type=click.Choice(OSIDBService.get_flaw_resolutions()),
 )
-@click.option("--affectedness", type=click.Choice(OSIDBService.get_affect_affectedness()))
-@click.option("--affect-impact", type=click.Choice(OSIDBService.get_flaw_impacts()))
-@click.option("--affect-resolution", type=click.Choice(OSIDBService.get_affect_resolution()))
-@click.option("--flaw-state", type=click.Choice(OSIDBService.get_flaw_states()))
-@click.option("--flaw-resolution", type=click.Choice(OSIDBService.get_flaw_resolutions()))
+@click.option(
+    "--affectedness",
+    help="Filter by affect affectedness.",
+    type=click.Choice(OSIDBService.get_affect_affectedness()),
+)
+@click.option(
+    "--affect-resolution",
+    "affect_resolution",
+    help="Filter by affect resolution.",
+    type=click.Choice(OSIDBService.get_affect_resolution()),
+)
+@click.option(
+    "--affect-impact",
+    "affect_impact",
+    help="Filter by affect impact.",
+    type=click.Choice(OSIDBService.get_affect_impact()),
+)
 @click.pass_context
 def cves_for_specific_product_query(
     ctx,
-    product_version_re_name,
     product_version_name,
+    ofuri,
+    flaw_state,
+    flaw_impact,
+    flaw_resolution,
     affectedness,
     affect_impact,
     affect_resolution,
-    flaw_state,
-    flaw_resolution,
 ):
     """List cves of a specific product."""
-    if not product_version_name:
+    if not product_version_name and not ofuri:
         click.echo(ctx.get_help())
         exit(0)
     q = query_service.invoke(core_queries.cves_for_specific_product_query, ctx.params)

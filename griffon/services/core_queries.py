@@ -402,31 +402,48 @@ class cves_for_specific_component_query:
     name = "cves_for_specific component"
     description = "Which CVEs affect a specific component ?"
     allowed_params = [
+        "component_name",
         "purl",
+        "flaw_state",
+        "flaw_impact",
+        "flaw_resolution",
         "affectedness",
+        "affect_resolution",
+        "affect_impact",
+        "strict_name_search",
     ]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
         self.osidb_session = OSIDBService.create_session()
         self.params = params
+        self.component_name = self.params.get("component_name")
+        self.purl = self.params.get("purl")
+        self.flaw_state = self.params.get("flaw_state")
+        self.flaw_impact = self.params.get("flaw_impact")
+        self.flaw_resolution = self.params.get("flaw_resolution")
+        self.affectedness = self.params.get("affectedness")
+        self.affect_resolution = self.params.get("affect_resolution")
+        self.affect_impact = self.params.get("affect_impact")
 
-    def execute(self, ctx) -> dict:
-        # TODO: add flaw_state, flaw_resolution, affect_impact, affect_resolution
-        purl = ctx["purl"]
-        affectedness = ctx["affectedness"]
-        component = self.corgi_session.components.retrieve_list(purl=purl)
-        c = component.additional_properties
-        affects: list = list()
-        for pv in c["product_versions"]:
-            ofuri = "o:redhat"
-            for part in pv["name"].split("-"):
-                ofuri += f":{part}"
+    def execute(self) -> List[Dict[str, Any]]:
+        components = []
+        if self.component_name:
+            affects: list = []
+            # component = self.corgi_session.components.retrieve_list(name=self.component_name)
+            cond = {}
+            cond["ps_component"] = self.component_name
+            if self.affectedness:
+                cond["affectedness"] = self.affectedness
+            if self.affect_resolution:
+                cond["resolution"] = self.affect_resolution
+            if self.affect_impact:
+                cond["impact"] = self.affect_impact
 
             for affect in self.osidb_session.affects.retrieve_list(
-                ps_component=c["name"], ps_module=pv["name"], affectedness=affectedness, limit=10000
+                **cond,
+                limit=50,
             ).results:
-                # TODO - OSIDB will be allowing for search of cve by affect which will optimise this
                 flaw = self.osidb_session.flaws.retrieve(affect.flaw)
                 if flaw:
                     affects.append(
@@ -444,90 +461,92 @@ class cves_for_specific_component_query:
                             "affect_resolution": affect.resolution,
                         }
                     )
-        return {
-            "link": f"{CORGI_API_URL}/api/v1/components?purl={c['purl']}",
-            "purl": c["purl"],
-            "name": c["name"],
-            "version": c["version"],
-            "nvr": c["nvr"],
-            "arch": c["arch"],
-            "affects": affects,
-        }
+            components.append(
+                {
+                    "link": f"{CORGI_API_URL}/api/v1/components?purl=",
+                    "name": self.component_name,
+                    "affects": affects,
+                }
+            )
+
+        if self.purl:
+            pass
+
+        return components
 
 
 class cves_for_specific_product_query:
     name = "cves-for-product"
     description = "What cves affect a specific product ?"
     allowed_params = [
-        "product_version_re_name",
         "product_version_name",
+        "ofuri",
+        "flaw_state",
+        "flaw_impact",
+        "flaw_resolution",
         "affectedness",
         "affect_resolution",
         "affect_impact",
-        "flaw_state",
-        "flaw_resolution",
+        "strict_name_search",
     ]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
         self.osidb_session = OSIDBService.create_session()
         self.params = params
+        self.product_version_name = self.params.get("product_version_name")
+        self.ofuri = self.params.get("ofuri")
+        self.flaw_state = self.params.get("flaw_state")
+        self.flaw_impact = self.params.get("flaw_impact")
+        self.flaw_resolution = self.params.get("flaw_resolution")
+        self.affectedness = self.params.get("affectedness")
+        self.affect_resolution = self.params.get("affect_resolution")
+        self.affect_impact = self.params.get("affect_impact")
 
-    def execute(self, ctx) -> dict:
-        product_version_name = ctx["product_version_name"]
-        affectedness = ctx["affectedness"]
-        impact = ctx["affect_impact"]
-        resolution = ctx["affect_resolution"]
-        flaw_state = ctx["flaw_state"]
-        flaw_resolution = ctx["flaw_resolution"]
+    def execute(self) -> List[Dict[str, Any]]:
+        components = []
+        if self.product_version_name:
+            affects: list = []
+            # component = self.corgi_session.components.retrieve_list(name=self.component_name)
+            cond = {}
+            cond["ps_module"] = self.product_version_name
+            if self.affectedness:
+                cond["affectedness"] = self.affectedness
+            if self.affect_resolution:
+                cond["resolution"] = self.affect_resolution
+            if self.affect_impact:
+                cond["impact"] = self.affect_impact
 
-        pv = self.corgi_session.product_versions.retrieve_list(name=product_version_name).results[0]
-
-        if pv:
-            affects = list()
-
-            affect_filters = {}
-            if affectedness:
-                affect_filters["affectedness"] = affectedness
-            if impact:
-                affect_filters["impact"] = impact
-            if resolution:
-                affect_filters["resolution"] = resolution
             for affect in self.osidb_session.affects.retrieve_list(
-                ps_module=product_version_name,
-                **affect_filters,
+                **cond,
+                limit=10,
             ).results:
-                flaw_filters = {}
-                if flaw_state:
-                    flaw_filters["state"] = flaw_state
-                if flaw_resolution:
-                    flaw_filters["resolution"] = flaw_resolution
-                flaw = self.osidb_session.flaws.retrieve_list(
-                    uuid=affect.flaw,
-                    **flaw_filters,
-                )
-                if flaw.count > 0:
-                    f = flaw.results[0]
+                flaw = self.osidb_session.flaws.retrieve(affect.flaw)
+                if flaw:
                     affects.append(
                         {
-                            "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{f.cve_id}",
-                            "flaw_cve_id": f.cve_id,
-                            "flaw_state": f.state,
-                            "flaw_resolution": f.resolution,
-                            "title": f.title,
-                            "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect.uuid}",
+                            "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect.uuid}",  # noqa
+                            "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
+                            "flaw_cve_id": flaw.cve_id,
+                            "title": flaw.title,
+                            "flaw_state": flaw.state,
+                            "flaw_resolution": flaw.resolution,
                             "affect_name": affect.ps_component,
+                            "affect_product_version": affect.ps_module,
                             "affect_affectedness": affect.affectedness,
                             "affect_impact": affect.impact,
                             "affect_resolution": affect.resolution,
-                            "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect.ps_component}",  # noqa
                         }
                     )
+            components.append(
+                {
+                    "link": f"{CORGI_API_URL}/api/v1/product_version?ofuri=",
+                    "name": self.product_version_name,
+                    "affects": affects,
+                }
+            )
 
-        return {
-            "link": f"{CORGI_API_URL}/api/v1/product_versions?name={product_version_name}",
-            "ofuri": f"{pv.ofuri}",
-            "name": product_version_name,
-            "description": f"{pv.description}",
-            "affects": affects,
-        }
+        if self.ofuri:
+            pass
+
+        return components

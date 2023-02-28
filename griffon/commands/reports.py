@@ -28,9 +28,11 @@ def reports_grp(ctx):
 
 
 @reports_grp.command(name="report-affects", help="Generate Affects example report.")
+@click.argument("product_version_name", required=False)
 @click.option(
     "--show-components", is_flag=True, default=False, help="Show specific component counts."
 )
+@click.option("--all", is_flag=True, default=False, help="Show summary report on all affects.")
 @click.option("--show-products", is_flag=True, default=False, help="Show specific product counts.")
 @click.option("--purl", shell_complete=get_component_purls)
 @click.option("--name", shell_complete=get_component_names)
@@ -38,6 +40,11 @@ def reports_grp(ctx):
 @click.option("--ofuri", shell_complete=get_product_stream_ofuris)
 @click.pass_context
 @progress_bar
-def generate_affects_report(ctx, show_components, show_products, purl, name, product_name, ofuri):
+def generate_affects_report(
+    ctx, product_version_name, all, show_components, show_products, purl, name, product_name, ofuri
+):
     """A report operation"""
+    if not all and not product_version_name:
+        click.echo(ctx.get_help())
+        exit(0)
     cprint(report_service.invoke(core_reports.example_affects_report, ctx.params), ctx=ctx)

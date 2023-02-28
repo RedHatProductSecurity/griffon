@@ -23,7 +23,9 @@ process_service = ProcessService()
 #     pass
 
 
-@click.command(name="generate_affects_for_component", help="Generate affects for component.")
+@click.command(
+    name="generate_affects_for_component", help="(UNDER DEV)Generate affects for component."
+)
 @click.option("--purl")
 @click.option("--cve_id")
 @catch_exception(handle=(HTTPError))
