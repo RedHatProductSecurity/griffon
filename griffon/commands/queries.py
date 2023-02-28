@@ -188,16 +188,28 @@ def get_component_contain_component(
 
 @queries_grp.command(
     name="product-manifest",
-    help="Get Product manifest.",
+    help="Get Product manifest (includes Root Components and all dependencies).",
 )
 @click.argument("product_stream_name", required=False, shell_complete=get_product_stream_names)
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
+@click.option(
+    "--spdx-json",
+    "spdx_json_format",
+    is_flag=True,
+    default=False,
+    help="Generate spdx manifest (json).",
+)
 @click.pass_context
-def get_product_manifest_query(ctx, product_stream_name, ofuri):
+def get_product_manifest_query(ctx, product_stream_name, ofuri, spdx_json_format):
     """List components of a specific product version."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
         exit(0)
+
+    if spdx_json_format:
+        ctx.ensure_object(dict)
+        ctx.obj["FORMAT"] = "json"
+
     cond = {}
     if ofuri:
         cond["ofuri"] = ofuri
@@ -208,7 +220,7 @@ def get_product_manifest_query(ctx, product_stream_name, ofuri):
 
 @queries_grp.command(
     name="product-components",
-    help="List LATEST Components of Product.",
+    help="List LATEST Root Components of Product.",
 )
 @click.pass_context
 @click.argument("product_stream_name", required=False, shell_complete=get_product_stream_names)
