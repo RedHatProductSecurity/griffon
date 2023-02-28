@@ -23,7 +23,7 @@ def step_impl(context):
 
 
 @then(
-    "running > griffon --format {format} service {operation} {component} should find following components"  # noqa
+    "running > griffon --format {format} service {operation} {component} should find following latest components"  # noqa
 )
 def invoke_find_components(context, format, operation, component):
     runner = CliRunner()
@@ -45,7 +45,6 @@ def invoke_find_components(context, format, operation, component):
     assert griffon_results.exit_code == 0
     if format == "json":
         out = json.loads(griffon_results.output)
-        print(out)
         assert context.data[component] == out["count"]
         for row in context.table:
             assert [item for item in out["results"] if item.get("purl") == row["component"]]
@@ -109,3 +108,58 @@ def invoke_find_product_streams_strict(context, format, operation, component):
     if format == "text":
         for row in context.table:
             assert row["output"] in output
+
+
+@given(
+    "running strict search > griffon --format {format} service {operation} -s {product_stream_name} should find following product"  # noqa
+)
+def invoke_find_products_with_strict_search(context, format, operation, product_stream_name):
+    runner = CliRunner()
+    # griffon invoked with --no-color to disable emitting ansi escape
+    # sequences and --no-progress-bar to disable omitting extraneous text
+    # to stdout
+    griffon_results = runner.invoke(
+        cli,
+        [
+            "--no-progress-bar",
+            "--no-color",
+            "--format",
+            format,
+            "service",
+            operation,
+            "-s",
+            product_stream_name,
+        ],
+    )
+    assert griffon_results.exit_code == 0
+    output = cleanup_output(griffon_results.output)
+    if format == "text":
+        for row in context.table:
+            assert row["product"] in output
+
+
+@given(
+    "running > griffon --format {format} service {operation} {product_stream_name} should find following products"  # noqa
+)
+def invoke_find_products(context, format, operation, product_stream_name):
+    runner = CliRunner()
+    # griffon invoked with --no-color to disable emitting ansi escape
+    # sequences and --no-progress-bar to disable omitting extraneous text
+    # to stdout
+    griffon_results = runner.invoke(
+        cli,
+        [
+            "--no-progress-bar",
+            "--no-color",
+            "--format",
+            format,
+            "service",
+            operation,
+            product_stream_name,
+        ],
+    )
+    assert griffon_results.exit_code == 0
+    output = cleanup_output(griffon_results.output)
+    if format == "text":
+        for row in context.table:
+            assert row["product"] in output
