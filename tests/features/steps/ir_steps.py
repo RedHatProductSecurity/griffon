@@ -163,3 +163,34 @@ def invoke_find_products(context, format, operation, product_stream_name):
     if format == "text":
         for row in context.table:
             assert row["product"] in output
+
+
+@given(
+    "running > griffon --format {format} service product-manifest {product_stream_name} should return manifest."  # noqa
+)
+def invoke_product_manifest(context, format, product_stream_name):
+    runner = CliRunner()
+    # griffon invoked with --no-color to disable emitting ansi escape
+    # sequences and --no-progress-bar to disable omitting extraneous text
+    # to stdout
+    griffon_results = runner.invoke(
+        cli,
+        [
+            "--no-progress-bar",
+            "--no-color",
+            "--format",
+            format,
+            "service",
+            "product-manifest",
+            product_stream_name,
+        ],
+    )
+    print(griffon_results.output)
+    assert griffon_results.exit_code == 0
+
+    if format == "json":
+        output = json.loads(griffon_results.output)
+        assert output["name"] == product_stream_name
+    # if format == "text":
+    #     for row in context.table:
+    #         assert row["contain"] in output

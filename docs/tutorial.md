@@ -24,5 +24,5 @@ Retrieve a product manifest
 > griffon service product-components rhel-9.0.0.z
 
 Retrieve a spdx json formatted product manifest
-> griffon --format json service product-components rhel-9.0.0.z
+> griffon service product-manifest ansible_automation_platform-2.3 --spdx-json
 
