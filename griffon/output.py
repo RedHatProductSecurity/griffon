@@ -323,6 +323,84 @@ def text_output_get_manifest(ctx, output, format):
     ctx.exit()
 
 
+def text_output_component_flaws(ctx, output, format):
+    for item in output["results"]:
+        component_name = item["name"]
+        for affect in item["affects"]:
+            if ctx.obj["VERBOSE"] == 0:
+                console.print(
+                    Text(component_name, style="magenta"),
+                    Text(affect["flaw_cve_id"], style="white"),
+                    Text(affect["affect_product_version"], style="cyan"),
+                    affect["affect_affectedness"],
+                    affect["affect_impact"],
+                    affect["affect_resolution"],
+                    no_wrap=True,
+                )
+            if ctx.obj["VERBOSE"] == 1:
+                console.print(
+                    Text(component_name, style="magenta"),
+                    Text(affect["flaw_cve_id"], style="white"),
+                    f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
+                    Text(affect["affect_product_version"], style="cyan"),
+                    affect["affect_affectedness"],
+                    affect["affect_impact"],
+                    affect["affect_resolution"],
+                    no_wrap=True,
+                )
+            if ctx.obj["VERBOSE"] > 1:
+                console.print(Text(affect["title"], style="white"))
+                console.print(
+                    Text(component_name, style="magenta"),
+                    f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
+                    Text(affect["affect_product_version"], style="cyan"),
+                    affect["affect_affectedness"],
+                    affect["affect_impact"],
+                    affect["affect_resolution"],
+                    no_wrap=True,
+                )
+    ctx.exit()
+
+
+def text_output_product_flaws(ctx, output, format):
+    for item in output["results"]:
+        component_name = item["name"]
+        for affect in item["affects"]:
+            if ctx.obj["VERBOSE"] == 0:
+                console.print(
+                    Text(component_name, style="magenta"),
+                    affect["flaw_cve_id"],
+                    affect["affect_name"],
+                    affect["affect_affectedness"],
+                    affect["affect_impact"],
+                    affect["affect_resolution"],
+                    no_wrap=True,
+                )
+            if ctx.obj["VERBOSE"] == 1:
+                console.print(
+                    Text(component_name, style="magenta"),
+                    affect["flaw_cve_id"],
+                    f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
+                    affect["affect_name"],
+                    affect["affect_affectedness"],
+                    affect["affect_impact"],
+                    affect["affect_resolution"],
+                    no_wrap=True,
+                )
+            if ctx.obj["VERBOSE"] > 1:
+                console.print(affect["title"])
+                console.print(
+                    Text(component_name, style="magenta"),
+                    f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
+                    affect["affect_name"],
+                    affect["affect_affectedness"],
+                    affect["affect_impact"],
+                    affect["affect_resolution"],
+                    no_wrap=True,
+                )
+    ctx.exit()
+
+
 def text_output_list(ctx, output, format):
     if "results" in output and output["count"] > 0:
 
@@ -420,6 +498,10 @@ def cprint(
             text_output_get_manifest(ctx, output, format)
         if ctx.info_name == "list":
             text_output_list(ctx, output, format)
+        if ctx.info_name == "component-flaws":
+            text_output_component_flaws(ctx, output, format)
+        if ctx.info_name == "product-flaws":
+            text_output_product_flaws(ctx, output, format)
 
         # last chance text formatted output
         text_output_generic(ctx, output, format)

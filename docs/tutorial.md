@@ -26,3 +26,8 @@ Retrieve a product manifest
 Retrieve a spdx json formatted product manifest
 > griffon service product-manifest ansible_automation_platform-2.3 --spdx-json
 
+Retrieve component flaws
+> griffon service component-flaws is-svg
+
+Retrieve product flaws
+> griffon service product-flaws ansible_automation_platform-2 --affectedness AFFECTED --affect-resolution FIX

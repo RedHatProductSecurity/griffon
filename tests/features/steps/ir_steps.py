@@ -194,3 +194,65 @@ def invoke_product_manifest(context, format, product_stream_name):
     # if format == "text":
     #     for row in context.table:
     #         assert row["contain"] in output
+
+
+@given(
+    "running > griffon --format {format} service component-flaws {component_name} should return list of flaws."  # noqa
+)
+def invoke_component_flaws(context, format, component_name):
+    runner = CliRunner()
+    # griffon invoked with --no-color to disable emitting ansi escape
+    # sequences and --no-progress-bar to disable omitting extraneous text
+    # to stdout
+    griffon_results = runner.invoke(
+        cli,
+        [
+            "--no-progress-bar",
+            "--no-color",
+            "--format",
+            format,
+            "service",
+            "component-flaws",
+            component_name,
+        ],
+    )
+    print(griffon_results.output)
+    assert griffon_results.exit_code == 0
+
+    # if format == "json":
+    #     output = json.loads(griffon_results.output)
+    #     assert output["name"] == product_stream_name
+    # if format == "text":
+    #     for row in context.table:
+    #         assert row["contain"] in output
+
+
+@given(
+    "running > griffon --format {format} service product-flaws {product_version_name} should return list of flaws."  # noqa
+)
+def invoke_product_flaws(context, format, product_version_name):
+    runner = CliRunner()
+    # griffon invoked with --no-color to disable emitting ansi escape
+    # sequences and --no-progress-bar to disable omitting extraneous text
+    # to stdout
+    griffon_results = runner.invoke(
+        cli,
+        [
+            "--no-progress-bar",
+            "--no-color",
+            "--format",
+            format,
+            "service",
+            "product-flaws",
+            product_version_name,
+        ],
+    )
+    print(griffon_results.output)
+    assert griffon_results.exit_code == 0
+
+    # if format == "json":
+    #     output = json.loads(griffon_results.output)
+    #     assert output["name"] == product_stream_name
+    # if format == "text":
+    #     for row in context.table:
+    #         assert row["contain"] in output

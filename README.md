@@ -1,18 +1,15 @@
-# ![](docs/image/griffon.jpg) Ǥriffon
-
-**WARNING- NOT PROD (yet), no releases, if you use this you are running with scissors ...**  
+# ![](docs/image/griffon.png) Ǥriffon
 
 Red Hat Product Security CLI providing:
 
+* Set of service operations answering 'canned' product security related queries
+and automating away some manual 'drudgery'
+* Dynamic, extensible set of custom plugin operations for interacting with external services 
 * Set of entity operations on flaws, affects, components, products, etc... for 
 searching, listing and retrieving entities.
-* Set of service operations answering 'canned' product security related queries
-and automating away manual 'drudgery'
-* Dynamic, extensible set of custom plugin operations for interacting with external services 
 
-The CLI provides a simple 'facade' over coarse grained security related data services allowing 
-for easier aggregation and narrowing of information providing a good security 'signal' 
-for end users.
+The CLI provides a 'facade' over coarse grained security related data services allowing 
+for easier aggregation and narrowing of security information.
 
 ```commandline
 > griffon
@@ -53,8 +50,8 @@ pip install griffon
 
 To learn more:
 
-[User guide (quickstart)](docs/user_guide.md)
+[User guide (quickstart)](https://github.com/RedHatProductSecurity/griffon/tree/main/docs/user_guide.md)
 
-[Tutorial](docs/tutorial.md)
+[Tutorial](https://github.com/RedHatProductSecurity/griffon/tree/main/docs/tutorial.md)
 
-[Developer guide](docs/developer_guide.md)
+[Developer guide](https://github.com/RedHatProductSecurity/griffon/tree/main/docs/developer_guide.md)
