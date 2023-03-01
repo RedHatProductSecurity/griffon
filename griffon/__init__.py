@@ -21,10 +21,11 @@ GRIFFON_DEFAULT_LOG_FILE = "~/.griffon/griffon.log"
 
 logging.basicConfig(level="INFO")
 logger = logging.getLogger("griffon")
-file_handler = logging.FileHandler(os.path.expanduser(GRIFFON_DEFAULT_LOG_FILE))
+
+# file_handler = logging.FileHandler(os.path.expanduser(GRIFFON_DEFAULT_LOG_FILE))
 formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
+# file_handler.setFormatter(formatter)
+# logger.addHandler(file_handler)
 logger.handlers = [RichHandler()]
 
 logger = logging.getLogger("griffon")
