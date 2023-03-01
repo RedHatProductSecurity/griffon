@@ -179,8 +179,9 @@ class products_containing_component_query:
             params=params,
             headers={"Accept": "application/json"},
         )
-        assert response.status_code == 200
+        logger.debug(response.status_code)
         logger.debug(response.content)
+        assert response.status_code == 200
         data = response.json()
         return data["results"]
 
