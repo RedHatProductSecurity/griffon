@@ -4,7 +4,7 @@ import requests
 
 from griffon import CORGI_API_URL, OSIDB_API_URL
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 
 def get_product_version_ofuris(ctx, param, incomplete):

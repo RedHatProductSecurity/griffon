@@ -7,15 +7,15 @@ import os
 
 import click
 
-from griffon import GRIFFON_CONFIG_DIR, GRIFFON_RC_FILE
+from griffon import GRIFFON_CONFIG_DIR, GRIFFON_DEFAULT_LOG_FILE, GRIFFON_RC_FILE
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 
 @click.group(name="configure")
 @click.pass_context
 def configure_grp(ctx):
-    """Configure operations."""
+    """Configure griffon."""
     pass
 
 
@@ -31,6 +31,7 @@ def setup():
     config = configparser.ConfigParser(allow_no_value=True)
     config.optionxform = str
     config.add_section("default")
+    config["default"]["log_file"] = GRIFFON_DEFAULT_LOG_FILE
     config["default"]["format"] = "text"
     config.add_section("exclude")
     with open(os.path.expanduser(GRIFFON_RC_FILE), "w") as configfile:

@@ -8,7 +8,7 @@ import click
 from griffon import CORGI_API_URL, OSIDB_API_URL, CorgiService, OSIDBService
 from griffon.output import console, cprint
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 
 @click.group(name="manage")

@@ -17,14 +17,17 @@ OSIDB_API_URL = os.environ["OSIDB_API_URL"]
 
 GRIFFON_CONFIG_DIR = os.getenv("GRIFFON_API_URL", "~/.griffon")
 GRIFFON_RC_FILE = "~/.griffonrc"
+GRIFFON_DEFAULT_LOG_FILE = "~/.griffon/griffon.log"
 
-logger = logging.getLogger("rich")
+logging.basicConfig(level="INFO")
+logger = logging.getLogger("griffon")
+file_handler = logging.FileHandler(os.path.expanduser(GRIFFON_DEFAULT_LOG_FILE))
+formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+logger.handlers = [RichHandler()]
 
-
-def get_logging(level="INFO"):
-    FORMAT = "%(message)s"
-    logging.basicConfig(level=level, format=FORMAT, datefmt="[%X]", handlers=[RichHandler()])
-    return logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 
 def get_config():
@@ -33,6 +36,7 @@ def get_config():
         config = configparser.ConfigParser(allow_no_value=True)
         config.optionxform = str
         config.add_section("default")
+        config["default"]["log_file"] = GRIFFON_DEFAULT_LOG_FILE
         config["default"]["format"] = "text"
         config.add_section("exclude")
         return config

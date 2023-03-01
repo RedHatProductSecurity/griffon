@@ -10,7 +10,7 @@ import requests
 
 from griffon import CORGI_API_URL, OSIDB_API_URL, CorgiService, OSIDBService
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 
 class product_stream_summary:
@@ -174,9 +174,15 @@ class products_containing_component_query:
         else:
             params["name"] = self.component_name  # type: ignore
         # TODO - not yet exposed in bindings
-        response = requests.get(f"{CORGI_API_URL}/api/v1/components", params=params)
-        latest_src_results = response.json()["results"]
-        return latest_src_results
+        response = requests.get(
+            f"{CORGI_API_URL}/api/v1/components",
+            params=params,
+            headers={"Accept": "application/json"},
+        )
+        assert response.status_code == 200
+        logger.debug(response.content)
+        data = response.json()
+        return data["results"]
 
 
 class components_containing_specific_component_query:
@@ -322,6 +328,8 @@ class components_affected_by_specific_cve_query:
         self.affectedness = self.params.get("affectedness")
         self.affect_resolution = self.params.get("affect_resolution")
         self.affect_impact = self.params.get("affect_impact")
+        self.component_type = self.params.get("component_type")
+        self.namespace = self.params.get("namespace")
 
     def execute(self) -> dict:
         cond = {}
@@ -331,13 +339,13 @@ class components_affected_by_specific_cve_query:
             cond["resolution"] = self.affect_resolution
         if self.affect_impact:
             cond["impact"] = self.affect_impact
-        component_type = self.params["component_type"]
-        namespace = self.params["namespace"]
+
         component_cond = {}
-        if namespace:
-            component_cond["namespace"] = namespace
-        if component_type:
-            component_cond["type"] = component_type
+        if self.namespace:
+            component_cond["namespace"] = self.namespace
+        if self.component_type:
+            component_cond["type"] = self.component_type
+
         flaw = self.osidb_session.flaws.retrieve(self.cve_id)
         affects = self.osidb_session.affects.retrieve_list(
             flaw=flaw.uuid, **cond, limit=1000
