@@ -11,7 +11,7 @@ from griffon.exceptions import catch_exception
 from griffon.output import cprint
 from griffon.services import ProcessService, core_process
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 process_service = ProcessService()
 

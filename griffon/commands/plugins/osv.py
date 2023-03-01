@@ -12,7 +12,7 @@ import requests
 
 from griffon.output import cprint
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 api_url = "https://api.osv.dev/v1/query"
 

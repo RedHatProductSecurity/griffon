@@ -8,11 +8,11 @@ pytestmark = pytest.mark.unit
 
 def test_osv():
     runner = CliRunner()
-    result = runner.invoke(cli, ["plugins", "z_osv"])
+    result = runner.invoke(cli, ["plugins", "osv"])
     assert result.exit_code == 0
 
 
 def test_fcc():
     runner = CliRunner()
-    result = runner.invoke(cli, ["plugins", "z_fcc"])
+    result = runner.invoke(cli, ["plugins", "fcc"])
     assert result.exit_code == 0

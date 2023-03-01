@@ -14,7 +14,7 @@ import requests
 from griffon import GRIFFON_CONFIG_DIR
 from griffon.output import console
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 api_url = "https://vuln.go.dev"
 

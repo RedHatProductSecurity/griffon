@@ -3,7 +3,7 @@ import logging
 import typing
 from typing import Any, Dict, List, Protocol, runtime_checkable
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 
 @runtime_checkable

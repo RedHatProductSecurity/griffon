@@ -23,7 +23,7 @@ from griffon.autocomplete import (
 )
 from griffon.output import console, cprint
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 default_conditions: dict = {}
 

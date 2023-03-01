@@ -15,7 +15,7 @@ from griffon.autocomplete import (
 from griffon.output import cprint
 from griffon.services import ReportService, core_reports
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 report_service = ReportService()
 

@@ -9,7 +9,7 @@ from rich.text import Text
 
 console = Console(color_system="auto")
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 
 class OUTPUT_FORMAT(enum.Enum):
@@ -324,14 +324,19 @@ def text_output_get_manifest(ctx, output, format):
 
 
 def text_output_component_flaws(ctx, output, format):
-    for item in output["results"]:
+    ordered_components = sorted(output["results"], key=lambda d: d["name"])
+    for item in ordered_components:
         component_name = item["name"]
-        for affect in item["affects"]:
+        # sorting should work when there is no title or cve-id key
+        ordered_affects = sorted(item["affects"], key=lambda d: (d["title"] is None, d["title"]))
+        for affect in ordered_affects:
+            flaw_cve_id = "Vulnerability"
+            if affect["flaw_cve_id"]:
+                flaw_cve_id = affect["flaw_cve_id"]
             if ctx.obj["VERBOSE"] == 0:
                 console.print(
                     Text(component_name, style="magenta"),
-                    Text(affect["flaw_cve_id"], style="white"),
-                    Text(affect["affect_product_version"], style="cyan"),
+                    Text(flaw_cve_id, style="cyan"),
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
@@ -340,7 +345,7 @@ def text_output_component_flaws(ctx, output, format):
             if ctx.obj["VERBOSE"] == 1:
                 console.print(
                     Text(component_name, style="magenta"),
-                    Text(affect["flaw_cve_id"], style="white"),
+                    Text(flaw_cve_id, style="cyan"),
                     f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
                     Text(affect["affect_product_version"], style="cyan"),
                     affect["affect_affectedness"],

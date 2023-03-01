@@ -9,7 +9,7 @@ import requests
 
 from griffon import OSIDB_API_URL, CorgiService, OSIDBService
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 
 class example_affects_report:

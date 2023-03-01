@@ -15,7 +15,7 @@ import click
 
 from griffon import GRIFFON_CONFIG_DIR
 
-logger = logging.getLogger("rich")
+logger = logging.getLogger("griffon")
 
 api_url = "https://api.osv.dev/v1/query"
 
