@@ -274,7 +274,7 @@ def get_product_latest_components_query(ctx, product_stream_name, ofuri):
     name="component-manifest",
     help="Get Component manifest.",
 )
-@click.option("--uuid", "Component_uuid")
+@click.option("--uuid", "component_uuid")
 @click.option("--purl", help="Component Purl (must be quoted).")
 @click.option(
     "--spdx-json",

@@ -335,8 +335,8 @@ def text_output_component_flaws(ctx, output, format):
                 flaw_cve_id = affect["flaw_cve_id"]
             if ctx.obj["VERBOSE"] == 0:
                 console.print(
-                    Text(component_name, style="magenta"),
-                    Text(flaw_cve_id, style="cyan"),
+                    Text(flaw_cve_id, style="magenta"),
+                    Text(component_name, style="white"),
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
@@ -344,8 +344,8 @@ def text_output_component_flaws(ctx, output, format):
                 )
             if ctx.obj["VERBOSE"] == 1:
                 console.print(
-                    Text(component_name, style="magenta"),
-                    Text(flaw_cve_id, style="cyan"),
+                    Text(flaw_cve_id, style="magenta"),
+                    Text(component_name, style="white"),
                     f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
                     Text(affect["affect_product_version"], style="cyan"),
                     affect["affect_affectedness"],
@@ -373,8 +373,8 @@ def text_output_product_flaws(ctx, output, format):
         for affect in item["affects"]:
             if ctx.obj["VERBOSE"] == 0:
                 console.print(
-                    Text(component_name, style="magenta"),
-                    affect["flaw_cve_id"],
+                    Text(affect["flaw_cve_id"], style="magenta"),
+                    Text(component_name, style="white"),
                     affect["affect_name"],
                     affect["affect_affectedness"],
                     affect["affect_impact"],
@@ -383,8 +383,8 @@ def text_output_product_flaws(ctx, output, format):
                 )
             if ctx.obj["VERBOSE"] == 1:
                 console.print(
-                    Text(component_name, style="magenta"),
-                    affect["flaw_cve_id"],
+                    Text(affect["flaw_cve_id"], style="magenta"),
+                    Text(component_name, style="white"),
                     f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
                     affect["affect_name"],
                     affect["affect_affectedness"],
@@ -395,7 +395,7 @@ def text_output_product_flaws(ctx, output, format):
             if ctx.obj["VERBOSE"] > 1:
                 console.print(affect["title"])
                 console.print(
-                    Text(component_name, style="magenta"),
+                    Text(component_name, style="white"),
                     f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
                     affect["affect_name"],
                     affect["affect_affectedness"],
