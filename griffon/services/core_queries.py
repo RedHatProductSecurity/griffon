@@ -6,8 +6,6 @@ import concurrent
 import logging
 from typing import Any, Dict, List
 
-import requests
-
 from griffon import CORGI_API_URL, OSIDB_API_URL, CorgiService, OSIDBService
 
 logger = logging.getLogger("griffon")
@@ -168,24 +166,13 @@ class products_containing_component_query:
         self.ns = self.params.get("namespace")
 
     def execute(self) -> List[Dict[str, Any]]:
-        params = {"view": "latest"}
+        cond = {"view": "latest"}
         if not self.strict_name_search:
-            params["re_name"] = self.component_name  # type: ignore
+            cond["re_name"] = self.component_name  # type: ignore
         else:
-            params["name"] = self.component_name  # type: ignore
-        # TODO - not yet exposed in bindings
-        response = requests.get(
-            f"{CORGI_API_URL}/api/v1/components",
-            params=params,
-            headers={"Accept": "application/json"},
-        )
-        logger.debug(response.url)
-        logger.debug(response.__dict__)
-        logger.debug(response.status_code)
-        logger.debug(response.content)
-        assert response.status_code == 200
-        data = response.json()
-        return data["results"]
+            cond["name"] = self.component_name  # type: ignore
+        result = self.corgi_session.components.retrieve_list(**cond, limit=1000)
+        return result.results
 
 
 class components_containing_specific_component_query:
