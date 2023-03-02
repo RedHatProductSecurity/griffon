@@ -10,7 +10,7 @@ from rich.logging import RichHandler
 
 from griffon.output import console
 
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 
 CORGI_API_URL = os.environ["CORGI_API_URL"]
 OSIDB_API_URL = os.environ["OSIDB_API_URL"]
