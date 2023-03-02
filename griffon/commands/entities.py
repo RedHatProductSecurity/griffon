@@ -6,6 +6,7 @@ import concurrent.futures
 import logging
 
 import click
+from osidb_bindings.bindings.python_client.models import Affect, Flaw, Tracker
 
 from griffon import (
     CORGI_API_URL,
@@ -94,16 +95,47 @@ def list_flaws(ctx, flaw_state, resolution, impact, is_embargoed, is_major_incid
     "flaw_uuid",
     help="Flaw UUID.",
 )
+@click.option(
+    "--include-fields",
+    "include_fields",
+    type=click.Choice(OSIDBService.get_fields(Flaw)),
+    multiple=True,
+)
+@click.option(
+    "--exclude-fields",
+    "exclude_fields",
+    type=click.Choice(OSIDBService.get_fields(Flaw)),
+    multiple=True,
+)
+@click.option(
+    "--flaw-meta-type",
+    "flaw_meta_type",
+    type=click.Choice(OSIDBService.get_flaw_meta_type()),
+    multiple=True,
+)
+@click.option(
+    "--include-meta-attr",
+    "include_meta_attr",
+    type=click.Choice(OSIDBService.get_meta_attr_fields(Flaw)),
+    multiple=True,
+)
+@click.option(
+    "--tracker-ids",
+    "tracker_ids",
+    help="Comma-separated list of Bugzilla or JIRA IDs.",
+)
 @click.pass_context
-def get_flaw(ctx, cve_id, flaw_uuid):
+@progress_bar
+def get_flaw(ctx, cve_id, flaw_uuid, **params):
     if not cve_id and not flaw_uuid:
         click.echo(ctx.get_help())
         exit(0)
+
+    for csv_param in ("include_fields", "exclude_fields", "flaw_meta_type", "include_meta_attr"):
+        params[csv_param] = ",".join(params[csv_param])
+
     session = OSIDBService.create_session()
-    if flaw_uuid:
-        data = session.flaws.retrieve(flaw_uuid)
-    if cve_id:
-        data = session.flaws.retrieve(cve_id)
+    data = session.flaws.retrieve(flaw_uuid or cve_id, **params)
     return cprint(data, ctx=ctx)
 
 
@@ -153,14 +185,40 @@ def list_affects(ctx, product_version, component_name, affectedness, resolution,
 
 
 @affects.command(name="get")
-@click.option("--uuid", "affect_uuid")
+@click.option("--uuid", "affect_uuid", help="Affect UUID.")
+# TODO: OSIDB API schema does not export include_fields and exclude_fields
+# for the Affects endpoint despite the fact that these query params are
+# actually accepted. Schema needs to be fixed so the osidb_bindings
+# would pick these params properly.
+#
+# @click.option(
+#     "--include-fields",
+#     "include_fields",
+#     type=click.Choice(OSIDBService.get_fields(Affect)),
+#     multiple=True,
+# )
+# @click.option(
+#     "--exclude-fields",
+#     "exclude_fields",
+#     type=click.Choice(OSIDBService.get_fields(Affect)),
+#     multiple=True,
+# )
 @click.pass_context
-def get_affect(ctx, affect_uuid):
+@progress_bar
+def get_affect(ctx, affect_uuid, **params):
+    """
+    For parameter reference see:
+    <OSIDB_API_URL>/osidb/api/v1/schema/swagger-ui - /osidb/api/v1/affects/{uuid}
+    """
     if not affect_uuid:
         click.echo(ctx.get_help())
         exit(0)
+
+    # for csv_param in ("include_fields", "exclude_fields"):
+    #     params[csv_param] = ",".join(params[csv_param])
+
     session = OSIDBService.create_session()
-    data = session.affects.retrieve(affect_uuid)
+    data = session.affects.retrieve(affect_uuid, **params)
     return cprint(data, ctx=ctx)
 
 
@@ -183,14 +241,35 @@ def list_trackers(ctx):
 
 @trackers.command(name="get")
 @click.option("--uuid", "tracker_uuid")
+# TODO: OSIDB API schema does not export include_fields and exclude_fields
+# for the Trackers endpoint despite the fact that these query params are
+# actually accepted. Schema needs to be fixed so the osidb_bindings
+# would pick these params properly.
+#
+# @click.option(
+#     "--include-fields",
+#     "include_fields",
+#     type=click.Choice(OSIDBService.get_fields(Affect)),
+#     multiple=True,
+# )
+# @click.option(
+#     "--exclude-fields",
+#     "exclude_fields",
+#     type=click.Choice(OSIDBService.get_fields(Affect)),
+#     multiple=True,
+# )
 @click.pass_context
 @progress_bar
-def get_tracker(ctx, tracker_uuid):
+def get_tracker(ctx, tracker_uuid, **params):
     if not tracker_uuid:
         click.echo(ctx.get_help())
         exit(0)
+
+    # for csv_param in ("include_fields", "exclude_fields"):
+    #     params[csv_param] = ",".join(params[csv_param])
+
     session = OSIDBService.create_session()
-    data = session.trackers.retrieve(tracker_uuid)
+    data = session.trackers.retrieve(tracker_uuid, **params)
     return cprint(data, ctx=ctx)
 
 

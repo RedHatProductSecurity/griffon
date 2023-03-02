@@ -6,6 +6,7 @@ from functools import partial, wraps
 
 import component_registry_bindings
 import osidb_bindings
+from osidb_bindings.bindings.python_client.models import Affect, Flaw, Tracker
 from pkg_resources import resource_filename  # type: ignore
 from rich.logging import RichHandler
 
@@ -28,6 +29,8 @@ GRIFFON_RC_FILE = "~/.griffonrc"
 GRIFFON_DEFAULT_LOG_FILE = os.getenv("GRIFFON_DEFAULT_LOG_FILE", "~/.griffon/history.log")
 
 logger = logging.getLogger("griffon")
+
+RELATED_MODELS_MAPPING = {Flaw: {"affects": Affect}, Affect: {"trackers": Tracker}}
 
 
 def config_logging(level="INFO"):
@@ -172,6 +175,48 @@ class OSIDBService:
     def get_affect_impact():
         """get affect impact enum"""
         return osidb_bindings.bindings.python_client.models.ImpactEnum
+
+    @staticmethod
+    def get_flaw_meta_type():
+        """get flaw meta type enum"""
+        return osidb_bindings.bindings.python_client.models.MetaTypeEnum
+
+    @staticmethod
+    def get_fields(model, prefix=""):
+        """
+        get model fields and fields of its related models with
+        respective prefixes using dot notation
+
+        eg. field, related_model.field, related_model_1.related_model2.field
+        """
+
+        # get rid of the self attribute
+        fields = [f"{prefix}{field}" for field in model.get_fields().keys()]
+        for name, related_model in RELATED_MODELS_MAPPING.get(model, {}).items():
+            fields.extend(OSIDBService.get_fields(related_model, prefix=f"{prefix}{name}."))
+
+        return fields
+
+    @staticmethod
+    def get_meta_attr_fields(model, prefix=""):
+        """
+        get model meta attr keys and keys of its related models meta attr with
+        respective prefixes using dot notation
+
+        eg. key, related_model.key, related_model_1.related_model2.key
+        """
+        model_meta_attr = model.get_fields().get("meta_attr")
+        if model_meta_attr is None:
+            return []
+
+        # get rid of the self attribute and add additional wildcard
+        fields = [f"{prefix}{field}" for field in model_meta_attr.get_fields().keys() | {"*"}]
+        for name, related_model in RELATED_MODELS_MAPPING.get(model, {}).items():
+            fields.extend(
+                OSIDBService.get_meta_attr_fields(related_model, prefix=f"{prefix}{name}.")
+            )
+
+        return fields
 
 
 def progress_bar(
