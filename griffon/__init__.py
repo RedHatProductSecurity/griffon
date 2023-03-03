@@ -12,7 +12,14 @@ from griffon.output import console
 
 __version__ = "0.0.7"
 
+if "CORGI_API_URL" not in os.environ:
+    print("Must set CORGI_API_URL environment var.")
+    exit(1)
 CORGI_API_URL = os.environ["CORGI_API_URL"]
+
+if "OSIDB_API_URL" not in os.environ:
+    print("Must set OSIDB_API_URL environment var.")
+    exit(1)
 OSIDB_API_URL = os.environ["OSIDB_API_URL"]
 
 GRIFFON_CONFIG_DIR = os.getenv("GRIFFON_API_URL", "~/.griffon")
