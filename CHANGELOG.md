@@ -32,3 +32,7 @@ another experimental release to the PyPI
 [0.0.7] - 2023-03-02
 Added
 another experimental release to the PyPI
+
+[0.0.8] - 2023-03-03
+Added
+another experimental release to the PyPI
