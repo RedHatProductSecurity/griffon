@@ -294,7 +294,7 @@ def retrieve_component_manifest(ctx, component_uuid, purl, spdx_json_format):
         ctx.obj["FORMAT"] = "json"
     cond = {}
     if component_uuid:
-        cond["component_uuid"] = component_uuid
+        cond["uuid"] = component_uuid
     if purl:
         cond["purl"] = purl
     ctx.invoke(get_component_manifest, **cond)
