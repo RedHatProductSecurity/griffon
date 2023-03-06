@@ -202,10 +202,10 @@ def components(ctx):
 
 
 @components.command(name="list")
+@click.argument("component_name", required=False)
 @click.option("--namespace", type=click.Choice(CorgiService.get_component_namespaces()), help="")
 @click.option("--ofuri", shell_complete=get_product_stream_ofuris)
 @click.option("--re_purl", shell_complete=get_component_purls)
-@click.option("--name", shell_complete=get_component_names)
 @click.option("--re_name", shell_complete=get_component_names)
 @click.option("--version")
 @click.option(
@@ -224,10 +224,10 @@ def components(ctx):
 @progress_bar
 def list_components(
     ctx,
+    component_name,
     namespace,
     ofuri,
     re_purl,
-    name,
     re_name,
     version,
     component_type,
@@ -235,12 +235,12 @@ def list_components(
     product_stream_name,
     product_stream_ofuri,
 ):
-    """Retrieve a list of components."""
+    """Retrieve a list of Components."""
 
     if (
-        not ofuri
+        not component_name
+        and not ofuri
         and not re_purl
-        and not name
         and not re_name
         and not version
         and not arch
@@ -258,14 +258,15 @@ def list_components(
 
     # TODO- condition union could be a separate helper function
 
+    if component_name:
+        conditions["name"] = component_name
+
     if namespace:
         conditions["namespace"] = namespace
     if ofuri:
         conditions["ofuri"] = ofuri
     if re_purl:
         conditions["re_purl"] = re_purl
-    if name:
-        conditions["name"] = name
     if re_name:
         conditions["re_name"] = re_name
     if version:
@@ -314,7 +315,7 @@ def list_components(
 @click.pass_context
 @progress_bar
 def get_component(ctx, component_uuid, purl, nvr):
-    """Retrieve a specific component."""
+    """Retrieve Component."""
     if not component_uuid and not purl and not nvr:
         click.echo(ctx.get_help())
         exit(0)
@@ -323,13 +324,55 @@ def get_component(ctx, component_uuid, purl, nvr):
     return cprint(data, ctx=ctx)
 
 
-@components.command(name="get-manifest")
+@components.command(name="provides")
+@click.option("--uuid", "component_uuid")
+@click.option("--purl", shell_complete=get_component_purls, help="Purl are URI and must be quoted.")
+@click.pass_context
+@progress_bar
+def get_component_provides(ctx, component_uuid, purl):
+    """Retrieve all Components provided by a Component."""
+    if not component_uuid and not purl:
+        click.echo(ctx.get_help())
+        exit(0)
+    session = CorgiService.create_session()
+    if component_uuid:
+        data = session.components.retrieve(component_uuid).provides
+        return cprint(data, ctx=ctx)
+    else:
+        c = session.components.retrieve_list(purl=purl)
+        if c:
+            data = session.components.retrieve(c["uuid"]).provides
+            return cprint(data, ctx=ctx)
+
+
+@components.command(name="sources")
+@click.option("--uuid", "component_uuid")
+@click.option("--purl", shell_complete=get_component_purls, help="Purl are URI and must be quoted.")
+@click.pass_context
+@progress_bar
+def get_component_sources(ctx, component_uuid, purl):
+    """Retrieve all Components that contain Component."""
+    if not component_uuid and not purl:
+        click.echo(ctx.get_help())
+        exit(0)
+    session = CorgiService.create_session()
+    if component_uuid:
+        data = session.components.retrieve(component_uuid).sources
+        return cprint(data, ctx=ctx)
+    else:
+        c = session.components.retrieve_list(purl=purl)
+        if c:
+            data = session.components.retrieve(c["uuid"]).sources
+            return cprint(data, ctx=ctx)
+
+
+@components.command(name="manifest")
 @click.option("--uuid", "component_uuid")
 @click.option("--purl", shell_complete=get_component_purls, help="Purl are URI and must be quoted.")
 @click.pass_context
 @progress_bar
 def get_component_manifest(ctx, component_uuid, purl):
-    """Retrieve a specific component."""
+    """Retrieve Component manifest."""
     if not component_uuid and not purl:
         click.echo(ctx.get_help())
         exit(0)
@@ -360,7 +403,7 @@ def product_streams(ctx):
 )
 @click.pass_context
 def list_product_streams(ctx, product_stream_name):
-    """Retrieve a list of product_streams."""
+    """Retrieve a list of Product Streams."""
     session = CorgiService.create_session()
     cond = default_conditions
     if product_stream_name:
@@ -381,7 +424,7 @@ def list_product_streams(ctx, product_stream_name):
 @click.pass_context
 @progress_bar
 def get_product_stream(ctx, product_stream_name, inactive, ofuri):
-    """Retrieve a specific product_stream."""
+    """Retrieve Product Stream."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
         exit(0)
@@ -395,7 +438,7 @@ def get_product_stream(ctx, product_stream_name, inactive, ofuri):
     return cprint(data, ctx=ctx)
 
 
-@product_streams.command(name="get-latest-components")
+@product_streams.command(name="latest-components")
 @click.argument(
     "product_stream_name",
     required=False,
@@ -407,14 +450,14 @@ def get_product_stream(ctx, product_stream_name, inactive, ofuri):
 @click.option("--view", default="summary")
 @click.pass_context
 def get_product_stream_components(ctx, product_stream_name, namespace, ofuri, view):
-    """Retrieve a specific product_stream."""
+    """Retrieve Product Stream latest Components."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
         exit(0)
     ctx.invoke(list_components, ofuri=ofuri)
 
 
-@product_streams.command(name="get-manifest")
+@product_streams.command(name="manifest")
 @click.argument(
     "product_stream_name",
     required=False,
@@ -424,7 +467,7 @@ def get_product_stream_components(ctx, product_stream_name, namespace, ofuri, vi
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
 @click.pass_context
 def get_product_stream_manifest(ctx, product_stream_name, ofuri):
-    """Retrieve a product_stream manifest."""
+    """Retrieve Product Stream manifest."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
         exit(0)
@@ -449,7 +492,7 @@ def builds(ctx):
 @click.argument("software_build_name", required=False)
 @click.pass_context
 def list_software_builds(ctx, software_build_name):
-    """Retrieve a list of software builds."""
+    """Retrieve a list of Software Builds."""
     session = CorgiService.create_session()
     cond = default_conditions
     if software_build_name:
@@ -462,7 +505,7 @@ def list_software_builds(ctx, software_build_name):
 @click.argument("build_id", required=False)
 @click.pass_context
 def get_software_builds(ctx, build_id):
-    """Retrieve a software_build."""
+    """Retrieve Software Build."""
     session = CorgiService.create_session()
     data = session.builds.retrieve(build_id)
     return cprint(data, ctx=ctx)
