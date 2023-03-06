@@ -352,27 +352,35 @@ def product_streams(ctx):
 
 
 @product_streams.command(name="list")
-@click.option("--re-name", "re_name", type=click.STRING, shell_complete=get_product_stream_names)
+@click.argument(
+    "product_stream_name",
+    required=False,
+    type=click.STRING,
+    shell_complete=get_product_stream_names,
+)
 @click.pass_context
-def list_product_streams(ctx, re_name):
+def list_product_streams(ctx, product_stream_name):
     """Retrieve a list of product_streams."""
     session = CorgiService.create_session()
     cond = default_conditions
-    if re_name:
-        cond["re_name"] = re_name
-    data = session.product_streams.retrieve_list(**cond).results
+    if product_stream_name:
+        cond["re_name"] = product_stream_name
+    data = session.product_streams.retrieve_list(**cond, limit=1000).results
     return cprint(data, ctx=ctx)
 
 
 @product_streams.command(name="get")
+@click.argument(
+    "product_stream_name",
+    required=False,
+    type=click.STRING,
+    shell_complete=get_product_stream_names,
+)
 @click.option("--inactive", is_flag=True, default=False, help="Show inactive project streams")
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
-@click.option(
-    "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
-)
 @click.pass_context
 @progress_bar
-def get_product_stream(ctx, inactive, ofuri, product_stream_name):
+def get_product_stream(ctx, product_stream_name, inactive, ofuri):
     """Retrieve a specific product_stream."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
@@ -388,14 +396,17 @@ def get_product_stream(ctx, inactive, ofuri, product_stream_name):
 
 
 @product_streams.command(name="get-latest-components")
+@click.argument(
+    "product_stream_name",
+    required=False,
+    type=click.STRING,
+    shell_complete=get_product_stream_names,
+)
 @click.option("--namespace", type=click.Choice(CorgiService.get_component_namespaces()), help="")
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
-@click.option(
-    "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
-)
 @click.option("--view", default="summary")
 @click.pass_context
-def get_product_stream_components(ctx, namespace, ofuri, product_stream_name, view):
+def get_product_stream_components(ctx, product_stream_name, namespace, ofuri, view):
     """Retrieve a specific product_stream."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
@@ -404,12 +415,15 @@ def get_product_stream_components(ctx, namespace, ofuri, product_stream_name, vi
 
 
 @product_streams.command(name="get-manifest")
-@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
-@click.option(
-    "--name", "product_stream_name", type=click.STRING, shell_complete=get_product_stream_names
+@click.argument(
+    "product_stream_name",
+    required=False,
+    type=click.STRING,
+    shell_complete=get_product_stream_names,
 )
+@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
 @click.pass_context
-def get_product_stream_manifest(ctx, ofuri, product_stream_name):
+def get_product_stream_manifest(ctx, product_stream_name, ofuri):
     """Retrieve a product_stream manifest."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
@@ -423,3 +437,32 @@ def get_product_stream_manifest(ctx, ofuri, product_stream_name):
     if pv:
         data = session.product_streams.retrieve_manifest(pv["uuid"])
         return cprint(data, ctx=ctx)
+
+
+@entities_grp.group(help=f"{CORGI_API_URL}/api/v1/builds")
+@click.pass_context
+def builds(ctx):
+    pass
+
+
+@builds.command(name="list")
+@click.argument("software_build_name", required=False)
+@click.pass_context
+def list_software_builds(ctx, software_build_name):
+    """Retrieve a list of software builds."""
+    session = CorgiService.create_session()
+    cond = default_conditions
+    if software_build_name:
+        cond["name"] = software_build_name
+    data = session.builds.retrieve_list(**cond, limit=1000).results
+    return cprint(data, ctx=ctx)
+
+
+@builds.command(name="get")
+@click.argument("build_id", required=False)
+@click.pass_context
+def get_software_builds(ctx, build_id):
+    """Retrieve a software_build."""
+    session = CorgiService.create_session()
+    data = session.builds.retrieve(build_id)
+    return cprint(data, ctx=ctx)

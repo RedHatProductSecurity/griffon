@@ -462,6 +462,19 @@ def text_output_list(ctx, output, format):
                     row["ofuri"],
                     no_wrap=True,
                 )
+
+        # handle builds
+        if "build_id" in output["results"][0]:
+            for row in output["results"]:
+                console.print(
+                    Text(str(row["build_id"]), style="magenta bold u"),
+                    row["build_type"],
+                    Text(row["name"], style="white"),
+                    row["created_at"],
+                    Text(row["link"], style="i"),
+                    no_wrap=False,
+                )
+
     ctx.exit()
 
 

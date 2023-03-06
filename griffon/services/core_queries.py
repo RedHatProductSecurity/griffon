@@ -171,6 +171,10 @@ class products_containing_component_query:
             cond["re_name"] = self.component_name  # type: ignore
         else:
             cond["name"] = self.component_name  # type: ignore
+
+        if self.component_type:
+            cond["type"] = self.component_type
+
         result = self.corgi_session.components.retrieve_list(**cond, limit=1000)
         return result.results
 
