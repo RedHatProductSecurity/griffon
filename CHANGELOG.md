@@ -5,27 +5,7 @@ This project is kept in version sync with the Component Registry project, see th
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
-[0.0.1] - 2023-02-23
-Added
-first experimental release to the PyPI
-
-[0.0.2] - 2023-02-23
-Added
-another experimental release to the PyPI
-
-[0.0.3] - 2023-02-28
-Added
-another experimental release to the PyPI
-
-[0.0.4] - 2023-02-28
-Added
-another experimental release to the PyPI
-
-[0.0.5] - 2023-02-28
-Added
-another experimental release to the PyPI
-
-[0.0.6] - 2023-03-02
+[0.0.8] - 2023-03-03
 Added
 another experimental release to the PyPI
 
@@ -33,6 +13,25 @@ another experimental release to the PyPI
 Added
 another experimental release to the PyPI
 
-[0.0.8] - 2023-03-03
+[0.0.6] - 2023-03-02
 Added
 another experimental release to the PyPI
+
+[0.0.5] - 2023-02-28
+Added
+another experimental release to the PyPI
+[0.0.4] - 2023-02-28
+Added
+another experimental release to the PyPI
+
+[0.0.3] - 2023-02-28
+Added
+another experimental release to the PyPI
+
+[0.0.2] - 2023-02-23
+Added
+another experimental release to the PyPI
+
+[0.0.1] - 2023-02-23
+Added
+first experimental release to the PyPI
