@@ -10,7 +10,7 @@ griffon service product-components --ofuri o:redhat:openshift:4.8.z
 griffon service product-components rhel-9.0.0.z
 griffon service products-contain-component is-svg
 griffon service product-manifest ansible_automation_platform-2.2
-griffon service product-summary --ofuri o:redhat:rhel:8.7.0.z
+#griffon service product-summary --ofuri o:redhat:rhel:8.7.0.z
 griffon service product-summary ansible_automation_platform-2.2
 griffon service products-affected-by-flaw CVE-2023-25166
 
@@ -21,7 +21,7 @@ griffon service products-contain-component --purl "pkg:rpm/curl@7.29.0"
 
 
 # reports
-griffon service affects
+griffon service report-affects
 
 # products
 griffon entities product-streams get pipelines-1.6.2
