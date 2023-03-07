@@ -528,9 +528,8 @@ def cprint(
 ):
     """handle format and output"""
     output = raw_json_transform(data, show_count)
-    console = Console(color_system="auto")
-    if ctx.obj and ctx.obj["NO_COLOR"]:
-        console = Console(color_system=None)
+    if ctx and ctx.obj["NO_COLOR"]:
+        console.no_color = True
     format = OUTPUT_FORMAT.JSON
     if ctx and "FORMAT" in ctx.obj:
         format = OUTPUT_FORMAT(ctx.obj["FORMAT"])
