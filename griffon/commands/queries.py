@@ -45,13 +45,14 @@ queries_grp.add_command(generate_affects_for_component_process)
     type=click.STRING,
     shell_complete=get_product_stream_names,
 )
-@click.option(
-    "--ofuri",
-    "ofuri",
-    type=click.STRING,
-    shell_complete=get_product_stream_ofuris,
-    help="UNDER DEVELOPMENT",
-)
+# TODO - underlying bindings need to support 'ofuri'
+# @click.option(
+#     "--ofuri",
+#     "ofuri",
+#     type=click.STRING,
+#     shell_complete=get_product_stream_ofuris,
+#     help="UNDER DEVELOPMENT",
+# )
 @click.option(
     "-s",
     "strict_name_search",
@@ -61,9 +62,9 @@ queries_grp.add_command(generate_affects_for_component_process)
 )
 @click.pass_context
 @progress_bar
-def get_product_summary(ctx, product_stream_name, ofuri, strict_name_search):
+def get_product_summary(ctx, product_stream_name, strict_name_search):
     """get product stream."""
-    if not product_stream_name and not ofuri:
+    if not product_stream_name:
         click.echo(ctx.get_help())
         exit(0)
     q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
@@ -336,7 +337,7 @@ def components_affected_by_specific_cve_query(
     name="products-affected-by-flaw",
     help="List Products affected by Flaw.",
 )
-@click.option("--cve-id", shell_complete=get_cve_ids)
+@click.argument("cve_id", required=False, type=click.STRING, shell_complete=get_cve_ids)
 @click.pass_context
 @progress_bar
 def product_versions_affected_by_cve_query(ctx, cve_id):
