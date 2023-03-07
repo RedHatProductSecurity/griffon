@@ -72,7 +72,7 @@ def get_product_summary(ctx, product_stream_name, ofuri, strict_name_search):
 
 @queries_grp.command(
     name="products-contain-component",
-    help="List Products containing (latest) Component.",
+    help="List Products containing Component.",
 )
 @click.argument("component_name", required=False)
 @click.option(
@@ -95,18 +95,32 @@ def get_product_summary(ctx, product_stream_name, ofuri, strict_name_search):
     help="Strict search, exact match of component name.",
 )
 @click.option(
-    "--affect",
+    "--affect-mode",
     "affect_mode",
     is_flag=True,
     default=False,
-    help="(Under development) Generate Affects.",
+    help="Generate Affects.",
 )
 @click.option(
-    "--search-deps",
-    "search_deps",
+    "--search-all",
+    "search_all",
     is_flag=True,
     default=False,
-    help="(Under development) Search Component dependencies.",
+    help="Search root Components and dependencies.",
+)
+@click.option(
+    "--search-related-url",
+    "search_related_url",
+    is_flag=True,
+    default=False,
+    help="Search related url.",
+)
+@click.option(
+    "--search-community",
+    "search_community",
+    is_flag=True,
+    default=False,
+    help="(Not Implemented) Search community Components.",
 )
 @click.pass_context
 @progress_bar
@@ -119,13 +133,15 @@ def get_product_contain_component(
     component_type,
     strict_name_search,
     affect_mode,
-    search_deps,
+    search_all,
+    search_related_url,
+    search_community,
 ):
     """List products of a latest component."""
     if not purl and not component_name:
         click.echo(ctx.get_help())
         click.echo("")
-        click.echo("Must supply --name or --purl.")
+        click.echo("Must supply Component name or --purl.")
         exit(0)
     if component_name:
         q = query_service.invoke(core_queries.products_containing_component_query, ctx.params)
@@ -139,7 +155,7 @@ def get_product_contain_component(
 
 @queries_grp.command(
     name="components-contain-component",
-    help="List Components contain component.",
+    help="List Components containing Component.",
 )
 @click.argument("component_name", required=False)
 @click.option("--purl")
@@ -177,18 +193,12 @@ def get_component_contain_component(
         exit(0)
     if component_name:
         q = query_service.invoke(core_queries.components_containing_component_query, ctx.params)
-        cprint(
-            q,
-            ctx=ctx,
-        )
+        cprint(q, ctx=ctx)
     if purl:
         q = query_service.invoke(
             core_queries.components_containing_specific_component_query, ctx.params
         )
-        cprint(
-            q,
-            ctx=ctx,
-        )
+        cprint(q, ctx=ctx)
 
 
 @queries_grp.command(
@@ -213,7 +223,7 @@ def get_product_manifest_query(ctx, product_stream_name, ofuri, spdx_json_format
 
     if spdx_json_format:
         ctx.ensure_object(dict)
-        ctx.obj["FORMAT"] = "json"
+        ctx.obj["FORMAT"] = "json"  # TODO - investigate if we need yaml format.
 
     cond = {}
     if ofuri:
@@ -246,30 +256,6 @@ def get_product_latest_components_query(ctx, product_stream_name, ofuri):
     ctx.invoke(list_components, **cond)
 
 
-# TODO- can always use entity commands to achieve this, deactivating for the time being
-# @queries_grp.command(
-#     name="product-all-components",
-#     help="List ALL Components of Product.",
-# )
-# @click.argument("product_stream_name", required=False, shell_complete=get_product_stream_names)
-# @click.pass_context
-# @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
-# def get_product_all_components_query(ctx, product_stream_name, ofuri):
-#     """List components of a specific product stream."""
-#     if not ofuri and not product_stream_name:
-#         click.echo(ctx.get_help())
-#         exit(0)
-#     cond = {}
-#     if ofuri:
-#         cond["product_stream_ofuri"] = ofuri
-#     if product_stream_name:
-#         # lookup ofuri
-#         q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
-#         ofuri = q[0]["ofuri"]
-#         cond["product_stream_ofuri"] = ofuri
-#     ctx.invoke(list_components, **cond)
-
-
 @queries_grp.command(
     name="component-manifest",
     help="Get Component manifest.",
@@ -285,7 +271,7 @@ def get_product_latest_components_query(ctx, product_stream_name, ofuri):
 )
 @click.pass_context
 def retrieve_component_manifest(ctx, component_uuid, purl, spdx_json_format):
-    """Retrieve component manifest."""
+    """Retrieve Component manifest."""
     if not component_uuid and not purl:
         click.echo(ctx.get_help())
         exit(0)
@@ -343,10 +329,7 @@ def components_affected_by_specific_cve_query(
         click.echo(ctx.get_help())
         exit(0)
     q = query_service.invoke(core_queries.components_affected_by_specific_cve_query, ctx.params)
-    cprint(
-        q,
-        ctx=ctx,
-    )
+    cprint(q, ctx=ctx)
 
 
 @queries_grp.command(

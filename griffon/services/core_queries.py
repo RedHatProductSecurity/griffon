@@ -125,7 +125,9 @@ class products_containing_specific_component_query:
         "component_type",
         "strict_name_search",
         "affect_mode",
-        "search_deps",
+        "search_all",
+        "search_related_url",
+        "search_community",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -153,7 +155,9 @@ class products_containing_component_query:
         "component_type",
         "strict_name_search",
         "affect_mode",
-        "search_deps",
+        "search_all",
+        "search_related_url",
+        "search_community",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -444,7 +448,7 @@ class cves_for_specific_component_query:
 
             for affect in self.osidb_session.affects.retrieve_list(
                 **cond,
-                limit=50,
+                limit=1000,
             ).results:
                 flaw = self.osidb_session.flaws.retrieve(affect.flaw)
                 if flaw:

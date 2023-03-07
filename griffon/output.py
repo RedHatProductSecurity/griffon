@@ -478,6 +478,40 @@ def text_output_list(ctx, output, format):
     ctx.exit()
 
 
+def text_output_purls(ctx, output, format):
+    if "results" in output and output["count"] > 0:
+        # handle component
+        if "purl" in output["results"][0]:
+            ordered_components = sorted(output["results"], key=lambda d: d["purl"])
+            for row in ordered_components:
+                if "purl" in row:
+                    purl = PackageURL.from_string(row["purl"])
+                    if not purl.namespace:
+                        component_ns = Text("UPSTREAM", style="bold magenta")
+                    else:
+                        component_ns = Text(purl.namespace.upper(), style="bold red")
+                    if ctx.obj["VERBOSE"] == 0:
+                        console.print(
+                            component_ns,
+                            purl.type.upper(),
+                            Text(purl.name, style="bold white"),
+                            purl.version,
+                            purl.qualifiers.get("arch"),
+                            no_wrap=False,
+                        )
+                    if ctx.obj["VERBOSE"] > 0:
+                        console.print(
+                            component_ns,
+                            purl.type.upper(),
+                            Text(purl.name, style="bold white"),
+                            purl.version,
+                            purl.qualifiers.get("arch"),
+                            row["link"],
+                            no_wrap=False,
+                        )
+        ctx.exit()
+
+
 def text_output_generic(ctx, output, format):
     for k, v in output.items():
         key_name = Text(k)
@@ -494,9 +528,8 @@ def cprint(
 ):
     """handle format and output"""
     output = raw_json_transform(data, show_count)
-    console = Console(color_system="auto")
-    if ctx.obj and ctx.obj["NO_COLOR"]:
-        console = Console(color_system=None)
+    if ctx and ctx.obj["NO_COLOR"]:
+        console.no_color = True
     format = OUTPUT_FORMAT.JSON
     if ctx and "FORMAT" in ctx.obj:
         format = OUTPUT_FORMAT(ctx.obj["FORMAT"])
@@ -520,6 +553,10 @@ def cprint(
             text_output_component_flaws(ctx, output, format)
         if ctx.info_name == "product-flaws":
             text_output_product_flaws(ctx, output, format)
+        if ctx.info_name == "provides":
+            text_output_purls(ctx, output, format)
+        if ctx.info_name == "sources":
+            text_output_purls(ctx, output, format)
 
         # last chance text formatted output
         text_output_generic(ctx, output, format)
