@@ -5,6 +5,10 @@ This project is kept in version sync with the Component Registry project, see th
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+[0.0.10] - 2023-03-08
+Added
+another experimental release to the PyPI
+
 [0.0.9] - 2023-03-06
 Added
 another experimental release to the PyPI
