@@ -624,7 +624,7 @@ class cves_for_specific_product_query:
 
             for affect in self.osidb_session.affects.retrieve_list(
                 **cond,
-                limit=10,
+                limit=1000,
             ).results:
                 flaw = self.osidb_session.flaws.retrieve(affect.flaw)
                 if flaw:
