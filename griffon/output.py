@@ -148,8 +148,8 @@ def text_output_products_contain_component(ctx, output, format):
                         dep,
                         no_wrap=False,
                     )
-        if ctx.obj["VERBOSE"] == 1:  # product_stream X source component
 
+        if ctx.obj["VERBOSE"] == 1:  # product_stream X source component
             product_streams = sorted(
                 list(set([item["product_stream"] for item in ordered_results]))
             )
