@@ -185,8 +185,8 @@ class products_containing_component_query:
             cond["type"] = self.component_type
 
         result = self.corgi_session.components.retrieve_list(**cond, limit=1000)
-
         results = result.results
+
         if self.search_related_url:
             # TODO - not in bindings yet
             related_url_search = requests.get(
@@ -194,6 +194,52 @@ class products_containing_component_query:
                 params={
                     "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources",  # noqa
                     "related_url": self.component_name,
+                    "limit": 10000,
+                },
+            )
+
+            for c in related_url_search.json()["results"]:
+                for pv in c["product_versions"]:
+                    for ps in c["product_streams"]:
+
+                        is_dep = False
+                        if c["arch"] == "src" or c["arch"] == "noarch":
+                            is_dep = True
+                        component = {
+                            "is_dep": is_dep,
+                            "product_version": pv["name"],
+                            "product_version_ofuri": pv["ofuri"],
+                            "product_stream": ps["name"],
+                            "product_stream_ofuri": ps["ofuri"],
+                            "product_active": True,
+                            "purl": c["purl"],
+                            "type": c["type"],
+                            "namespace": c["namespace"],
+                            "name": c["name"],
+                            "arch": c["arch"],
+                            "release": c["release"],
+                            "version": c["version"],
+                            "sources": c["sources"],
+                            "nvr": c["nvr"],
+                            "build_id": None,
+                            "build_type": None,
+                            "build_source_url": None,
+                            "related_url": None,
+                            "upstream_purl": None,
+                        }
+                        if c["software_build"]:
+                            component["build_id"] = c["software_build"]["build_id"]
+                            component["build_type"] = c["software_build"]["build_type"]
+                            component["build_source_url"] = c["software_build"]["source"]
+                        results.append(component)
+
+        if self.search_all:
+            # TODO - not in bindings yet
+            related_url_search = requests.get(
+                f"{CORGI_API_URL}/api/v1/components",
+                params={
+                    "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources",  # noqa
+                    "re_name": self.component_name,
                     "limit": 10000,
                 },
             )
