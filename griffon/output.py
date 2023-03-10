@@ -505,7 +505,9 @@ def text_output_list(ctx, output, format):
             for row in ordered_components:
                 if "purl" in row:
                     purl = PackageURL.from_string(row["purl"])
-                    if not purl.namespace:
+                    if purl.type == "oci":
+                        component_ns = Text("REDHAT", style="bold magenta")
+                    elif not purl.namespace:
                         component_ns = Text("UPSTREAM", style="bold magenta")
                     else:
                         component_ns = Text(purl.namespace.upper(), style="bold red")
