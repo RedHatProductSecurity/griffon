@@ -97,6 +97,7 @@ def get_product_summary(ctx, product_stream_name, strict_name_search):
 )
 @click.option(
     "--affect-mode",
+    "-a",
     "affect_mode",
     is_flag=True,
     default=False,

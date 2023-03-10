@@ -243,13 +243,21 @@ class products_containing_component_query:
 
         if self.search_all:
             # TODO - not in bindings yet
+            params = {
+                "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
+                "limit": 10000,
+            }
+            if not self.strict_name_search:
+                params["re_name"] = self.component_name
+            else:
+                params["name"] = self.component_name
+
+            if self.component_type:
+                params["type"] = self.component_type
+
             related_url_search = requests.get(
                 f"{CORGI_API_URL}/api/v1/components",
-                params={
-                    "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
-                    "re_name": self.component_name,
-                    "limit": 10000,
-                },
+                params=params,  # type: ignore
             )
 
             for c in related_url_search.json()["results"]:
