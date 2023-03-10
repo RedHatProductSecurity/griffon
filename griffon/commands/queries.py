@@ -9,6 +9,7 @@ from griffon import CorgiService, OSIDBService, progress_bar
 from griffon.autocomplete import get_cve_ids, get_product_version_names
 from griffon.commands.entities import (
     get_component_manifest,
+    get_component_summary,
     get_product_stream_manifest,
     get_product_stream_names,
     get_product_stream_ofuris,
@@ -58,7 +59,7 @@ queries_grp.add_command(generate_affects_for_component_process)
     "strict_name_search",
     is_flag=True,
     default=False,
-    help="Strict search, exact match of component name.",
+    help="Strict search, exact match of name.",
 )
 @click.pass_context
 @progress_bar
@@ -69,6 +70,33 @@ def get_product_summary(ctx, product_stream_name, strict_name_search):
         exit(0)
     q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
     cprint(q, ctx=ctx)
+
+
+@queries_grp.command(
+    name="component-summary",
+    help="Get Component summaries.",
+)
+@click.argument(
+    "component_name",
+    required=False,
+)
+@click.option(
+    "-s",
+    "strict_name_search",
+    is_flag=True,
+    default=False,
+    help="Strict search, exact match of name.",
+)
+@click.pass_context
+def retrieve_component_summary(ctx, component_name, strict_name_search):
+    """Get Component summary."""
+    if not component_name:
+        click.echo(ctx.get_help())
+        exit(0)
+    cond = {}
+    if component_name:
+        cond["component_name"] = component_name
+    ctx.invoke(get_component_summary, **cond)
 
 
 @queries_grp.command(

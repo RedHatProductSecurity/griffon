@@ -4,6 +4,7 @@
 import configparser
 import logging
 import os
+import subprocess
 
 import click
 
@@ -17,6 +18,12 @@ logger = logging.getLogger("griffon")
 def configure_grp(ctx):
     """Configure griffon."""
     pass
+
+
+@configure_grp.command(help="Update griffon to latest release")
+@click.pass_context
+def update(ctx):
+    subprocess.run(["pip", "install", "--force", "griffon"])
 
 
 @configure_grp.command(name="setup", help="Create ~/.griffon and .griffonrc config file")

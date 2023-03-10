@@ -324,6 +324,38 @@ def get_component(ctx, component_uuid, purl, nvr):
     return cprint(data, ctx=ctx)
 
 
+@components.command(
+    name="summary",
+    help="Get Component summaries.",
+)
+@click.argument(
+    "component_name",
+    required=False,
+)
+@click.option(
+    "-s",
+    "strict_name_search",
+    is_flag=True,
+    default=False,
+    help="Strict search, exact match of name.",
+)
+@click.pass_context
+@progress_bar
+def get_component_summary(ctx, component_name, strict_name_search):
+    """Get Component summary."""
+    if not component_name:
+        click.echo(ctx.get_help())
+        exit(0)
+    session = CorgiService.create_session()
+
+    cond = {"include_fields": "name,purl,release,version", "name": component_name}
+    components = session.components.retrieve_list(**cond, limit=10000)
+    versions = list(set([component.version for component in components.results]))
+    releases = list(set([component.release for component in components.results]))
+    data = {"name": component_name, "versions": sorted(versions), "releases": sorted(releases)}
+    cprint(data, ctx=ctx)
+
+
 @components.command(name="provides")
 @click.option("--uuid", "component_uuid")
 @click.option("--purl", shell_complete=get_component_purls, help="Purl are URI and must be quoted.")
