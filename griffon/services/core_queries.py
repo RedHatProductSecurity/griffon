@@ -195,19 +195,21 @@ class products_containing_component_query:
 
         if self.search_related_url:
             # TODO - not in bindings yet
+            params = params = {
+                "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
+                "related_url": self.component_name,
+                "limit": 10000,
+            }
+            if self.component_type:
+                params["type"] = self.component_type
             related_url_search = requests.get(
                 f"{CORGI_API_URL}/api/v1/components",
-                params={
-                    "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
-                    "related_url": self.component_name,
-                    "limit": 10000,
-                },
+                params=params,
             )
 
             for c in related_url_search.json()["results"]:
                 for pv in c["product_versions"]:
                     for ps in c["product_streams"]:
-
                         is_dep = False
                         if c["arch"] == "src" or c["arch"] == "noarch":
                             is_dep = True
@@ -257,7 +259,7 @@ class products_containing_component_query:
 
             related_url_search = requests.get(
                 f"{CORGI_API_URL}/api/v1/components",
-                params=params,  # type: ignore
+                params=params,
             )
 
             for c in related_url_search.json()["results"]:
@@ -299,13 +301,16 @@ class products_containing_component_query:
 
         if self.search_upstreams:
             # TODO - not in bindings yet
+            params = params = {
+                "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
+                "upstreams": self.component_name,
+                "limit": 10000,
+            }
+            if self.component_type:
+                params["type"] = self.component_type
             related_url_search = requests.get(
                 f"{CORGI_API_URL}/api/v1/components",
-                params={
-                    "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
-                    "upstreams": self.component_name,
-                    "limit": 10000,
-                },
+                params=params,
             )
 
             for c in related_url_search.json()["results"]:

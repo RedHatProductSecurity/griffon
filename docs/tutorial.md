@@ -26,8 +26,11 @@ Retrieve a Product summary
 > griffon service product-summary -s rhel-7.6.z
 > griffon --format json service product-summary -s rhel-7.6.z
 
-Retrieve a Product manifest containing both latest root Component and dependencies
+Retrieve a Product latest root Components
 > griffon service product-components rhel-9.0.0.z
+
+Retrieve Product manifest containing latest root Components and dependencies
+> griffon service product-manifest ansible_automation_platform-2.3 --spdx-json
 
 Retrieve a spdx json formatted product manifest
 > griffon service product-manifest ansible_automation_platform-2.3 --spdx-json
