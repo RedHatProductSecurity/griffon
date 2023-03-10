@@ -157,9 +157,11 @@ class products_containing_component_query:
         "component_type",
         "strict_name_search",
         "affect_mode",
+        "search_latest",
         "search_all",
         "search_related_url",
         "search_community",
+        "search_upstreams",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -170,9 +172,11 @@ class products_containing_component_query:
         self.strict_name_search = self.params.get("strict_name_search")
         self.search_deps = self.params.get("search_deps")
         self.ns = self.params.get("namespace")
+        self.search_latest = self.params.get("search_latest")
         self.search_all = self.params.get("search_all")
         self.search_related_url = self.params.get("search_related_url")
         self.search_community = self.params.get("search_community")
+        self.search_upstreams = self.params.get("search_upstreams")
 
     def execute(self) -> List[Dict[str, Any]]:
         cond = {"view": "latest"}
@@ -184,15 +188,17 @@ class products_containing_component_query:
         if self.component_type:
             cond["type"] = self.component_type
 
-        result = self.corgi_session.components.retrieve_list(**cond, limit=1000)
-        results = result.results
+        results = []
+        if self.search_latest:
+            result = self.corgi_session.components.retrieve_list(**cond, limit=1000)
+            results = result.results
 
         if self.search_related_url:
             # TODO - not in bindings yet
             related_url_search = requests.get(
                 f"{CORGI_API_URL}/api/v1/components",
                 params={
-                    "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources",  # noqa
+                    "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
                     "related_url": self.component_name,
                     "limit": 10000,
                 },
@@ -231,6 +237,8 @@ class products_containing_component_query:
                             component["build_id"] = c["software_build"]["build_id"]
                             component["build_type"] = c["software_build"]["build_type"]
                             component["build_source_url"] = c["software_build"]["source"]
+                        if c["upstreams"]:
+                            component["upstream_purl"] = c["upstreams"][0]["purl"]
                         results.append(component)
 
         if self.search_all:
@@ -238,7 +246,7 @@ class products_containing_component_query:
             related_url_search = requests.get(
                 f"{CORGI_API_URL}/api/v1/components",
                 params={
-                    "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources",  # noqa
+                    "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
                     "re_name": self.component_name,
                     "limit": 10000,
                 },
@@ -277,8 +285,57 @@ class products_containing_component_query:
                             component["build_id"] = c["software_build"]["build_id"]
                             component["build_type"] = c["software_build"]["build_type"]
                             component["build_source_url"] = c["software_build"]["source"]
+                        if c["upstreams"]:
+                            component["upstream_purl"] = c["upstreams"][0]["purl"]
                         results.append(component)
 
+        if self.search_upstreams:
+            # TODO - not in bindings yet
+            related_url_search = requests.get(
+                f"{CORGI_API_URL}/api/v1/components",
+                params={
+                    "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
+                    "upstreams": self.component_name,
+                    "limit": 10000,
+                },
+            )
+
+            for c in related_url_search.json()["results"]:
+                for pv in c["product_versions"]:
+                    for ps in c["product_streams"]:
+
+                        is_dep = False
+                        if c["arch"] == "src" or c["arch"] == "noarch":
+                            is_dep = True
+                        component = {
+                            "is_dep": is_dep,
+                            "product_version": pv["name"],
+                            "product_version_ofuri": pv["ofuri"],
+                            "product_stream": ps["name"],
+                            "product_stream_ofuri": ps["ofuri"],
+                            "product_active": True,
+                            "purl": c["purl"],
+                            "type": c["type"],
+                            "namespace": c["namespace"],
+                            "name": c["name"],
+                            "arch": c["arch"],
+                            "release": c["release"],
+                            "version": c["version"],
+                            "sources": c["sources"],
+                            "nvr": c["nvr"],
+                            "build_id": None,
+                            "build_type": None,
+                            "build_source_url": None,
+                            "related_url": None,
+                            "upstream_purl": None,
+                        }
+                        if c["software_build"]:
+                            component["build_id"] = c["software_build"]["build_id"]
+                            component["build_type"] = c["software_build"]["build_type"]
+                            component["build_source_url"] = c["software_build"]["source"]
+                        if c["upstreams"]:
+                            component["upstream_purl"] = c["upstreams"][0]["purl"]
+                        results.append(component)
         return results
 
 

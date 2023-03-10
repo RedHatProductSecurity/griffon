@@ -195,6 +195,7 @@ def text_output_products_contain_component(ctx, output, format):
                     if sources:
                         source_purl = PackageURL.from_string(sources[0]["purl"])
                         root_component = f"{source_purl.name}-{source_purl.version}"
+
                     dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
                     dep = f"[white]({dep_name})[/white]"
                     console.print(
@@ -229,6 +230,7 @@ def text_output_products_contain_component(ctx, output, format):
                         root_component = f"{source_purl.name}-{source_purl.version}"
                     dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
                     dep = f"[white]({dep_name})[/white]"
+                    related_url = related_url.replace(component_name, f"[b]{component_name}[/b]")
                     console.print(
                         Text(ps, style="magenta b u"),
                         root_component,
@@ -259,14 +261,19 @@ def text_output_products_contain_component(ctx, output, format):
                     if sources:
                         source_purl = PackageURL.from_string(sources[0]["purl"])
                         root_component = f"{source_purl.name}-{source_purl.version}"
+                    upstream = ""
+                    if item["upstream_purl"]:
+                        upstream = f"[cyan]{item['upstream_purl']}[/cyan]"
                     dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
                     dep = f"[white]({dep_name})[/white]"
+                    related_url = related_url.replace(component_name, f"[b]{component_name}[/b]")
                     console.print(
                         Text(ps, style="magenta b u"),
                         root_component,
                         dep,
                         related_url,
                         build_source_url,
+                        upstream,
                         no_wrap=False,
                     )
 

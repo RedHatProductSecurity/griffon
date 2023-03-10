@@ -103,6 +103,20 @@ def get_product_summary(ctx, product_stream_name, strict_name_search):
     help="Generate Affects.",
 )
 @click.option(
+    "--search-latest",
+    "search_latest",
+    is_flag=True,
+    default=False,
+    help="Search root Components (enabled by default).",
+)
+@click.option(
+    "--search-related-url",
+    "search_related_url",
+    is_flag=True,
+    default=False,
+    help="Search related url (enabled by default).",
+)
+@click.option(
     "--search-all",
     "search_all",
     is_flag=True,
@@ -110,18 +124,18 @@ def get_product_summary(ctx, product_stream_name, strict_name_search):
     help="Search root Components and dependencies.",
 )
 @click.option(
-    "--search-related-url",
-    "search_related_url",
-    is_flag=True,
-    default=False,
-    help="Search related url.",
-)
-@click.option(
     "--search-community",
     "search_community",
     is_flag=True,
     default=False,
     help="(Not Implemented) Search community Components.",
+)
+@click.option(
+    "--search-upstreams",
+    "search_upstreams",
+    is_flag=True,
+    default=False,
+    help="Search for Components by upstream.",
 )
 @click.pass_context
 @progress_bar
@@ -134,9 +148,11 @@ def get_product_contain_component(
     component_type,
     strict_name_search,
     affect_mode,
-    search_all,
+    search_latest,
     search_related_url,
+    search_all,
     search_community,
+    search_upstreams,
 ):
     """List products of a latest component."""
     if not purl and not component_name:
@@ -144,6 +160,17 @@ def get_product_contain_component(
         click.echo("")
         click.echo("Must supply Component name or --purl.")
         exit(0)
+
+    if (
+        not search_latest
+        and not search_all
+        and not search_related_url
+        and not search_community
+        and not search_upstreams
+    ):
+        ctx.params["search_latest"] = True
+        ctx.params["search_related_url"] = True
+
     if component_name:
         q = query_service.invoke(core_queries.products_containing_component_query, ctx.params)
         cprint(q, ctx=ctx)
