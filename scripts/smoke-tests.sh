@@ -19,6 +19,7 @@ griffon --format text service components-affected-by-flaw CVE-2023-25166
 griffon --format text service products-contain-component nmap
 griffon service products-contain-component --purl "pkg:rpm/curl@7.29.0"
 
+griffon service products-contain-component webkitgtk --search-related-url --search-latest --search-all
 
 # reports
 griffon service report-affects
