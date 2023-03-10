@@ -2,7 +2,6 @@
 
 Find Products that contain latest root Component(s)  
 > griffon service products-contain-component webkitgtk
-
 Use -s flag for stricter search
 > griffon service products-contain-component -s webkitgtk
 
@@ -18,6 +17,7 @@ Use of -v (up to -vvvv) to get more information
 
 Find Products that contain latest root Component(s) searching both root and dependencies
 > griffon service products-contain-component webkitgtk --search-all
+> griffon service products-contain-component github.com/go-redis/redis/v8/internal/hscan --search-all      
 
 Find Products that contain latest root Component searching both root and related_url
 > griffon service products-contain-component webkitgtk --search-related-url
