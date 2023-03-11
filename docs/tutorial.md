@@ -2,6 +2,7 @@
 
 Find Products that contain latest root Component(s)  
 > griffon service products-contain-component webkitgtk
+
 Use -s flag for stricter search
 > griffon service products-contain-component -s webkitgtk
 
@@ -69,10 +70,10 @@ What are the fixed CVE of this a product + version + stream?
 What are the fixed CVEs for a component?
 > griffon service component-flaws webkitgtk --flaw-state DONE
 
-What are the won’t fix CVEs for a component?
+What are the **WONTFIX** CVEs for a component?
 > griffon service component-flaws webkitgtk --flaw-resolution WONTFIX
 
-What are the won’t fix CVEs for a product?
+What are the **WONTFIX** CVEs for a product?
 > griffon service product-flaws rhel-9 --flaw-resolution WONTFIX
 
 How many CVE’s are filed against a product + version
