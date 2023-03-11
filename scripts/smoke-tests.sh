@@ -34,7 +34,7 @@ griffon entities components list curl --namespace UPSTREAM
 griffon entities components get --purl "pkg:rpm/redhat/vim@8.2.2637-16.el9_0.3?arch=src&epoch=2"
 griffon entities components manifest --purl "pkg:rpm/curl@7.76.1"
 griffon entities components list --ofuri o:redhat:ansible_automation_platform:2.2 --type OCI
-griffon --format text entities components list --name curl
+griffon --format text entities components list curl
 
 # flaws
 griffon entities flaws get --cve-id CVE-2023-25166

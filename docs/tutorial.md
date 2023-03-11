@@ -2,6 +2,7 @@
 
 Find Products that contain latest root Component(s)  
 > griffon service products-contain-component webkitgtk
+
 Use -s flag for stricter search
 > griffon service products-contain-component -s webkitgtk
 
@@ -32,14 +33,17 @@ Retrieve a Product latest root Components
 Retrieve Product manifest containing latest root Components and dependencies
 > griffon service product-manifest ansible_automation_platform-2.3 --spdx-json
 
-Retrieve a spdx json formatted product manifest
+Retrieve a spdx json formatted Product manifest
 > griffon service product-manifest ansible_automation_platform-2.3 --spdx-json
 
-Retrieve component flaws
-> griffon service component-flaws 
+Retrieve Component flaws
+> griffon service component-flaws python-marshmallow 
 
-Retrieve product flaws
+Retrieve Product flaws
 > griffon service product-flaws ansible_automation_platform-2 --affectedness AFFECTED --affect-resolution FIX
+
+Retrieve Component summary
+> griffon service component-summary python-marshmallow 
 
 ## Common questions
 
@@ -66,10 +70,10 @@ What are the fixed CVE of this a product + version + stream?
 What are the fixed CVEs for a component?
 > griffon service component-flaws webkitgtk --flaw-state DONE
 
-What are the won’t fix CVEs for a component?
+What are the **WONTFIX** CVEs for a component?
 > griffon service component-flaws webkitgtk --flaw-resolution WONTFIX
 
-What are the won’t fix CVEs for a product?
+What are the **WONTFIX** CVEs for a product?
 > griffon service product-flaws rhel-9 --flaw-resolution WONTFIX
 
 How many CVE’s are filed against a product + version
