@@ -21,6 +21,8 @@ griffon service products-contain-component --purl "pkg:rpm/curl@7.29.0"
 
 griffon service products-contain-component webkitgtk --search-related-url --search-latest --search-all
 
+griffon service component-summary curl
+
 # reports
 griffon service report-affects
 
