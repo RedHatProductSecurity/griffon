@@ -127,9 +127,11 @@ class products_containing_specific_component_query:
         "component_type",
         "strict_name_search",
         "affect_mode",
+        "search_latest",
         "search_all",
         "search_related_url",
         "search_community",
+        "search_upstreams",
     ]
 
     def __init__(self, params: dict) -> None:

@@ -44,8 +44,8 @@ export REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt
 ```
 and set service urls.
 ```commandline
-export OSIDB_API_URL=https://<INSERT OSIDB API URL>
-export CORGI_API_URL=https://<INSERT COMPONENT REGISTRY API URL>
+export OSIDB_API_URL="https://<INSERT OSIDB API URL>"
+export CORGI_API_URL="https://<INSERT COMPONENT REGISTRY API URL>"
 ```
 And you must ensure your system is properly authorised to access these systems.
 
