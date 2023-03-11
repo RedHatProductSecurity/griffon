@@ -32,14 +32,17 @@ Retrieve a Product latest root Components
 Retrieve Product manifest containing latest root Components and dependencies
 > griffon service product-manifest ansible_automation_platform-2.3 --spdx-json
 
-Retrieve a spdx json formatted product manifest
+Retrieve a spdx json formatted Product manifest
 > griffon service product-manifest ansible_automation_platform-2.3 --spdx-json
 
-Retrieve component flaws
-> griffon service component-flaws 
+Retrieve Component flaws
+> griffon service component-flaws python-marshmallow 
 
-Retrieve product flaws
+Retrieve Product flaws
 > griffon service product-flaws ansible_automation_platform-2 --affectedness AFFECTED --affect-resolution FIX
+
+Retrieve Component summary
+> griffon service component-summary python-marshmallow 
 
 ## Common questions
 
