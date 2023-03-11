@@ -19,26 +19,23 @@ Usage: griffon [OPTIONS] COMMAND [ARGS]...
   Red Hat Product Security CLI
 
 Options:
-  --version                   Display Griffon version.
-  --debug                     Debug log level.
-  --show-inactive             Show inactive Products.
-  --show-purl                 Display full purl.
-  --show-upstream             Show UPSTREAM components.
-  --format [json|text|table]  Result format (default is text).
-  -v                          Verbose output, more detailed search results,
-                              can be used multiple times (e.g. -vvv).
-  --no-progress-bar           Disable progress bar.
-  --no-color                  Disable output of color ansi esc sequences.
-  --help                      Show this message and exit.
+  -V, --version                   Display griffon version.
+  -d, --debug                     Debug log level.
+  -f, --format [json|text|table]  Result format (default is text).
+  -v                              Verbose output, more detailed search
+                                  results, can be used multiple times (e.g.
+                                  -vvv).
+  --no-progress-bar               Disable progress bar.
+  --no-color                      Disable output of color ansi esc sequences.
+  --help                          Show this message and exit.
 
 Commands:
-  configure  Configure operations.
+  configure  Configure griffon.
   docs       Links to useful docs.
   entities   Entity operations.
   manage     Manage operations.
   plugins    3rd party plugins.
   service    Service operations.
-
 
 ```
 

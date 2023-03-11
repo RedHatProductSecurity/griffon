@@ -6,7 +6,11 @@ import logging
 import click
 
 from griffon import CorgiService, OSIDBService, progress_bar
-from griffon.autocomplete import get_cve_ids, get_product_version_names
+from griffon.autocomplete import (
+    get_component_names,
+    get_cve_ids,
+    get_product_version_names,
+)
 from griffon.commands.entities import (
     get_component_manifest,
     get_component_summary,
@@ -79,6 +83,8 @@ def get_product_summary(ctx, product_stream_name, strict_name_search):
 @click.argument(
     "component_name",
     required=False,
+    type=click.STRING,
+    shell_complete=get_component_names,
 )
 @click.option(
     "-s",
@@ -103,7 +109,10 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     name="products-contain-component",
     help="List Products containing Component.",
 )
-@click.argument("component_name", required=False)
+@click.argument(
+    "component_name",
+    required=False,
+)
 @click.option(
     "--purl", help="Component purl, needs to be in quotes (ex. 'pkg:rpm/python-pyjwt@1.7.1')"
 )
