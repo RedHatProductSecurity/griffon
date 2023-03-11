@@ -348,11 +348,40 @@ def get_component_summary(ctx, component_name, strict_name_search):
         exit(0)
     session = CorgiService.create_session()
 
-    cond = {"include_fields": "name,purl,release,version", "name": component_name}
+    cond = {
+        "include_fields": "name,purl,tags,arch,release,version,product_streams,upstreams,related_url",  # noqa
+        "name": component_name,
+    }
     components = session.components.retrieve_list(**cond, limit=10000)
-    versions = list(set([component.version for component in components.results]))
-    releases = list(set([component.release for component in components.results]))
-    data = {"name": component_name, "versions": sorted(versions), "releases": sorted(releases)}
+    product_streams = []
+    upstreams = []
+    versions = []
+    releases = []
+    arches = []
+    related_urls = []
+    tags = []
+    for component in components.results:
+        related_urls.append(component.related_url)
+        arches.append(component.arch)
+        versions.append(component.version)
+        releases.append(component.release)
+        tags.extend(component.tags)
+        for upstream in component.upstreams:
+            upstreams.append(upstream["purl"])
+        for ps in component.product_streams:
+            product_streams.append(ps["name"])
+    data = {
+        "link": f"{CORGI_API_URL}/api/v1/components?name={component_name}",
+        "name": component_name,
+        "tags": sorted(list(set(tags))),
+        "count": len(components.results),
+        "product_streams": sorted(list(set(product_streams))),
+        "related_urls": sorted(list(set(related_urls))),
+        "releases": sorted(list(set(releases))),
+        "upstreams": sorted(list(set(upstreams))),
+        "arches": sorted(list(set(arches))),
+        "versions": sorted(list(set(versions))),
+    }
     cprint(data, ctx=ctx)
 
 
