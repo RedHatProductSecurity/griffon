@@ -188,6 +188,8 @@ class products_containing_component_query:
         if self.component_type:
             cond["type"] = self.component_type
 
+        url: str = f"{CORGI_API_URL}/api/v1/components"
+
         results = []
         if self.search_latest:
             result = self.corgi_session.components.retrieve_list(**cond, limit=1000)
@@ -203,7 +205,7 @@ class products_containing_component_query:
             if self.component_type:
                 params["type"] = self.component_type
             related_url_search = requests.get(
-                f"{CORGI_API_URL}/api/v1/components",
+                url,
                 params=params,
             )
 
@@ -256,9 +258,8 @@ class products_containing_component_query:
 
             if self.component_type:
                 params["type"] = self.component_type
-
             related_url_search = requests.get(
-                f"{CORGI_API_URL}/api/v1/components",
+                url,
                 params=params,
             )
 
@@ -309,7 +310,7 @@ class products_containing_component_query:
             if self.component_type:
                 params["type"] = self.component_type
             related_url_search = requests.get(
-                f"{CORGI_API_URL}/api/v1/components",
+                url,
                 params=params,
             )
 
