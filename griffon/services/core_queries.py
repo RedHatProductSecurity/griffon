@@ -4,6 +4,7 @@
 """
 import concurrent
 import logging
+import re
 from typing import Any, Dict, List
 
 import requests
@@ -132,6 +133,7 @@ class products_containing_specific_component_query:
         "search_related_url",
         "search_community",
         "search_upstreams",
+        "filter_rh_naming",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -164,6 +166,7 @@ class products_containing_component_query:
         "search_related_url",
         "search_community",
         "search_upstreams",
+        "filter_rh_naming",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -179,6 +182,7 @@ class products_containing_component_query:
         self.search_related_url = self.params.get("search_related_url")
         self.search_community = self.params.get("search_community")
         self.search_upstreams = self.params.get("search_upstreams")
+        self.filter_rh_naming = self.params.get("filter_rh_naming")
 
     def execute(self) -> List[Dict[str, Any]]:
         cond = {"view": "latest"}
@@ -352,6 +356,34 @@ class products_containing_component_query:
                         if c["upstreams"]:
                             component["upstream_purl"] = c["upstreams"][0]["purl"]
                         results.append(component)
+
+        if self.filter_rh_naming:
+            flags = re.IGNORECASE
+            patterns = [
+                # binutils
+                re.compile(
+                    f"(devtoolset\\-[0-9]+\\-|mingw\\-|gcc\\-toolset\\-[0-9]+\\-)?{self.component_name}[0-9\\.]*$",  # noqa
+                    flags=flags,
+                ),
+                # compat-* style
+                re.compile(f"(compat\\-)?{self.component_name}[0-9\\.]*(\\-[0-9]+)?$", flags=flags),
+                # kernel
+                re.compile(f"^{self.component_name}(\\-rt)?$", flags=flags),
+                # qemu
+                re.compile(f"^{self.component_name}(\\-kvm(\\-rhev|\\-ma)?)?$", flags=flags),
+                # webkit
+                re.compile(f"^{self.component_name}([0-9])?(gtk)?([0-9])?$", flags=flags),
+            ]
+
+            filtered_results = []
+            for result in results:
+                for p in patterns:
+                    if "name" in result:
+                        m = p.match(result.get("name"))
+                        if m:
+                            filtered_results.append(result)
+            results = filtered_results
+
         return results
 
 

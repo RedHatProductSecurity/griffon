@@ -100,9 +100,6 @@ def plugins_grp(ctx):
     help="Display griffon version.",
 )
 @click.option("--debug", "-d", is_flag=True, help="Debug log level.")
-# @click.option("--show-inactive", is_flag=True, default=False, help="Show inactive Products.")
-# @click.option("--show-purl", is_flag=True, help="Display full purl.")
-# @click.option("--show-upstream", is_flag=True, default=False, help="Show UPSTREAM components.")
 @click.option(
     "--format",
     "-f",
