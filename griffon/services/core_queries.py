@@ -8,6 +8,7 @@ import re
 from typing import Any, Dict, List
 
 import requests
+from component_registry_bindings.bindings.python_client.models import Component
 
 from griffon import CORGI_API_URL, OSIDB_API_URL, CorgiService, OSIDBService
 
@@ -160,7 +161,6 @@ class products_containing_component_query:
         "namespace",
         "component_type",
         "strict_name_search",
-        "affect_mode",
         "search_latest",
         "search_all",
         "search_related_url",
@@ -185,29 +185,30 @@ class products_containing_component_query:
         self.filter_rh_naming = self.params.get("filter_rh_naming")
 
     def execute(self) -> List[Dict[str, Any]]:
-        cond = {"view": "latest"}
-        if not self.strict_name_search:
-            cond["re_name"] = self.component_name  # type: ignore
-        else:
-            cond["name"] = self.component_name  # type: ignore
-
-        if self.component_type:
-            cond["type"] = self.component_type
 
         url: str = f"{CORGI_API_URL}/api/v1/components"
 
         results = []
         if self.search_latest:
+            cond = {"view": "latest"}
+            if not self.strict_name_search:
+                cond["re_name"] = self.component_name  # type: ignore
+            else:
+                cond["name"] = self.component_name  # type: ignore
+            if self.component_type:
+                cond["type"] = self.component_type
+            cond["namespace"] = "REDHAT"
             result = self.corgi_session.components.retrieve_list(**cond, limit=1000)
             results = result.results
 
         if self.search_related_url:
             # TODO - not in bindings yet
-            params = params = {
+            params = {
                 "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
                 "related_url": self.component_name,
                 "limit": 10000,
             }
+            params["namespace"] = "REDHAT"
             if self.component_type:
                 params["type"] = self.component_type
             related_url_search = requests.get(
@@ -377,11 +378,22 @@ class products_containing_component_query:
 
             filtered_results = []
             for result in results:
+                is_matched = False
                 for p in patterns:
-                    if "name" in result:
-                        m = p.match(result.get("name"))
+                    if is_matched:
+                        break
+                    if type(result) == Component:
+                        m = p.match(result.name)
                         if m:
-                            filtered_results.append(result)
+                            is_matched = True
+                    else:
+                        m = p.match(result["name"])
+                        if m:
+                            is_matched = True
+
+                if is_matched:
+                    filtered_results.append(result)
+
             results = filtered_results
 
         return results

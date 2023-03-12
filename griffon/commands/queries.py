@@ -1,6 +1,7 @@
 """
 
 """
+import copy
 import logging
 
 import click
@@ -134,32 +135,44 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     help="Strict search, exact match of component name.",
 )
 @click.option(
-    "--affect-mode",
+    "--generate-affects",
     "-a",
     "affect_mode",
     is_flag=True,
     default=False,
-    help="Generate Affects.",
+    help="Generate Affects output.",
+)
+@click.option(
+    "--flaw",
+    "flaw_id",
+    help="Attach affects to this (\033[1mCVE-ID\033[0m).",
+)
+@click.option(
+    "--flaw-mode",
+    "flaw_mode",
+    default="dry_run",
+    type=click.Choice(["add", "update", "dry_run"]),
+    help="Add or update when generating affects.",
 )
 @click.option(
     "--search-latest",
     "search_latest",
     is_flag=True,
     default=False,
-    help="Search root Components (enabled by default).",
+    help="Search root Components (\033[1menabled by default\033[0m).",
 )
 @click.option(
     "--search-related-url",
     "search_related_url",
     is_flag=True,
     default=False,
-    help="Search related url (enabled by default).",
+    help="Search related url (\033[1menabled by default\033[0m).",
 )
 @click.option(
     "--filter-rh-naming",
     is_flag=True,
     default=False,
-    help="Filter rh naming (enabled by default).",
+    help="Filter rh naming (\033[1menabled by default\033[0m).",
 )
 @click.option(
     "--search-all",
@@ -173,7 +186,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "search_community",
     is_flag=True,
     default=False,
-    help="(Not Implemented) Search community Components.",
+    help="Search community Components (\033[1mNot Implemented\033[0m).",
 )
 @click.option(
     "--search-upstreams",
@@ -193,6 +206,8 @@ def get_product_contain_component(
     component_type,
     strict_name_search,
     affect_mode,
+    flaw_id,
+    flaw_mode,
     search_latest,
     search_related_url,
     filter_rh_naming,
@@ -204,7 +219,7 @@ def get_product_contain_component(
     if not purl and not component_name:
         click.echo(ctx.get_help())
         click.echo("")
-        click.echo("Must supply Component name or --purl.")
+        click.echo("\033[1mMust supply Component name or --purl.\033[0m")
         exit(0)
 
     if (
@@ -216,16 +231,17 @@ def get_product_contain_component(
     ):
         ctx.params["search_latest"] = True
         ctx.params["search_related_url"] = True
-        ctx.params["filter_rh_naming"] = True
+        # ctx.params["filter_rh_naming"] = True
 
+    params = copy.deepcopy(ctx.params)
+    params.pop("flaw_id")
+    params.pop("flaw_mode")
+    params.pop("affect_mode")
     if component_name:
-        q = query_service.invoke(core_queries.products_containing_component_query, ctx.params)
-        cprint(q, ctx=ctx)
+        q = query_service.invoke(core_queries.products_containing_component_query, params)
     if purl:
-        q = query_service.invoke(
-            core_queries.products_containing_specific_component_query, ctx.params
-        )
-        cprint(q, ctx=ctx)
+        q = query_service.invoke(core_queries.products_containing_specific_component_query, params)
+    cprint(q, ctx=ctx)
 
 
 @queries_grp.command(
