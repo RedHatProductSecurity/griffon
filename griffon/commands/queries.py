@@ -19,7 +19,8 @@ from griffon.commands.entities import (
     get_product_stream_ofuris,
     list_components,
 )
-from griffon.commands.process import generate_affects_for_component_process
+
+# from griffon.commands.process import generate_affects_for_component_process
 from griffon.commands.reports import generate_affects_report
 from griffon.output import cprint
 from griffon.services import QueryService, core_queries  # , exp
@@ -37,7 +38,7 @@ def queries_grp(ctx):
 
 
 queries_grp.add_command(generate_affects_report)
-queries_grp.add_command(generate_affects_for_component_process)
+# queries_grp.add_command(generate_affects_for_component_process)
 
 
 @queries_grp.command(
@@ -155,6 +156,12 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     help="Search related url (enabled by default).",
 )
 @click.option(
+    "--filter-rh-naming",
+    is_flag=True,
+    default=False,
+    help="Filter rh naming (enabled by default).",
+)
+@click.option(
     "--search-all",
     "search_all",
     is_flag=True,
@@ -188,6 +195,7 @@ def get_product_contain_component(
     affect_mode,
     search_latest,
     search_related_url,
+    filter_rh_naming,
     search_all,
     search_community,
     search_upstreams,
@@ -208,6 +216,7 @@ def get_product_contain_component(
     ):
         ctx.params["search_latest"] = True
         ctx.params["search_related_url"] = True
+        ctx.params["filter_rh_naming"] = True
 
     if component_name:
         q = query_service.invoke(core_queries.products_containing_component_query, ctx.params)
