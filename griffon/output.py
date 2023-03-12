@@ -134,6 +134,8 @@ def text_output_products_contain_component(ctx, output, format):
         ordered_results = sorted(output["results"], key=lambda d: d["product_stream"])
 
         if ctx.params["affect_mode"]:
+            console.no_color = True
+            console.highlighter = None
             product_versions = sorted(
                 list(set([item["product_version"] for item in ordered_results]))
             )
