@@ -8,7 +8,6 @@ pytestmark = pytest.mark.unit
 
 
 def test_output_formats():
-
     assert OUTPUT_FORMAT("json") == OUTPUT_FORMAT.JSON
     assert OUTPUT_FORMAT.TEXT.value == "text"
 
