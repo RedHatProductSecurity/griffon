@@ -80,7 +80,6 @@ def component_type_style(type):
 
 
 def text_output_product_summary(ctx, output, format):
-
     ordered_results = sorted(output["results"], key=lambda d: d["name"])
 
     if ctx.obj["VERBOSE"] == 0:
@@ -133,9 +132,17 @@ def text_output_products_contain_component(ctx, output, format):
     if "results" in output and output["count"] > 0:
         ordered_results = sorted(output["results"], key=lambda d: d["product_stream"])
 
+        # TODO - MAVEN component type will require special handling
         if ctx.params["affect_mode"]:
             console.no_color = True
             console.highlighter = None
+
+            flaw_mode = ctx.params["flaw_mode"]
+            flaw_operation = "dry_run"
+            if flaw_mode == "add":
+                flaw_operation = "new"
+            if flaw_mode == "update":
+                flaw_operation = "update"
             product_versions = sorted(
                 list(set([item["product_version"] for item in ordered_results]))
             )
@@ -145,11 +152,10 @@ def text_output_products_contain_component(ctx, output, format):
                 for name in names:
                     dep_name = name
                     console.print(
-                        f"{pv}/{name}=new",
+                        f"{pv}/{name}={flaw_operation}",
                         no_wrap=False,
                     )
         else:
-
             if ctx.obj["VERBOSE"] == 0:  # product_version X source component
                 product_versions = sorted(
                     list(set([item["product_version"] for item in ordered_results]))
@@ -198,7 +204,6 @@ def text_output_products_contain_component(ctx, output, format):
                         )
 
             if ctx.obj["VERBOSE"] == 2:  # product_stream X nvr
-
                 product_streams = sorted(
                     list(set([item["product_stream"] for item in ordered_results]))
                 )
@@ -319,7 +324,6 @@ def text_output_products_contain_component(ctx, output, format):
 
 def text_output_components_contain_component(ctx, output, format):
     if "results" in output:
-
         for item in output["results"]:
             component_name = item["name"]
 
@@ -500,7 +504,6 @@ def text_output_product_flaws(ctx, output, format):
 
 def text_output_list(ctx, output, format):
     if "results" in output and output["count"] > 0:
-
         # handle component
         if "purl" in output["results"][0]:
             ordered_components = sorted(output["results"], key=lambda d: d["name"])

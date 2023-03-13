@@ -25,7 +25,6 @@ class example_affects_report:
         self.params = params
 
     def generate(self) -> dict:
-
         show_components = self.params["show_components"]
         show_products = self.params["show_products"]
         purl = self.params["purl"]

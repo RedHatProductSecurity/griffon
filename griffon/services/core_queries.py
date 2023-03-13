@@ -55,9 +55,8 @@ class product_stream_summary:
                     "product": ps.products[0]["name"],
                     "product_version": ps.product_versions[0]["name"],
                     "brew_tags": [brew_tag for brew_tag in ps.brew_tags.to_dict().keys()],
-                    "build_count": ps.build_count,
                     "manifest_link": ps.manifest,
-                    "latest_components_link": ps.components,
+                    "latest_components_link": f"{CORGI_API_URL}/api/v1/components?ofuri={ps.ofuri}&view=summary",  # noqa
                     "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={ps.ofuri}&include_fields=link,name,purl",  # noqa
                 }
                 results.append(result)
@@ -70,6 +69,7 @@ class product_stream_summary:
                 "product_version": product_streams["product_versions"][0]["name"],
                 "brew_tags": "",
                 "manifest_link": product_streams["manifest"],
+                "latest_components_link": f"{CORGI_API_URL}/api/v1/components?ofuri={product_streams['ofuri']}&view=summary",  # noqa
                 "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={product_streams['ofuri']}&include_fields=link,name,purl",  # noqa
             }
             results.append(result)
@@ -185,7 +185,6 @@ class products_containing_component_query:
         self.filter_rh_naming = self.params.get("filter_rh_naming")
 
     def execute(self) -> List[Dict[str, Any]]:
-
         url: str = f"{CORGI_API_URL}/api/v1/components"
 
         results = []
@@ -247,6 +246,7 @@ class products_containing_component_query:
                         if c["software_build"]:
                             component["build_id"] = c["software_build"]["build_id"]
                             component["build_type"] = c["software_build"]["build_type"]
+                            component["build_name"] = c["software_build"]["name"]
                             component["build_source_url"] = c["software_build"]["source"]
                         if c["upstreams"]:
                             component["upstream_purl"] = c["upstreams"][0]["purl"]
@@ -273,7 +273,6 @@ class products_containing_component_query:
             for c in related_url_search.json()["results"]:
                 for pv in c["product_versions"]:
                     for ps in c["product_streams"]:
-
                         is_dep = False
                         if c["arch"] == "src" or c["arch"] == "noarch":
                             is_dep = True
@@ -302,6 +301,7 @@ class products_containing_component_query:
                         if c["software_build"]:
                             component["build_id"] = c["software_build"]["build_id"]
                             component["build_type"] = c["software_build"]["build_type"]
+                            component["build_name"] = c["software_build"]["name"]
                             component["build_source_url"] = c["software_build"]["source"]
                         if c["upstreams"]:
                             component["upstream_purl"] = c["upstreams"][0]["purl"]
@@ -324,7 +324,6 @@ class products_containing_component_query:
             for c in related_url_search.json()["results"]:
                 for pv in c["product_versions"]:
                     for ps in c["product_streams"]:
-
                         is_dep = False
                         if c["arch"] == "src" or c["arch"] == "noarch":
                             is_dep = True
@@ -353,6 +352,7 @@ class products_containing_component_query:
                         if c["software_build"]:
                             component["build_id"] = c["software_build"]["build_id"]
                             component["build_type"] = c["software_build"]["build_type"]
+                            component["build_name"] = c["software_build"]["name"]
                             component["build_source_url"] = c["software_build"]["source"]
                         if c["upstreams"]:
                             component["upstream_purl"] = c["upstreams"][0]["purl"]
@@ -385,14 +385,15 @@ class products_containing_component_query:
                     if type(result) == Component:
                         m = p.match(result.name)
                         if m:
+                            filtered_results.append(result)
                             is_matched = True
+                            break
                     else:
                         m = p.match(result["name"])
                         if m:
+                            filtered_results.append(result)
                             is_matched = True
-
-                if is_matched:
-                    filtered_results.append(result)
+                            break
 
             results = filtered_results
 
