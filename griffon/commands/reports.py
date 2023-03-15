@@ -48,3 +48,14 @@ def generate_affects_report(
         click.echo(ctx.get_help())
         exit(0)
     cprint(report_service.invoke(core_reports.example_affects_report, ctx.params), ctx=ctx)
+
+
+@reports_grp.command(name="report-entities", help="Generate Entity report (with counts).")
+@click.pass_context
+@progress_bar
+def generate_entity_report(ctx):
+    """A report operation"""
+    # if not all and not product_version_name:
+    #     click.echo(ctx.get_help())
+    #     exit(0)
+    cprint(report_service.invoke(core_reports.entity_report, ctx.params), ctx=ctx)

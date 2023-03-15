@@ -58,3 +58,8 @@ def corgi_tutorial():
     click.launch(
         "https://github.com/RedHatProductSecurity/component-registry/blob/main/docs/user_guide.md"
     )
+
+
+@docs_grp.command()
+def package_browser(help="Red Hat own package browser"):
+    click.launch("https://access.redhat.com/downloads/content/package-browser")

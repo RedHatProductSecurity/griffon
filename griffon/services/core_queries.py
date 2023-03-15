@@ -55,6 +55,7 @@ class product_stream_summary:
                     "product": ps.products[0]["name"],
                     "product_version": ps.product_versions[0]["name"],
                     "brew_tags": [brew_tag for brew_tag in ps.brew_tags.to_dict().keys()],
+                    # "build_count": ps.build_count,
                     "manifest_link": ps.manifest,
                     "latest_components_link": f"{CORGI_API_URL}/api/v1/components?ofuri={ps.ofuri}&view=summary",  # noqa
                     "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={ps.ofuri}&include_fields=link,name,purl",  # noqa
