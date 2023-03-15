@@ -2,6 +2,7 @@
     read only queries
 
 """
+import concurrent
 import logging
 from datetime import datetime
 
@@ -17,21 +18,31 @@ class example_affects_report:
 
     name = "example_affects_report"
     description = " "
-    allowed_params = ["show_components", "show_products", "purl", "name", "ofuri", "product_name"]
+    allowed_params = [
+        "product_version_name",
+        "show_components",
+        "all",
+        "show_products",
+        "purl",
+        "name",
+        "ofuri",
+        "product_name",
+    ]
 
     def __init__(self, params) -> None:
         self.corgi_session = CorgiService.create_session()
         self.osidb_session = OSIDBService.create_session()
         self.params = params
+        self.product_version_name = self.params.get("product_version_name")
+        self.show_components = self.params.get("show_components")
+        self.show_products = self.params.get("show_products")
+        self.all = self.params.get("all")
+        self.purl = self.params.get("purl")
+        self.component_name = self.params.get("name")
+        self.ofuri = self.params.get("ofuri")
+        self.product_name = self.params.get("product_name")
 
     def generate(self) -> dict:
-        show_components = self.params["show_components"]
-        show_products = self.params["show_products"]
-        purl = self.params["purl"]
-        component_name = self.params["name"]
-        ofuri = self.params["ofuri"]
-        product_name = self.params["product_name"]
-
         affects = self.osidb_session.affects.retrieve_list()
 
         affects_affected = self.osidb_session.affects.retrieve_list(affectedness="AFFECTED")
@@ -135,13 +146,13 @@ class example_affects_report:
             "top_product": top_low_product,
         }
 
-        if show_components:
+        if self.show_components:
             critical["components"] = critical_components
             important["components"] = important_components
             moderate["components"] = moderate_components
             low["components"] = low_components
 
-        if show_products:
+        if self.show_products:
             critical["products"] = critical_products
             important["products"] = important_products
             moderate["products"] = moderate_products
@@ -158,14 +169,14 @@ class example_affects_report:
             "low": low,
         }
 
-        if purl:
-            report["purl"] = purl
-        if component_name:
-            report["component_name"] = component_name
-        if ofuri:
-            report["product_ofuri"] = ofuri
-        if product_name:
-            report["product"] = product_name
+        if self.purl:
+            report["purl"] = self.purl
+        if self.component_name:
+            report["component_name"] = self.component_name
+        if self.ofuri:
+            report["product_ofuri"] = self.ofuri
+        if self.product_name:
+            report["product"] = self.product_name
 
         return {
             "title": "Example Affects report",
@@ -176,4 +187,161 @@ class example_affects_report:
             "important": important,
             "moderate": moderate,
             "low": low,
+        }
+
+
+class entity_report:
+    """ """
+
+    name = "entity_report"
+    description = " "
+
+    def __init__(self, params) -> None:
+        self.corgi_session = CorgiService.create_session()
+        self.osidb_session = OSIDBService.create_session()
+        self.params = params
+
+    def generate(self) -> dict:
+        component_arches = CorgiService.get_component_arches()
+        component_types = [
+            component_type.value for component_type in CorgiService.get_component_types()
+        ]
+        corgi_status = self.corgi_session.status()
+        active_product_streams_count = self.corgi_session.product_streams.retrieve_list().count
+        component_instances_count = self.corgi_session.components.retrieve_list(limit=1).count
+
+        # get src RPM count
+        component_cnt = self.corgi_session.components.retrieve_list(
+            arch="src", namespace="REDHAT", type="RPM", include_fields="name"
+        ).count
+        components = list()
+        if component_cnt < 3000000:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = []
+                for batch in range(0, component_cnt, 5000):
+                    futures.append(
+                        executor.submit(
+                            self.corgi_session.components.retrieve_list,
+                            arch="src",
+                            namespace="REDHAT",
+                            type="RPM",
+                            include_fields="name",
+                            offset=batch,
+                            limit=5000,  # noqa
+                        )
+                    )
+
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        components.extend(future.result().results)
+                    except Exception as exc:
+                        logger.warning("%r generated an exception: %s" % (future, exc))
+
+        # # get OCI noarch count
+        # component_cnt = self.corgi_session.components.retrieve_list(
+        #     arch="noarch", type="OCI", include_fields="name"
+        # ).count
+        # oci_components = list()
+        # if component_cnt < 3000000:
+        #     with concurrent.futures.ThreadPoolExecutor() as executor:
+        #         futures = []
+        #         for batch in range(0, component_cnt, 3000):
+        #             futures.append(
+        #                 executor.submit(
+        #                     self.corgi_session.components.retrieve_list,
+        #                     arch="noarch",
+        #                     type="OCI",
+        #                     include_fields="name",
+        #                     offset=batch,
+        #                     limit=3000,  # noqa
+        #                 )
+        #             )
+        #
+        #         for future in concurrent.futures.as_completed(futures):
+        #             try:
+        #                 oci_components.extend(future.result().results)
+        #             except Exception as exc:
+        #                 logger.warning("%r generated an exception: %s" % (future, exc))
+
+        # # get NPM noarch count
+        # component_cnt = self.corgi_session.components.retrieve_list(type="NPM",
+        #                                                             include_fields="name").count
+        # npm_components = list()
+        # if component_cnt < 3000000:
+        #     with concurrent.futures.ThreadPoolExecutor() as executor:
+        #         futures = []
+        #         for batch in range(0, component_cnt, 3000):
+        #             futures.append(
+        #                 executor.submit(
+        #                     self.corgi_session.components.retrieve_list,
+        #                     type="NPM", include_fields="name",
+        #                     offset=batch,
+        #                     limit=3000,  # noqa
+        #                 )
+        #             )
+        #
+        #         for future in concurrent.futures.as_completed(futures):
+        #             try:
+        #                 npm_components.extend(future.result().results)
+        #             except Exception as exc:
+        #                 logger.warning("%r generated an exception: %s" % (future, exc))
+
+        # get GOLANG noarch count
+        # component_cnt = self.corgi_session.components.retrieve_list(type="GOLANG",
+        #                                                             include_fields="name").count
+        # golang_components = list()
+        # if component_cnt < 3000000:
+        #     with concurrent.futures.ThreadPoolExecutor() as executor:
+        #         futures = []
+        #         for batch in range(0, component_cnt, 3000):
+        #             futures.append(
+        #                 executor.submit(
+        #                     self.corgi_session.components.retrieve_list,
+        #                     type="GOLANG", include_fields="name",
+        #                     offset=batch,
+        #                     limit=3000,  # noqa
+        #                 )
+        #             )
+        #
+        #         for future in concurrent.futures.as_completed(futures):
+        #             try:
+        #                 golang_components.extend(future.result().results)
+        #             except Exception as exc:
+        #                 logger.warning("%r generated an exception: %s" % (future, exc))
+
+        rpm_components_cnt: int = len(list(set([component.name for component in components])))
+
+        # TODO: baking these values in as we will eventually process these server side
+        oci_components_cnt: int = 2873
+        npm_components_cnt: int = 8677
+        golang_components_cnt: int = 48359
+
+        total_component_cnt = (
+            rpm_components_cnt + oci_components_cnt + npm_components_cnt + golang_components_cnt
+        )
+
+        return {
+            "corgi": {
+                "title": "Entity report",
+                "ts": str(datetime.now()),
+                "db_size": corgi_status["db_size"],
+                "components": {
+                    "types": component_types,
+                    "arches": component_arches,
+                    "total_component_instances": component_instances_count,
+                    "total_distinct_components": total_component_cnt,
+                    "rpm_components": rpm_components_cnt,
+                    "oci_components": oci_components_cnt,
+                    "npm_components": npm_components_cnt,
+                    "golang_components": golang_components_cnt,
+                },
+                "products": {
+                    "products": corgi_status["products"]["count"],
+                    "product_versions": corgi_status["product_versions"]["count"],
+                    "active_product_streams": active_product_streams_count,
+                    "product_streams": corgi_status["product_streams"]["count"],
+                    "product_variants": corgi_status["product_variants"]["count"],
+                    "channels": corgi_status["channels"]["count"],
+                },
+            }
         }

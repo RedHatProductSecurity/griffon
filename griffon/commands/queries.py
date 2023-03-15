@@ -22,7 +22,7 @@ from griffon.commands.entities import (
 )
 
 # from griffon.commands.process import generate_affects_for_component_process
-from griffon.commands.reports import generate_affects_report
+from griffon.commands.reports import generate_affects_report, generate_entity_report
 from griffon.output import cprint
 from griffon.services import QueryService, core_queries  # , exp
 
@@ -39,6 +39,8 @@ def queries_grp(ctx):
 
 
 queries_grp.add_command(generate_affects_report)
+queries_grp.add_command(generate_entity_report)
+
 # queries_grp.add_command(generate_affects_for_component_process)
 
 
