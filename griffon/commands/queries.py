@@ -20,10 +20,8 @@ from griffon.commands.entities import (
     get_product_stream_ofuris,
     list_components,
 )
-
-# from griffon.commands.process import generate_affects_for_component_process
 from griffon.commands.reports import generate_affects_report, generate_entity_report
-from griffon.output import cprint
+from griffon.output import console, cprint, raw_json_transform
 from griffon.services import QueryService, core_queries  # , exp
 
 logger = logging.getLogger("griffon")
@@ -144,16 +142,21 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     default=False,
     help="Generate Affects output.",
 )
+# @click.option(
+#     "--cve-id",
+#     "cve_id",
+#     help="Attach affects to this (\033[1mCVE-ID\033[0m).",
+# )
 @click.option(
-    "--flaw",
-    "flaw_id",
-    help="Attach affects to this (\033[1mCVE-ID\033[0m).",
+    "--sfm2-flaw-id",
+    "sfm2_flaw_id",
+    help="Attach affects to this (\033[1msfm2 flaw id\033[0m).",
 )
 @click.option(
     "--flaw-mode",
     "flaw_mode",
     default="dry_run",
-    type=click.Choice(["add", "update", "dry_run"]),
+    type=click.Choice(["add", "replace", "dry_run"]),
     help="Add or update when generating affects.",
 )
 @click.option(
@@ -198,7 +201,6 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     help="Search for Components by upstream.",
 )
 @click.pass_context
-@progress_bar
 def get_product_contain_component(
     ctx,
     component_name,
@@ -208,7 +210,7 @@ def get_product_contain_component(
     component_type,
     strict_name_search,
     affect_mode,
-    flaw_id,
+    sfm2_flaw_id,
     flaw_mode,
     search_latest,
     search_related_url,
@@ -217,33 +219,163 @@ def get_product_contain_component(
     search_community,
     search_upstreams,
 ):
-    """List products of a latest component."""
-    if not purl and not component_name:
-        click.echo(ctx.get_help())
-        click.echo("")
-        click.echo("\033[1mMust supply Component name or --purl.\033[0m")
-        exit(0)
+    with console.status("griffoning", spinner="line") as operation_status:
 
-    if (
-        not search_latest
-        and not search_all
-        and not search_related_url
-        and not search_community
-        and not search_upstreams
-    ):
-        ctx.params["search_latest"] = True
-        ctx.params["search_related_url"] = True
-        # ctx.params["filter_rh_naming"] = True
+        """List products of a latest component."""
+        if not purl and not component_name:
+            click.echo(ctx.get_help())
+            click.echo("")
+            click.echo("\033[1mMust supply Component name or --purl.\033[0m")
+            exit(0)
 
-    params = copy.deepcopy(ctx.params)
-    params.pop("flaw_id")
-    params.pop("flaw_mode")
-    params.pop("affect_mode")
-    if component_name:
-        q = query_service.invoke(core_queries.products_containing_component_query, params)
-    if purl:
-        q = query_service.invoke(core_queries.products_containing_specific_component_query, params)
-    cprint(q, ctx=ctx)
+        if (
+            not search_latest
+            and not search_all
+            and not search_related_url
+            and not search_community
+            and not search_upstreams
+        ):
+            ctx.params["search_latest"] = True
+            ctx.params["search_related_url"] = True
+            # ctx.params["filter_rh_naming"] = True
+
+        params = copy.deepcopy(ctx.params)
+        params.pop("sfm2_flaw_id")
+        params.pop("flaw_mode")
+        params.pop("affect_mode")
+        if component_name:
+            q = query_service.invoke(core_queries.products_containing_component_query, params)
+        if purl:
+            q = query_service.invoke(
+                core_queries.products_containing_specific_component_query, params
+            )
+
+        # TODO - in the short term affect handling will be mediated via sfm2 here in the operation itself # noqa
+        if ctx.params["sfm2_flaw_id"]:
+            console.no_color = True
+            console.highlighter = None
+            operation_status.stop()
+
+            # generate affects
+            output = raw_json_transform(q, True)
+            ordered_results = sorted(output["results"], key=lambda d: d["product_stream"])
+            affects = []
+            product_versions = sorted(
+                list(set([item["product_version"] for item in ordered_results]))
+            )
+            for pv in product_versions:
+                names = [item["name"] for item in ordered_results if pv == item["product_version"]]
+                names = list(set(names))
+                for name in names:
+                    affects.append(
+                        {"product_version": pv, "component_name": name, "operation": "add"}
+                    )
+
+            # attempt to import sfm2client module
+            try:
+                import sfm2client
+            except ImportError:
+                logger.warning("sfm2client library not found, cannot compare with flaw affects")
+                ctx.exit()
+
+            # TODO: paramaterise into dotfile/env var
+            sfm2 = sfm2client.api.core.SFMApi({"url": "http://localhost:5600"})
+            try:
+                flaw = sfm2.flaw.get(sfm2_flaw_id)
+            except Exception as e:
+                logger.warning(f"Could not retrieve flaw {sfm2_flaw_id}: {e}")
+                return
+
+            if ctx.params["flaw_mode"] == "replace":
+                if affects:
+                    console.print(
+                        f"The following affects will REPLACE all flaw {flaw['id']}'s existing affects in \"new\" state:\n"  # noqa
+                    )
+                    for m in affects:
+                        console.print(
+                            f"{m['product_version']}\t{m['component_name']}",
+                            no_wrap=False,
+                        )
+
+                    if click.confirm(
+                        f"\nREPLACE flaw {flaw['id']}'s existing affects in \"new\" state with the above? THIS CANNOT BE UNDONE: ",  # noqa
+                        default=True,
+                    ):
+                        click.echo("Updating ...")
+                        # only discard affects in 'new' state, we should preserve all others so not to throw work away # noqa
+                        new_affects = [a for a in flaw["affects"] if a["affected"] != "new"]
+                        # get map of existing affects first, so that we don't try to add duplicates
+                        existing = set((a["ps_module"], a["ps_component"]) for a in new_affects)
+                        for m in affects:
+                            if (m["product_version"], m["component_name"]) in existing:
+                                continue
+                            new_affects.append(
+                                {
+                                    "affected": "new",
+                                    "ps_component": m["component_name"],
+                                    "ps_module": m["product_version"],
+                                }
+                            )
+                        try:
+                            sfm2.flaw.update(flaw["id"], data={"affects": new_affects})
+                        except Exception as e:
+                            msg = e.response.json()
+                            logger.warning(f"Failed to update flaw: {e}: {msg}")
+                        console.print("Operation done.")
+                        ctx.exit()
+
+                    click.echo("No affects were added to flaw.")
+                else:
+                    console.print("No affects to add to flaw.")
+            else:
+                missing = []
+                for affect in affects:
+                    flaw_has_affect = False
+                    for a in flaw.get("affects"):
+                        if a.get("ps_module") == affect.get("product_version") and a.get(
+                            "ps_component"
+                        ) == affect.get("component_name"):
+                            flaw_has_affect = True
+                    if not flaw_has_affect:
+                        missing.append(affect)
+
+                if missing:
+                    console.log("Flaw is missing the following affect entries:\n")
+                    for m in missing:
+                        console.print(
+                            f"{m['product_version']}\t{m['component_name']}",
+                            no_wrap=False,
+                        )
+                    if click.confirm(
+                        "Would you like to add them? ",
+                        default=True,
+                    ):
+                        click.echo("Updating ...")
+
+                        updated_affects = flaw.get("affects")[:]
+                        for m in missing:
+                            updated_affects.append(
+                                {
+                                    "affected": "new",
+                                    "ps_component": m["component_name"],
+                                    "ps_module": m["product_version"],
+                                }
+                            )
+                        try:
+                            sfm2.flaw.update(flaw["id"], data={"affects": updated_affects})
+                        except Exception as e:
+                            msg = e.response.json()
+                            logger.warning(f"Failed to update flaw: {e}: {msg}")
+                        console.print("Operation done.")
+                        ctx.exit()
+                    click.echo("No affects were added to flaw.")
+
+                else:
+                    console.print("Flaw is not missing any affect entries")
+
+            ctx.exit()
+
+        cprint(q, ctx=ctx)
 
 
 @queries_grp.command(
