@@ -45,6 +45,14 @@ Retrieve Product flaws
 Retrieve Component summary
 > griffon service component-summary python-marshmallow 
 
+To add (missing) affects on a flaw, supply sfm flaw id and set flaw mode:
+
+> griffon service products-contain-component -s IPMItool --sfm2-flaw-id 2009389 --flaw-mode add
+ 
+To replace affects on a flaw (and overwrite any existing):
+
+> griffon service products-contain-component -s IPMItool --sfm2-flaw-id 2009389 --flaw-mode replace
+
 ## Common questions
 
 Given a CVE ID, what products are affected?
