@@ -3,9 +3,18 @@ entity operations
 
 """
 import concurrent.futures
+import inspect
 import logging
+from enum import Enum
+from types import ModuleType
+from typing import Callable, Optional
 
 import click
+from osidb_bindings.bindings.python_client.api.osidb import (
+    osidb_api_v1_affects_list,
+    osidb_api_v1_flaws_list,
+    osidb_api_v1_trackers_list,
+)
 from osidb_bindings.bindings.python_client.models import Affect, Flaw, Tracker
 
 from griffon import (
@@ -29,6 +38,68 @@ logger = logging.getLogger("griffon")
 default_conditions: dict = {}
 
 
+def multivalue_params_to_csv(params: dict) -> dict:
+    """
+    convert multivalue params represented as tuples or lists
+    into csv string
+    """
+    for param_name, param_value in params.items():
+        if isinstance(param_value, (tuple, list)):
+            params[param_name] = ",".join(params[param_name])
+    return params
+
+
+def query_params_options(
+    entity: str, endpoint_module: ModuleType, options_overrides: Optional[dict[dict]] = None
+) -> Callable:
+    """
+    Decorator which obtains all query parameters from the given endpoint module and adds
+    them as `click.option` with respective type
+
+    Type handling:
+        basic types (std, int, bool, etc.) - native
+        enums - via `click.Choice`
+        lists - multiple option
+
+    For each param option, variable, type, help and multiple can be overriden via `options_overrides`
+    """
+    if options_overrides is None:
+        options_overrides = {}
+
+    def inner(fn):
+        wrapper = fn
+        for query_param, param_type in endpoint_module.QUERY_PARAMS.items():
+            multiple = False
+            if getattr(param_type, "_name", None) == "List":
+                option_type = param_type.__args__[0]
+                multiple = True
+            elif inspect.isclass(param_type) and issubclass(param_type, Enum):
+                option_type = click.Choice(param_type)
+            else:
+                option_type = param_type
+
+            option_params = {
+                "option": f"--{query_param.replace('_','-')}",
+                "variable": query_param,
+                "type": option_type,
+                "help": f"{entity.capitalize()} {query_param.replace('_',' ')}",
+                "multiple": multiple,
+            }
+            option_override = options_overrides.get(query_param, {})
+            option_params.update(
+                (override, option_override[override])
+                for override in option_params.keys() & option_override.keys()
+            )
+            wrapper = (
+                click.option(
+                    option_params.pop("option"), option_params.pop("variable"), **option_params
+                )
+            )(wrapper)
+        return wrapper
+
+    return inner
+
+
 @click.group(name="entities", help="Entity operations (UNDER DEVELOPMENT).")
 @click.option("--open-browser", is_flag=True, help="open browser to service results.")
 @click.option("--limit", default=10, help="# of items returned by list operations.")
@@ -47,44 +118,24 @@ def flaws(ctx):
 
 
 @flaws.command(name="list")
-@click.option(
-    "--state",
-    "flaw_state",
-    type=click.Choice(OSIDBService.get_flaw_states()),
-    help="Flaw state.",
+@query_params_options(
+    entity="Flaw",
+    endpoint_module=osidb_api_v1_flaws_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(OSIDBService.get_fields(Flaw))},
+        "exclude_fields": {"type": click.Choice(OSIDBService.get_fields(Flaw))},
+        "include_meta_attr": {"type": click.Choice(OSIDBService.get_meta_attr_fields(Flaw))},
+    },
 )
-@click.option(
-    "--resolution",
-    type=click.Choice(OSIDBService.get_flaw_resolutions()),
-    help="Flaw resolution.",
-)
-@click.option(
-    "--impact",
-    type=click.Choice(OSIDBService.get_flaw_impacts()),
-    help="Flaw impact.",
-)
-@click.option(
-    "--embargoed",
-    "is_embargoed",
-    is_flag=True,
-    help="Include embargoed flaws (requires access).",
-)
-@click.option("--major-incident", "is_major_incident", is_flag=True, help="Only major incidents.")
 @click.pass_context
 @progress_bar
-def list_flaws(ctx, flaw_state, resolution, impact, is_embargoed, is_major_incident):
-    if not flaw_state and not resolution and not impact:
-        click.echo(ctx.get_help())
-        exit(0)
+def list_flaws(ctx, **params):
+    # TODO: handle pagination
+    # TODO: handle output
     session = OSIDBService.create_session()
-    conditions = default_conditions
-    if flaw_state:
-        conditions["state"] = flaw_state
-    if resolution:
-        conditions["resolution"] = resolution
-    if impact:
-        conditions["impact"] = impact
-    data = session.flaws.retrieve_list(**conditions).results
+
+    params = multivalue_params_to_csv(params)
+    data = session.flaws.retrieve_list(**params).results
     return cprint(data, ctx=ctx)
 
 
@@ -148,39 +199,24 @@ def affects(ctx):
 
 
 @affects.command(name="list")
-@click.option("--product_version", help="ps module")
-@click.option("--component_name", help="ps component")
-@click.option("--affectedness", type=click.Choice(OSIDBService.get_affect_affectedness()))
-@click.option(
-    "--resolution",
-    type=click.Choice(OSIDBService.get_affect_resolution()),
+@query_params_options(
+    entity="Affect",
+    endpoint_module=osidb_api_v1_affects_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(OSIDBService.get_fields(Affect))},
+        "exclude_fields": {"type": click.Choice(OSIDBService.get_fields(Affect))},
+        "include_meta_attr": {"type": click.Choice(OSIDBService.get_meta_attr_fields(Affect))},
+    },
 )
-@click.option("--impact", type=click.Choice(OSIDBService.get_affect_impact()))
 @click.pass_context
 @progress_bar
-def list_affects(ctx, product_version, component_name, affectedness, resolution, impact):
-    if (
-        not product_version
-        and not component_name
-        and not affectedness
-        and not resolution
-        and not impact
-    ):
-        click.echo(ctx.get_help())
-        exit(0)
+def list_affects(ctx, **params):
+    # TODO: handle pagination
+    # TODO: handle output
     session = OSIDBService.create_session()
-    conditions = default_conditions
-    if product_version:
-        conditions["ps_module"] = product_version
-    if component_name:
-        conditions["ps_component"] = component_name
-    if affectedness:
-        conditions["affectedness"] = affectedness
-    if resolution:
-        conditions["resolution"] = resolution
-    if impact:
-        conditions["impact"] = impact
-    data = session.affects.retrieve_list(**conditions).results
+
+    params = multivalue_params_to_csv(params)
+    data = session.affects.retrieve_list(**params).results
     return cprint(data, ctx=ctx)
 
 
@@ -231,11 +267,23 @@ def trackers(ctx):
 
 
 @trackers.command(name="list")
+@query_params_options(
+    entity="Tracker",
+    endpoint_module=osidb_api_v1_trackers_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(OSIDBService.get_fields(Tracker))},
+        "exclude_fields": {"type": click.Choice(OSIDBService.get_fields(Tracker))},
+        "include_meta_attr": {"type": click.Choice(OSIDBService.get_meta_attr_fields(Tracker))},
+    },
+)
 @click.pass_context
-def list_trackers(ctx):
+def list_trackers(ctx, **params):
+    # TODO: handle pagination
+    # TODO: handle output
     session = OSIDBService.create_session()
-    conditions = default_conditions
-    data = session.trackers.retrieve_list(**conditions).results
+
+    params = multivalue_params_to_csv(params)
+    data = session.trackers.retrieve_list(**params).results
     return cprint(data, ctx=ctx)
 
 
