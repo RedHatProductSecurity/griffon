@@ -225,7 +225,7 @@ def text_output_products_contain_component(ctx, output, format):
                             root_component = f"{source_purl.name}-{source_purl.version}"
 
                         dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
-                        dep = f"[white]({dep_name})[/white]"
+                        dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
                         console.print(
                             Text(ps, style="magenta b u"),
                             root_component,
@@ -262,7 +262,7 @@ def text_output_products_contain_component(ctx, output, format):
                             source_purl = PackageURL.from_string(sources[0]["purl"])
                             root_component = f"{source_purl.name}-{source_purl.version}"
                         dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
-                        dep = f"[white]({dep_name})[/white]"
+                        dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
                         related_url = related_url.replace(
                             component_name, f"[b]{component_name}[/b]"
                         )
@@ -305,7 +305,7 @@ def text_output_products_contain_component(ctx, output, format):
                         if item["upstream_purl"]:
                             upstream = f"[cyan]{item['upstream_purl']}[/cyan]"
                         dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
-                        dep = f"[white]({dep_name})[/white]"
+                        dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
                         related_url = related_url.replace(
                             component_name, f"[b]{component_name}[/b]"
                         )
