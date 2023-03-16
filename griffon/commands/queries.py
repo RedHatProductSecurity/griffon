@@ -20,7 +20,6 @@ from griffon.commands.entities import (
     get_product_stream_ofuris,
     list_components,
 )
-
 from griffon.commands.reports import generate_affects_report, generate_entity_report
 from griffon.output import console, cprint, raw_json_transform
 from griffon.services import QueryService, core_queries  # , exp
