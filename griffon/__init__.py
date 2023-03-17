@@ -40,7 +40,7 @@ logger.handlers = [RichHandler()]
 def get_config():
     """read ~/.griffonrc ini file, if it does not exist then return some default config"""
     if not os.path.exists(os.path.expanduser(GRIFFON_RC_FILE)):
-        with open("griffon/static/default_griffonrc", "r") as file:
+        with open("static/default_griffonrc", "r") as file:
             data = file.read()
         config = configparser.ConfigParser(allow_no_value=True)
         config.readfp(io.StringIO(data))
