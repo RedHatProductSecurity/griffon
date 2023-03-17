@@ -51,11 +51,12 @@ def generate_affects_report(
 
 
 @reports_grp.command(name="report-entities", help="Generate Entity report (with counts).")
+@click.option("--all", is_flag=True, default=True, help="Show summary report on all entities.")
 @click.pass_context
 @progress_bar
-def generate_entity_report(ctx):
+def generate_entity_report(ctx, all):
     """A report operation"""
-    # if not all and not product_version_name:
-    #     click.echo(ctx.get_help())
-    #     exit(0)
+    if not all:
+        click.echo(ctx.get_help())
+        exit(0)
     cprint(report_service.invoke(core_reports.entity_report, ctx.params), ctx=ctx)
