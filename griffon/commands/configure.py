@@ -2,14 +2,14 @@
 
 """
 import configparser
-import io
 import logging
 import os
 import subprocess
 
 import click
+from pkg_resources import resource_filename  # type: ignore
 
-from griffon import GRIFFON_CONFIG_DIR, GRIFFON_DEFAULT_LOG_FILE, GRIFFON_RC_FILE
+from griffon import GRIFFON_CONFIG_DIR, GRIFFON_RC_FILE
 
 logger = logging.getLogger("griffon")
 
@@ -36,11 +36,9 @@ def setup():
     else:
         logger.warning(f"{GRIFFON_CONFIG_DIR} already exists")
 
-    with open("static/default_griffonrc", "r") as file:
-        data = file.read()
+    logger.warning(__name__)
+    default_griffonrc = resource_filename("griffon", "static/default_griffonrc")
     config = configparser.ConfigParser(allow_no_value=True)
-    config.readfp(io.StringIO(data))
-    config.set("default", "history_log", GRIFFON_DEFAULT_LOG_FILE)
-
+    config.read(default_griffonrc)
     with open(os.path.expanduser(GRIFFON_RC_FILE), "w") as configfile:
         config.write(configfile)
