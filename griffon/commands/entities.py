@@ -19,6 +19,7 @@ from osidb_bindings.bindings.python_client.api.osidb import (
     osidb_api_v1_trackers_retrieve,
 )
 from osidb_bindings.bindings.python_client.models import Affect, Flaw, Tracker
+from requests import HTTPError
 
 from griffon import (
     CORGI_API_URL,
@@ -39,6 +40,12 @@ from griffon.output import console, cprint
 logger = logging.getLogger("griffon")
 
 default_conditions: dict = {}
+
+
+def abort_if_false(ctx, param, value: bool):
+    """Helper callback for aborting the command if confirmation check fails"""
+    if not value:
+        ctx.abort()
 
 
 def multivalue_params_to_csv(params: dict) -> dict:
@@ -220,6 +227,31 @@ def get_affect(ctx, affect_uuid, **params):
 
     session = OSIDBService.create_session()
     data = session.affects.retrieve(affect_uuid, **params)
+    return cprint(data, ctx=ctx)
+
+
+@affects.command(name="delete")
+@click.option("--uuid", "affect_uuid", help="Affect UUID.", required=True)
+@click.option(
+    "--yes",
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt="Are you sure you delete affect?",
+)
+@click.pass_context
+@progress_bar
+def delete_affect(ctx, affect_uuid, **params):
+    session = OSIDBService.create_session()
+    try:
+        data = session.affects.delete(affect_uuid)
+    except HTTPError as e:
+        if ctx.obj["VERBOSE"]:
+            console.log(e, e.response.json())
+        raise click.ClickException(
+            f"Failed to delete {affect_uuid}. "
+            "It either does not exist or you have insufficient permissions."
+        )
     return cprint(data, ctx=ctx)
 
 
