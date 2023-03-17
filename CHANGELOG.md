@@ -5,6 +5,10 @@ This project is kept in version sync with the Component Registry project, see th
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+[0.1.1] - 2023-03-17
+Fixed
+changed .griffonrc file path to the correct path
+
 [0.1.0] - 2023-03-17
 Added
 Initial official release to the PyPI
