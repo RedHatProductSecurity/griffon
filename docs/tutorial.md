@@ -46,12 +46,19 @@ Retrieve Component summary
 > griffon service component-summary python-marshmallow 
 
 To add (missing) affects on a flaw, supply sfm flaw id and set flaw mode:
-
 > griffon service products-contain-component -s IPMItool --sfm2-flaw-id 2009389 --flaw-mode add
  
 To replace affects on a flaw (and overwrite any existing):
-
 > griffon service products-contain-component -s IPMItool --sfm2-flaw-id 2009389 --flaw-mode replace
+
+Define default_profile in .griffonrc or supply as commandline option to exclude files
+> griffon --profile latest service products-contain-component webkitgtk
+
+Choose 'cloud' profile
+> griffon --profile cloud service product-summary ansible
+
+Choose 'all' profile for effectively no excludes
+> griffon --profile all service product-summary ansible
 
 ## Common questions
 

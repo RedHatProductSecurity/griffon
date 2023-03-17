@@ -33,6 +33,7 @@ def test_output_formats():
                 "NO_PROGRESS_BAR": False,
                 "SHOW_INACTIVE": False,
                 "SHOW_UPSTREAM": False,
+                "PROFILE": "latest",
             },
         )
         assert cprint(single_result_data, ctx=ctx)

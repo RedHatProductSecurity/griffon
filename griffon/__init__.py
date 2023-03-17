@@ -1,4 +1,5 @@
 import configparser
+import io
 import logging
 import os
 from configparser import ConfigParser
@@ -24,7 +25,7 @@ OSIDB_API_URL = os.environ["OSIDB_API_URL"]
 
 GRIFFON_CONFIG_DIR = os.getenv("GRIFFON_API_URL", "~/.griffon")
 GRIFFON_RC_FILE = "~/.griffonrc"
-GRIFFON_DEFAULT_LOG_FILE = "~/.griffon/griffon.log"
+GRIFFON_DEFAULT_LOG_FILE = os.getenv("GRIFFON_DEFAULT_LOG_FILE", "~/.griffon/history.log")
 
 logging.basicConfig(level="INFO")
 logger = logging.getLogger("griffon")
@@ -35,22 +36,21 @@ formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
 # logger.addHandler(file_handler)
 logger.handlers = [RichHandler()]
 
-logger = logging.getLogger("griffon")
-
 
 def get_config():
     """read ~/.griffonrc ini file, if it does not exist then return some default config"""
     if not os.path.exists(os.path.expanduser(GRIFFON_RC_FILE)):
+        with open("griffon/static/default_griffonrc", "r") as file:
+            data = file.read()
         config = configparser.ConfigParser(allow_no_value=True)
-        config.optionxform = str
-        config.add_section("default")
-        config["default"]["log_file"] = GRIFFON_DEFAULT_LOG_FILE
-        config["default"]["format"] = "text"
-        config.add_section("exclude")
+        config.readfp(io.StringIO(data))
         return config
     config = ConfigParser()
     config.read(os.path.expanduser(GRIFFON_RC_FILE))
     return config
+
+
+griffon_config = get_config()
 
 
 class CorgiService:

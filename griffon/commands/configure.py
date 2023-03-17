@@ -2,6 +2,7 @@
 
 """
 import configparser
+import io
 import logging
 import os
 import subprocess
@@ -35,11 +36,11 @@ def setup():
     else:
         logger.warning(f"{GRIFFON_CONFIG_DIR} already exists")
 
+    with open("griffon/static/default_griffonrc", "r") as file:
+        data = file.read()
     config = configparser.ConfigParser(allow_no_value=True)
-    config.optionxform = str
-    config.add_section("default")
-    config["default"]["log_file"] = GRIFFON_DEFAULT_LOG_FILE
-    config["default"]["format"] = "text"
-    config.add_section("exclude")
+    config.readfp(io.StringIO(data))
+    config.set("default", "history_log", GRIFFON_DEFAULT_LOG_FILE)
+
     with open(os.path.expanduser(GRIFFON_RC_FILE), "w") as configfile:
         config.write(configfile)
