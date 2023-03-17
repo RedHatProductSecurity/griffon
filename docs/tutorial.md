@@ -1,12 +1,52 @@
-## Tutorial (UNDER DEVELOPMENT)
+## Tutorial 
 
-Find Products that contain latest root Component(s)  
+Best to first checkout [User guide (quickstart)](https://github.com/RedHatProductSecurity/griffon/tree/main/docs/user_guide.md)
+
+### Configure griffon
+
+To setup ~/.griffonrc dotfile and ~/.griffon directory run:
+> griffon configure setup
+ 
+To pull from pypi.org the latest version of griffon:
+> griffon configure upgrade
+
+### Service operations
+
+```commandline
+> griffon service                                   
+Usage: griffon service [OPTIONS] COMMAND [ARGS]...
+
+  Service operations.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  component-flaws               List Flaws affecting a Component.
+  component-manifest            Get Component manifest.
+  component-summary             Get Component summaries.
+  components-affected-by-flaw   List Components affected by Flaw.
+  components-contain-component  List Components containing Component.
+  product-components            List LATEST Root Components of Product.
+  product-flaws                 List Flaws affecting a Product.
+  product-manifest              Get Product manifest (includes Root...
+  product-summary               Get Product summaries.
+  products-affected-by-flaw     List Products affected by Flaw.
+  products-contain-component    List Products containing Component.
+  report-affects                Generate Affects example report.
+  report-entities               Generate Entity report (with counts).
+```
+
+
+#### Check what Products a Component is shipped in
+
+To find what Products a component exists in  
 > griffon service products-contain-component webkitgtk
 
 Use -s flag for stricter search
 > griffon service products-contain-component -s webkitgtk
 
-And regex expressions
+Use regex expressions
 > griffon service products-contain-component "^webkitgtk(\d)$"
 
 Use of -v (up to -vvvv) to get more information
@@ -16,16 +56,28 @@ Use of -v (up to -vvvv) to get more information
 > griffon -vvv service products-contain-component "^webkitgtk(\d)"
 > griffon -vvvv service products-contain-component "^webkitgtk(\d)"
 
-Find Products that contain latest root Component(s) searching both root and dependencies
+Find what Products a component exists in, searching both root components and all dependencies
 > griffon service products-contain-component webkitgtk --search-all
 > griffon service products-contain-component github.com/go-redis/redis/v8/internal/hscan --search-all      
 
-Find Products that contain latest root Component searching both root and related_url
-> griffon service products-contain-component webkitgtk --search-related-url
+Find Products that contain Component searching both latest components and related_url
+> griffon service products-contain-component webkitgtk --search-latest --search-related-url
 
-Retrieve a Product summary
-> griffon service product-summary -s rhel-7.6.z
-> griffon --format json service product-summary -s rhel-7.6.z
+Note this is the default setting eg. the following is equivalent.
+> griffon service products-contain-component webkitgtk
+
+Find products that contain upstream Components.
+> griffon service products-contain-component webkitgtk --search-upstreams
+
+#### Creating and updating affects
+
+To add (missing) affects on a flaw, supply sfm flaw id and set flaw mode to 'add':
+> griffon service products-contain-component -s IPMItool --sfm2-flaw-id 2009389 --flaw-mode add
+ 
+To replace affects on a flaw (and overwrite any existing) supply sfm flaw id and set flaw mode to 'replace:
+> griffon service products-contain-component -s IPMItool --sfm2-flaw-id 2009389 --flaw-mode replace
+
+#### Retrieving product and component manifests
 
 Retrieve a Product latest root Components
 > griffon service product-components rhel-9.0.0.z
@@ -36,31 +88,131 @@ Retrieve Product manifest containing latest root Components and dependencies
 Retrieve a spdx json formatted Product manifest
 > griffon service product-manifest ansible_automation_platform-2.3 --spdx-json
 
-Retrieve Component flaws
-> griffon service component-flaws python-marshmallow 
+Retrieve a specific component manifest
+> griffon service component-manifest --purl "pkg:oci/ubi8-minimal-container@sha256:7679eaafa608171dd159a91529804d06fa0fbc16a2ea7f046a592a5d8e22c649?repository_url=registry.redhat.io/ubi8-minimal&tag=8.8-315" --spdx-json
 
-Retrieve Product flaws
-> griffon service product-flaws ansible_automation_platform-2 --affectedness AFFECTED --affect-resolution FIX
+#### Retrieving product and component summaries
+
+Retrieve a Product summary
+> griffon service product-summary -s rhel-7.6.z
+> griffon --format json service product-summary -s rhel-7.6.z
 
 Retrieve Component summary
 > griffon service component-summary python-marshmallow 
 
-To add (missing) affects on a flaw, supply sfm flaw id and set flaw mode:
-> griffon service products-contain-component -s IPMItool --sfm2-flaw-id 2009389 --flaw-mode add
- 
-To replace affects on a flaw (and overwrite any existing):
-> griffon service products-contain-component -s IPMItool --sfm2-flaw-id 2009389 --flaw-mode replace
+#### Working with flaws
 
-Define default_profile in .griffonrc or supply as commandline option to exclude files
-> griffon --profile latest service products-contain-component webkitgtk
+Retrieve a Component flaws
+> griffon service component-flaws python-marshmallow 
 
-Choose 'cloud' profile
-> griffon --profile cloud service product-summary ansible
+Retrieve a Product flaws
+> griffon service product-flaws ansible_automation_platform-2 --affectedness AFFECTED --affect-resolution FIX
 
-Choose 'all' profile for effectively no excludes
-> griffon --profile all service product-summary ansible
+Retrieve Components affected by flaw
+> griffon --format text service components-affected-by-flaw CVE-2023-25166
 
-## Common questions
+Retrieve Products affected by flaw
+> griffon --format text service products-affected-by-flaw CVE-2023-25166
+
+### Entity operations
+
+A set of low level data operations.
+
+```commandline
+> griffon entities                
+Usage: griffon entities [OPTIONS] COMMAND [ARGS]...
+
+  Entity operations (UNDER DEVELOPMENT).
+
+Options:
+  --open-browser   open browser to service results.
+  --limit INTEGER  # of items returned by list operations.
+  --help           Show this message and exit.
+
+Commands:
+  affects          https://osidb.prodsec.redhat.com/osidb/api/v1/affects
+  builds           https://corgi-stage.prodsec.redhat.com/api/v1/builds
+  components       https://corgi-stage.prodsec.redhat.com/api/v1/components
+  flaws            https://osidb.prodsec.redhat.com/osidb/api/v1/flaws
+  product-streams  ...
+  trackers         https://osidb.prodsec.redhat.com/osidb/api/v1/trackers
+```
+
+#### Components
+
+Retrieve a specific component:
+```commandline
+> griffon entities components get --purl "pkg:rpm/redhat/curl@7.29.0-19.el7?arch=aarch64" 
+```
+**Note** - purl are URI and they need to be quoted.
+
+Retrieve a specific Component provides:
+```commandline
+> griffon entities components provides --purl "pkg:rpm/redhat/curl@7.29.0-19.el7?arch=aarch64" 
+```
+Retrieve a specific Component sources:
+```commandline
+> griffon entities components sources --purl "pkg:rpm/redhat/curl@7.29.0-19.el7?arch=aarch64" 
+```
+Retrieve list of Components by name
+```commandline
+> griffon entities components list curl | jq '.results[].purl'
+```
+Search for Components by regular expression name (and version):
+```commandline
+> griffon entities components list --re_name ansible --version 1.1.1
+```
+#### Product Streams
+Retrieve a Product Stream
+```commandline
+> griffon entities product-streams get --ofuri o:redhat:openshift:4.11.z
+```
+List Product Streams
+```commandline
+> griffon entities product-streams list rhel
+```
+
+Retrieve a Product Stream manifest
+```commandline
+griffon entities product-streams get-manifest --name ansible_automation_platform-2.2 
+```
+
+### Plugin operations
+
+A set of example plugins are provided.
+```commandline
+> griffon plugins 
+Usage: griffon plugins [OPTIONS] COMMAND [ARGS]...
+
+  3rd party plugins.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  cvelib   cvelib plugin
+  fcc      FCC plugin
+  go_vuln  vuln.go.dev plugin
+  osv      OSV plugin
+```
+#### go_vuln
+
+Search go vulnerability database
+> griffon plugins go_vuln get --id GO-2022-0189
+> griffon plugins go_vuln get --cve-id CVE-2018-16873
+
+#### osv
+Search osv.dev
+>griffon plugins osv query-by-commit-hash --commit_hash 6879efc2c1596d11a6a6ad296f80063b558d5e0f
+
+#### fcc
+Search fcc website
+> griffon plugins fcc search --fcc-id BCG-E2430A
+
+#### cvelib
+Demonstrates how we can integrate existing software libraries like https://github.com/RedHatProductSecurity/cvelib.
+
+### Common questions
 
 Given a CVE ID, what products are affected?
 > griffon service products-affected-by-flaw CVE-2023-25166    
