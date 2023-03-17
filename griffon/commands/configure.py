@@ -36,7 +36,7 @@ def setup():
     else:
         logger.warning(f"{GRIFFON_CONFIG_DIR} already exists")
 
-    with open("griffon/static/default_griffonrc", "r") as file:
+    with open("static/default_griffonrc", "r") as file:
         data = file.read()
     config = configparser.ConfigParser(allow_no_value=True)
     config.readfp(io.StringIO(data))
