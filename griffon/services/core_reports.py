@@ -195,6 +195,7 @@ class entity_report:
 
     name = "entity_report"
     description = " "
+    allowed_params = ["all"]
 
     def __init__(self, params) -> None:
         self.corgi_session = CorgiService.create_session()

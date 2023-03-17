@@ -220,7 +220,6 @@ def get_product_contain_component(
     search_upstreams,
 ):
     with console.status("griffoning", spinner="line") as operation_status:
-
         """List products of a latest component."""
         if not purl and not component_name:
             click.echo(ctx.get_help())
