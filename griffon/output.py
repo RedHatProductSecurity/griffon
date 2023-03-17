@@ -1,7 +1,6 @@
 import enum
 import json
 import logging
-import re
 
 import click
 from packageurl import PackageURL
@@ -86,12 +85,7 @@ def text_output_product_summary(ctx, output, format, exclude_products):
     if exclude_products:
         exclude_products_results = []
         for result in ordered_results:
-            matched = False
-            for ep in exclude_products:
-                regexp = re.compile(ep)
-                if regexp.search(result["name"]):
-                    matched = True
-            if not matched:
+            if result["product_version"] not in exclude_products:
                 exclude_products_results.append(result)
         ordered_results = exclude_products_results
 
@@ -148,12 +142,7 @@ def text_output_products_contain_component(ctx, output, format, exclude_products
         if exclude_products:
             exclude_products_results = []
             for result in ordered_results:
-                matched = False
-                for ep in exclude_products:
-                    regexp = re.compile(ep)
-                    if regexp.search(result["product_stream"]):
-                        matched = True
-                if not matched:
+                if result["product_version"] not in exclude_products:
                     exclude_products_results.append(result)
             ordered_results = exclude_products_results
 
