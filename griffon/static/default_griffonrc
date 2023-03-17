@@ -1,0 +1,132 @@
+[default]
+format = text
+history_log = ~/.griffon/history.log
+default_profile = latest
+
+[client]
+sfm2_api_url = http://localhost:5600
+
+# profile sections (use with --profile {profile} flag)
+[cloud]
+exclude=3amp-2
+    amq-.*
+    ansible_automation_platform-.*
+    codeready_ws-2
+    cost-management
+    devtools-compilers
+    eap-.*
+    fsw-6
+    fuse-.*
+    gitops-1
+    jbcs-1
+    jdg-.*
+    jdv-6
+    jon-3
+    jws-.*
+    ocp-tools-4
+    pipelines-1
+    quarkus-2
+    rhacm-2
+    rhapi-.*
+    rhdm-7
+    rhel-.*
+    rhev-m-4
+    rhint-.*
+    rhivos-.*
+    rhn_satellite_6
+    rhpam-7
+    rhscl-3
+    rhsso-7
+    rhui-.*
+    serverless-1
+    springboot-2
+    vertx-4
+
+[openshift]
+exclude=3amp-2
+    amq-.*
+    ansible_automation_platform-.*
+    codeready_ws-2
+    cost-management
+    devtools-compilers
+    eap-.*
+    fsw-6
+    fuse-.*
+    gitops-1
+    jbcs-1
+    jdg-.*
+    jdv-6
+    jon-3
+    jws-.*
+    ocp-tools-4
+    pipelines-1
+    quarkus-2
+    rhacm-2
+    rhapi-.*
+    rhdm-7
+    rhel-.*
+    rhev-m-4
+    rhint-.*
+    rhivos-.*
+    rhn_satellite_6
+    rhpam-7
+    rhscl-3
+    rhsso-7
+    rhui-.*
+    serverless-1
+    springboot-2
+    vertx-4
+    ceph-.*
+    cnv-.*
+    ocp-tools-4
+    openshift-container-storage-.*
+    openstack-.*
+    ossm-.*
+    quay-.*
+    rhes-.*
+    stf-.*
+
+[middleware]
+exclude=ansible_automation_platform-.*
+    cnv-.*
+    codeready_ws-2
+    cost-management
+    devtools-compilers
+    distributed-tracing-.*
+    epel-.*
+    fedora-.*
+    gitops-1
+    jaeger-operator-.*
+    mtc-.*
+    mtv-.*
+    ocp-tools-4
+    openshift-.*
+    openstack-.*
+    ossm-.*
+    pipelines-1
+    quay-.*
+    rhacm-2
+    rhacs-.*
+    rhai-.*
+    rhapi-.*
+    rhel-.*
+    rhes-.*
+    rhev-m-4
+    rhn_satellite_6
+    rhscl-3
+    rhui-.*
+    stf-.*
+
+[latest]
+exclude=ansible_automation_platform-1
+    cnv-2
+    openshift-container-storage-4
+    openstack-13
+    openstack-16.1
+    ossm-2
+    ossm-2.1
+    rhel-7
+    rhscl-3
+    rhui-3
+    stf-1.3
+

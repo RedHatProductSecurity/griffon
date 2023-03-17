@@ -24,6 +24,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/RedHatProductSecurity/griffon",
     description="Red Hat Product Security CLI",
+    package_data={"griffon": ["static/*"]},
     packages=[
         "griffon",
         "griffon/commands",

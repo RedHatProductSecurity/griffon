@@ -195,11 +195,12 @@ class products_containing_component_query:
                 cond["re_name"] = self.component_name  # type: ignore
             else:
                 cond["name"] = self.component_name  # type: ignore
-            if self.component_type:
-                cond["type"] = self.component_type
             cond["namespace"] = "REDHAT"
             result = self.corgi_session.components.retrieve_list(**cond, limit=1000)
             results = result.results
+            # TODO: this should be done server side at some point
+            if self.component_type:
+                results = [result for result in results if result.type == self.component_type]
 
         if self.search_related_url:
             # TODO - not in bindings yet

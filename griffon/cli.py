@@ -6,7 +6,7 @@ import logging
 import click
 import click_completion
 
-from griffon import get_config, print_version
+from griffon import griffon_config, print_version
 
 from .commands.configure import configure_grp
 from .commands.docs import docs_grp
@@ -19,8 +19,6 @@ from .output import OUTPUT_FORMAT
 logger = logging.getLogger("griffon")
 
 click_completion.init()
-
-griffon_config = get_config()
 
 
 @click.group()
@@ -104,8 +102,8 @@ def plugins_grp(ctx):
     "--format",
     "-f",
     type=click.Choice([el.value for el in OUTPUT_FORMAT]),
-    default=griffon_config["default"]["format"],
-    help="Result format (default is text).",
+    default=griffon_config.get("default", "format"),
+    help="Result format (default is text format).",
 )
 @click.option(
     "-v",
@@ -115,8 +113,15 @@ def plugins_grp(ctx):
 )  # noqa
 @click.option("--no-progress-bar", is_flag=True, help="Disable progress bar.")
 @click.option("--no-color", is_flag=True, help="Disable output of color ansi esc sequences.")
+@click.option(
+    "--profile",
+    "profile",
+    type=click.Choice(["cloud", "openshift", "middleware", "latest", "all"]),
+    default=griffon_config.get("default", "default_profile"),
+    help="Activate profile, defined in .griffonrc.",
+)
 @click.pass_context
-def cli(ctx, debug, format, verbose, no_progress_bar, no_color):
+def cli(ctx, debug, format, verbose, no_progress_bar, no_color, profile):
     """Red Hat product security CLI"""
 
     if ctx.invoked_subcommand is None:
@@ -134,6 +139,7 @@ def cli(ctx, debug, format, verbose, no_progress_bar, no_color):
     ctx.obj["VERBOSE"] = verbose
     ctx.obj["NO_PROGRESS_BAR"] = no_progress_bar
     ctx.obj["NO_COLOR"] = no_color
+    ctx.obj["PROFILE"] = profile
 
 
 cli.help = "Red Hat Product Security CLI"

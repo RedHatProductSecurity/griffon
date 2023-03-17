@@ -1,6 +1,7 @@
 import enum
 import json
 import logging
+import re
 
 import click
 from packageurl import PackageURL
@@ -79,8 +80,20 @@ def component_type_style(type):
     return f"[{color}]{type}[/{color}]"
 
 
-def text_output_product_summary(ctx, output, format):
+def text_output_product_summary(ctx, output, format, exclude_products):
     ordered_results = sorted(output["results"], key=lambda d: d["name"])
+
+    if exclude_products:
+        exclude_products_results = []
+        for result in ordered_results:
+            matched = False
+            for ep in exclude_products:
+                regexp = re.compile(ep)
+                if regexp.search(result["name"]):
+                    matched = True
+            if not matched:
+                exclude_products_results.append(result)
+        ordered_results = exclude_products_results
 
     if ctx.obj["VERBOSE"] == 0:
         for item in ordered_results:
@@ -115,7 +128,7 @@ def text_output_product_summary(ctx, output, format):
     ctx.exit()
 
 
-def text_output_products_contain_component(ctx, output, format):
+def text_output_products_contain_component(ctx, output, format, exclude_products):
     component_name = ctx.params["component_name"]
 
     # handle single component
@@ -131,6 +144,18 @@ def text_output_products_contain_component(ctx, output, format):
     # handle multiple components
     if "results" in output and output["count"] > 0:
         ordered_results = sorted(output["results"], key=lambda d: d["product_stream"])
+
+        if exclude_products:
+            exclude_products_results = []
+            for result in ordered_results:
+                matched = False
+                for ep in exclude_products:
+                    regexp = re.compile(ep)
+                    if regexp.search(result["product_stream"]):
+                        matched = True
+                if not matched:
+                    exclude_products_results.append(result)
+            ordered_results = exclude_products_results
 
         # TODO - MAVEN component type will require special handling
         if ctx.params["affect_mode"]:
@@ -225,7 +250,7 @@ def text_output_products_contain_component(ctx, output, format):
                             root_component = f"{source_purl.name}-{source_purl.version}"
 
                         dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
-                        dep = f"[white]({dep_name})[/white]"
+                        dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
                         console.print(
                             Text(ps, style="magenta b u"),
                             root_component,
@@ -262,7 +287,7 @@ def text_output_products_contain_component(ctx, output, format):
                             source_purl = PackageURL.from_string(sources[0]["purl"])
                             root_component = f"{source_purl.name}-{source_purl.version}"
                         dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
-                        dep = f"[white]({dep_name})[/white]"
+                        dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
                         related_url = related_url.replace(
                             component_name, f"[b]{component_name}[/b]"
                         )
@@ -305,7 +330,7 @@ def text_output_products_contain_component(ctx, output, format):
                         if item["upstream_purl"]:
                             upstream = f"[cyan]{item['upstream_purl']}[/cyan]"
                         dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
-                        dep = f"[white]({dep_name})[/white]"
+                        dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
                         related_url = related_url.replace(
                             component_name, f"[b]{component_name}[/b]"
                         )
@@ -374,7 +399,7 @@ def text_output_components_affected_by_cve(ctx, output, format):
     ctx.exit()
 
 
-def text_output_products_affected_by_cve(ctx, output, format):
+def text_output_products_affected_by_cve(ctx, output, format, exclude_products):
     console.print("[white]link:[/white]", output["link"])
     console.print("[white]cve_id:[/white]", output["cve_id"])
     console.print("[white]title:[/white]", output["title"])
@@ -624,6 +649,12 @@ def cprint(
     show_count: bool = True,
 ):
     """handle format and output"""
+    from griffon import griffon_config
+
+    exclude_products = None
+    if ctx.obj["PROFILE"] != "all":
+        exclude_products = griffon_config.get(ctx.obj["PROFILE"], "exclude").split("\n")
+
     output = raw_json_transform(data, show_count)
     if ctx and ctx.obj["NO_COLOR"]:
         console.no_color = True
@@ -633,15 +664,15 @@ def cprint(
 
     if format is OUTPUT_FORMAT.TEXT:
         if ctx.info_name == "product-summary":
-            text_output_product_summary(ctx, output, format)
+            text_output_product_summary(ctx, output, format, exclude_products)
         if ctx.info_name == "products-contain-component":
-            text_output_products_contain_component(ctx, output, format)
+            text_output_products_contain_component(ctx, output, format, exclude_products)
         if ctx.info_name == "components-contain-component":
             text_output_components_contain_component(ctx, output, format)
         if ctx.info_name == "components-affected-by-cve":
             text_output_components_affected_by_cve(ctx, output, format)
         if ctx.info_name == "products-affected-by-cve":
-            text_output_products_affected_by_cve(ctx, output, format)
+            text_output_products_affected_by_cve(ctx, output, format, exclude_products)
         if ctx.info_name == "get-manifest":
             text_output_get_manifest(ctx, output, format)
         if ctx.info_name == "list":
