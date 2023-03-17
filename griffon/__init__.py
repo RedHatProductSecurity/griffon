@@ -1,5 +1,4 @@
 import configparser
-import io
 import logging
 import os
 from configparser import ConfigParser
@@ -7,6 +6,7 @@ from functools import partial, wraps
 
 import component_registry_bindings
 import osidb_bindings
+from pkg_resources import resource_filename  # type: ignore
 from rich.logging import RichHandler
 
 from griffon.output import console
@@ -40,10 +40,9 @@ logger.handlers = [RichHandler()]
 def get_config():
     """read ~/.griffonrc ini file, if it does not exist then return some default config"""
     if not os.path.exists(os.path.expanduser(GRIFFON_RC_FILE)):
-        with open("static/default_griffonrc", "r") as file:
-            data = file.read()
+        default_griffonrc = resource_filename(__name__, "static/default_griffonrc")
         config = configparser.ConfigParser(allow_no_value=True)
-        config.readfp(io.StringIO(data))
+        config.read(default_griffonrc)
         return config
     config = ConfigParser()
     config.read(os.path.expanduser(GRIFFON_RC_FILE))
