@@ -12,8 +12,7 @@ The CLI provides a 'facade' over coarse grained security related data services a
 for easier aggregation and narrowing of security information.
 
 ```commandline
-> griffon
-
+> griffon                                   
 Usage: griffon [OPTIONS] COMMAND [ARGS]...
 
   Red Hat Product Security CLI
@@ -21,24 +20,25 @@ Usage: griffon [OPTIONS] COMMAND [ARGS]...
 Options:
   -V, --version                   Display griffon version.
   -d, --debug                     Debug log level.
-  -f, --format [json|text|table]  Result format (default is text).
+  -f, --format [json|text|table]  Result format (default is text format).
   -v                              Verbose output, more detailed search
                                   results, can be used multiple times (e.g.
                                   -vvv).
   --no-progress-bar               Disable progress bar.
   --no-color                      Disable output of color ansi esc sequences.
+  --profile [cloud|openshift|middleware|latest|all]
+                                  Activate profile, defined in .griffonrc.
   --help                          Show this message and exit.
 
 Commands:
   configure  Configure griffon.
   docs       Links to useful docs.
-  entities   Entity operations.
+  entities   Entity operations (UNDER DEVELOPMENT).
   manage     Manage operations.
   plugins    3rd party plugins.
   service    Service operations.
 
 ```
-
 To install:
 
 ```commandline

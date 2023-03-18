@@ -6,16 +6,6 @@ import click
 
 from griffon import CORGI_API_URL, OSIDB_API_URL
 
-# https://docs.engineering.redhat.com/display/PRODSEC/Product+Security+Services+and+Tools+Catalog
-# https://docs.engineering.redhat.com/pages/viewpage.action?pageId=81867704
-
-# https://dashboard.prodsec.redhat.com/
-# https://git.prodsec.redhat.com/
-# http://opengrok.brq.redhat.com/source/
-# https://errata.engineering.redhat.com/errata
-# https://pp.engineering.redhat.com/pp/
-# https://access.redhat.com/downloads/content/package-browser
-
 
 @click.group(name="docs", help="Links to useful docs.")
 @click.pass_context

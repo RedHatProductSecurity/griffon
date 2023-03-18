@@ -4,13 +4,83 @@ Best to first checkout [User guide (quickstart)](https://github.com/RedHatProduc
 
 ### Configure griffon
 
-To setup ~/.griffonrc dotfile and ~/.griffon directory run:
+To setup _~/.griffonrc_ dotfile and _~/.griffon_ directory run:
 > griffon configure setup
+
+The griffon dotfile (_~/.griffonrc_) allows the user to configure operation of griffon
+
+```text
+[default]
+format = text
+history_log = ~/.griffon/history.log
+default_profile = latest
+
+[client]
+sfm2_api_url = http://localhost:5600
+
+# profile sections (use with --profile {profile} flag)
+[cloud]
+...
+[openshift]
+...
+[middleware]
+...
+[latest]
+exclude=ansible_automation_platform-1
+    cnv-2
+    openshift-container-storage-4
+    openstack-13
+    openstack-16.1
+    ossm-2
+    ossm-2.1
+    rhel-7
+    rhscl-3
+    rhui-3
+    stf-1.3
+
+
+```
+For example, the profile definitions define which Product Versions are excluded from output. In the above, the **latest** profile
+(which is the default) would exclude Product Versions such as **openshift-container-storage-4** or **rhel-7** from operation output.
  
-To pull from pypi.org the latest version of griffon:
+To pull the latest version of griffon from pypi.org:
 > griffon configure upgrade
 
+### Using griffon
+
+```commandline
+> griffon                                   
+Usage: griffon [OPTIONS] COMMAND [ARGS]...
+
+  Red Hat Product Security CLI
+
+Options:
+  -V, --version                   Display griffon version.
+  -d, --debug                     Debug log level.
+  -f, --format [json|text|table]  Result format (default is text format).
+  -v                              Verbose output, more detailed search
+                                  results, can be used multiple times (e.g.
+                                  -vvv).
+  --no-progress-bar               Disable progress bar.
+  --no-color                      Disable output of color ansi esc sequences.
+  --profile [cloud|openshift|middleware|latest|all]
+                                  Activate profile, defined in .griffonrc.
+  --help                          Show this message and exit.
+
+Commands:
+  configure  Configure griffon.
+  docs       Links to useful docs.
+  entities   Entity operations (UNDER DEVELOPMENT).
+  manage     Manage operations.
+  plugins    3rd party plugins.
+  service    Service operations.
+
+```
+To activate a specific profile either change .griffonrc default_profile or use --profile flag.
+
 ### Service operations
+
+Service operations mediate calls to other services (ex. component registry, vulnerability database) which help answer questions about Products, Components and Flaws.
 
 ```commandline
 > griffon service                                   
