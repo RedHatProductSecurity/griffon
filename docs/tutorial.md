@@ -13,7 +13,8 @@ The griffon dotfile (_~/.griffonrc_) allows the user to configure operation of g
 [default]
 format = text
 history_log = ~/.griffon/history.log
-default_profile = latest
+profile = latest
+verbosity = 0
 
 [client]
 sfm2_api_url = http://localhost:5600
@@ -107,7 +108,6 @@ Commands:
   report-entities               Generate Entity report (with counts).
 ```
 
-
 #### Check what Products a Component is shipped in
 
 To find what Products a component exists in  
@@ -120,15 +120,19 @@ Use regex expressions
 > griffon service products-contain-component "^webkitgtk(\d)$"
 
 Use of -v (up to -vvvv) to get more information
+```commandline
 > griffon service products-contain-component "^webkitgtk(\d)"
 > griffon -v service products-contain-component "^webkitgtk(\d)"
 > griffon -vv service products-contain-component "^webkitgtk(\d)"
 > griffon -vvv service products-contain-component "^webkitgtk(\d)"
 > griffon -vvvv service products-contain-component "^webkitgtk(\d)"
+```
 
 Find what Products a component exists in, searching both root components and all dependencies
+```commandline
 > griffon service products-contain-component webkitgtk --search-all
 > griffon service products-contain-component github.com/go-redis/redis/v8/internal/hscan --search-all      
+```
 
 Find Products that contain Component searching both latest components and related_url
 > griffon service products-contain-component webkitgtk --search-latest --search-related-url
@@ -147,7 +151,7 @@ To add (missing) affects on a flaw, supply sfm flaw id and set flaw mode to 'add
 To replace affects on a flaw (and overwrite any existing) supply sfm flaw id and set flaw mode to 'replace:
 > griffon service products-contain-component -s IPMItool --sfm2-flaw-id 2009389 --flaw-mode replace
 
-#### Retrieving product and component manifests
+#### Retrieving Product and Component manifests
 
 Retrieve a Product latest root Components
 > griffon service product-components rhel-9.0.0.z
@@ -161,11 +165,13 @@ Retrieve a spdx json formatted Product manifest
 Retrieve a specific component manifest
 > griffon service component-manifest --purl "pkg:oci/ubi8-minimal-container@sha256:7679eaafa608171dd159a91529804d06fa0fbc16a2ea7f046a592a5d8e22c649?repository_url=registry.redhat.io/ubi8-minimal&tag=8.8-315" --spdx-json
 
-#### Retrieving product and component summaries
+#### Retrieving Product and Component summaries
 
 Retrieve a Product summary
+```commandline
 > griffon service product-summary -s rhel-7.6.z
 > griffon --format json service product-summary -s rhel-7.6.z
+```
 
 Retrieve Component summary
 > griffon service component-summary python-marshmallow 
@@ -268,8 +274,10 @@ Commands:
 #### go_vuln
 
 Search go vulnerability database
+```commandline
 > griffon plugins go_vuln get --id GO-2022-0189
 > griffon plugins go_vuln get --cve-id CVE-2018-16873
+```
 
 #### osv
 Search osv.dev
@@ -292,8 +300,10 @@ Given a CVE ID, what components are affected?
 
 What products + version + stream contain a given component (e.g. full
 text search)?
+```commandline
 > griffon service products-contain-component --purl "pkg:rpm/curl@7.15.5"
 > griffon service products-contain-component is-svg --search-all
+```
 
 Which unfixed CVE are affecting a component ?
 > griffon service component-flaws --affectedness AFFECTED webkitgtk
