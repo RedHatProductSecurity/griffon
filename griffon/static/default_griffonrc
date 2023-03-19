@@ -1,7 +1,7 @@
 [default]
 format = text
 history_log = ~/.griffon/history.log
-default_profile = latest
+default_profile = all
 
 [client]
 sfm2_api_url = http://localhost:5600
