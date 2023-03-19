@@ -109,6 +109,7 @@ def plugins_grp(ctx):
     "-v",
     "verbose",
     count=True,
+    default=griffon_config.getint("default", "verbosity"),
     help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
 )  # noqa
 @click.option("--no-progress-bar", is_flag=True, help="Disable progress bar.")

@@ -2,6 +2,7 @@
 format = text
 history_log = ~/.griffon/history.log
 default_profile = all
+verbosity = 0
 
 [client]
 sfm2_api_url = http://localhost:5600
