@@ -79,6 +79,12 @@ def component_type_style(type):
     return f"[{color}]{type}[/{color}]"
 
 
+def output_version(ctx, version):
+    if version.startswith("sha256") and ctx.obj["SHORT_VERSION_VALUES"]:
+        return f"sha256 ...{version[-8:]}"
+    return version
+
+
 def text_output_product_summary(ctx, output, format, exclude_products):
     ordered_results = sorted(output["results"], key=lambda d: d["name"])
 
@@ -236,7 +242,9 @@ def text_output_products_contain_component(ctx, output, format, exclude_products
                         root_component = "root component"
                         if sources:
                             source_purl = PackageURL.from_string(sources[0]["purl"])
-                            root_component = f"{source_purl.name}-{source_purl.version}"
+                            root_component = (
+                                f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
+                            )
 
                         dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
                         dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
@@ -274,7 +282,9 @@ def text_output_products_contain_component(ctx, output, format, exclude_products
                         root_component = "root component"
                         if sources:
                             source_purl = PackageURL.from_string(sources[0]["purl"])
-                            root_component = f"{source_purl.name}-{source_purl.version}"
+                            root_component = (
+                                f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
+                            )
                         dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
                         dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
                         related_url = related_url.replace(
@@ -314,7 +324,9 @@ def text_output_products_contain_component(ctx, output, format, exclude_products
                         root_component = "root component"
                         if sources:
                             source_purl = PackageURL.from_string(sources[0]["purl"])
-                            root_component = f"{source_purl.name}-{source_purl.version}"
+                            root_component = (
+                                f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
+                            )
                         upstream = ""
                         if item["upstream_purl"]:
                             upstream = f"[cyan]{item['upstream_purl']}[/cyan]"

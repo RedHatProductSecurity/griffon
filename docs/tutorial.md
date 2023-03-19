@@ -13,7 +13,8 @@ The griffon dotfile (_~/.griffonrc_) allows the user to configure operation of g
 [default]
 format = text
 history_log = ~/.griffon/history.log
-default_profile = latest
+profile = latest
+verbosity = 0
 
 [client]
 sfm2_api_url = http://localhost:5600

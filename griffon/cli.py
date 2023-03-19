@@ -118,7 +118,7 @@ def plugins_grp(ctx):
     "--profile",
     "profile",
     type=click.Choice(["cloud", "openshift", "middleware", "latest", "all"]),
-    default=griffon_config.get("default", "default_profile"),
+    default=griffon_config.get("default", "profile"),
     help="Activate profile, defined in .griffonrc.",
 )
 @click.pass_context
@@ -141,6 +141,7 @@ def cli(ctx, debug, format, verbose, no_progress_bar, no_color, profile):
     ctx.obj["NO_PROGRESS_BAR"] = no_progress_bar
     ctx.obj["NO_COLOR"] = no_color
     ctx.obj["PROFILE"] = profile
+    ctx.obj["SHORT_VERSION_VALUES"] = True
 
 
 cli.help = "Red Hat Product Security CLI"
