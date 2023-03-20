@@ -6,7 +6,7 @@ import logging
 import click
 import click_completion
 
-from griffon import griffon_config, print_version
+from griffon import get_config_option, list_config_sections, print_version
 
 from .commands.configure import configure_grp
 from .commands.docs import docs_grp
@@ -102,14 +102,14 @@ def plugins_grp(ctx):
     "--format",
     "-f",
     type=click.Choice([el.value for el in OUTPUT_FORMAT]),
-    default=griffon_config.get("default", "format"),
+    default=get_config_option("default", "format", "text"),
     help="Result format (default is text format).",
 )
 @click.option(
     "-v",
     "verbose",
     count=True,
-    default=griffon_config.getint("default", "verbosity"),
+    default=get_config_option("default", "verbosity", 0),
     help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
 )  # noqa
 @click.option("--no-progress-bar", is_flag=True, help="Disable progress bar.")
@@ -117,8 +117,11 @@ def plugins_grp(ctx):
 @click.option(
     "--profile",
     "profile",
-    type=click.Choice(["cloud", "openshift", "middleware", "latest", "all"]),
-    default=griffon_config.get("default", "profile"),
+    type=click.Choice(list_config_sections()),
+    default=get_config_option(
+        "default",
+        "profile",
+    ),
     help="Activate profile, defined in .griffonrc.",
 )
 @click.pass_context

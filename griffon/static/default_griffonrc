@@ -1,7 +1,7 @@
 [default]
 format = text
 history_log = ~/.griffon/history.log
-profile = all
+profile = default
 verbosity = 0
 
 [client]

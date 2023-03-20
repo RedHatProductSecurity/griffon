@@ -52,6 +52,18 @@ def get_config():
 griffon_config = get_config()
 
 
+def get_config_option(section, option, default_value=None):
+    if griffon_config.has_option(section, option):
+        return griffon_config.get(section, option)
+    if default_value:
+        return default_value
+    return None
+
+
+def list_config_sections():
+    return griffon_config.sections()
+
+
 class CorgiService:
     name = "component-registry"
     description = "Red Hat component registry"

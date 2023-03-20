@@ -650,11 +650,11 @@ def cprint(
     show_count: bool = True,
 ):
     """handle format and output"""
-    from griffon import griffon_config
+    from griffon import get_config_option
 
     exclude_products = None
-    if ctx.obj["PROFILE"] != "all":
-        exclude_products = griffon_config.get(ctx.obj["PROFILE"], "exclude").split("\n")
+    if ctx.obj["PROFILE"] != "default":
+        exclude_products = get_config_option(ctx.obj["PROFILE"], "exclude").split("\n")
 
     output = raw_json_transform(data, show_count)
     if ctx and ctx.obj["NO_COLOR"]:
