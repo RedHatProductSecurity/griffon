@@ -5,6 +5,14 @@ This project is kept in version sync with the Component Registry project, see th
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+[0.1.3] - 2023-03-20
+Added
+refactored profiles (changed 'all' to match 'default' section) and added verbosity and default setting in .griffonrc
+Added
+minor text output formatting (shortern sha256 version names)
+Added
+new draft tutorial
+
 [0.1.2] - 2023-03-17
 Fixed
 use pkg_resources to access static resources
