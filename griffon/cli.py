@@ -6,7 +6,12 @@ import logging
 import click
 import click_completion
 
-from griffon import get_config_option, list_config_sections, print_version
+from griffon import (
+    config_logging,
+    get_config_option,
+    list_config_sections,
+    print_version,
+)
 
 from .commands.configure import configure_grp
 from .commands.docs import docs_grp
@@ -131,8 +136,10 @@ def cli(ctx, debug, format, verbose, no_progress_bar, no_color, profile):
     if ctx.invoked_subcommand is None:
         click.echo(ctx.parent.get_help())
 
-    if debug:
-        logger.setLevel("DEBUG")
+    if not debug:
+        config_logging(level="INFO")
+    else:
+        config_logging(level="DEBUG")
 
     ctx.ensure_object(dict)
     ctx.obj["DEBUG"] = debug
