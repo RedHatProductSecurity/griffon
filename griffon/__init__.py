@@ -27,14 +27,17 @@ GRIFFON_CONFIG_DIR = os.getenv("GRIFFON_API_URL", "~/.griffon")
 GRIFFON_RC_FILE = "~/.griffonrc"
 GRIFFON_DEFAULT_LOG_FILE = os.getenv("GRIFFON_DEFAULT_LOG_FILE", "~/.griffon/history.log")
 
-logging.basicConfig(level="INFO")
 logger = logging.getLogger("griffon")
 
-# file_handler = logging.FileHandler(os.path.expanduser(GRIFFON_DEFAULT_LOG_FILE))
-formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
-# file_handler.setFormatter(formatter)
-# logger.addHandler(file_handler)
-logger.handlers = [RichHandler()]
+
+def config_logging(level="INFO"):
+    message_format = "%(asctime)s %(name)s %(levelname)s %(message)s"
+    logging.basicConfig(
+        level=level, format=message_format, datefmt="[%X]", handlers=[RichHandler()]
+    )
+    # file_handler = logging.FileHandler(os.path.expanduser(GRIFFON_DEFAULT_LOG_FILE))
+    # file_handler.setFormatter(formatter)
+    # logger.addHandler(file_handler)
 
 
 def get_config():
