@@ -80,8 +80,9 @@ def component_type_style(type):
 
 
 def output_version(ctx, version):
-    if version.startswith("sha256") and ctx.obj["SHORT_VERSION_VALUES"]:
-        return f"sha256 ...{version[-8:]}"
+    if version:
+        if version.startswith("sha256") and ctx.obj["SHORT_VERSION_VALUES"]:
+            return f"sha256 ...{version[-8:]}"
     return version
 
 
