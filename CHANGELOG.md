@@ -5,6 +5,12 @@ This project is kept in version sync with the Component Registry project, see th
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+[0.1.5] - 2023-03-23
+Fixed
+fixed --search-all when it encounters a Bad Gateway
+Added
+added --all to service product-summary to return all products
+
 [0.1.4] - 2023-03-21
 Fixed
 fixed logging which was emitting double statements
