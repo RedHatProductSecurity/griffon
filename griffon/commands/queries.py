@@ -67,11 +67,18 @@ queries_grp.add_command(generate_entity_report)
     default=False,
     help="Strict search, exact match of name.",
 )
+@click.option(
+    "--all",
+    "all",
+    is_flag=True,
+    default=False,
+    help="Return all Products.",
+)
 @click.pass_context
 @progress_bar
-def get_product_summary(ctx, product_stream_name, strict_name_search):
+def get_product_summary(ctx, product_stream_name, strict_name_search, all):
     """get product stream."""
-    if not product_stream_name:
+    if not product_stream_name and not all and not strict_name_search:
         click.echo(ctx.get_help())
         exit(0)
     q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
