@@ -137,7 +137,14 @@ class OSIDBService:
     @staticmethod
     def get_flaw_resolutions():
         """get flaw resolution enum"""
-        return osidb_bindings.bindings.python_client.models.FlawResolutionEnum
+        # TODO: FlawResolutionEnum changed to Resolution01FEnum in OSIDB schema
+        # due to some weird drf-spectacular naming clash resolution, there is
+        # a way ho to set this to a immutable name however this would require
+        # new OSIDB release, so importing the current path and once OSIDB schema
+        # is changed and released we can change it back to normal
+        #
+        # return osidb_bindings.bindings.python_client.models.FlawResolutionEnum
+        return osidb_bindings.bindings.python_client.models.Resolution01FEnum
 
     @staticmethod
     def get_flaw_impacts():
@@ -152,7 +159,14 @@ class OSIDBService:
     @staticmethod
     def get_affect_resolution():
         """get affect affectedness enum"""
-        return osidb_bindings.bindings.python_client.models.AffectResolutionEnum
+        # TODO: AffectResolutionEnum changed to Resolution3AcEnum in OSIDB schema
+        # due to some weird drf-spectacular naming clash resolution, there is
+        # a way ho to set this to a immutable name however this would require
+        # new OSIDB release, so importing the current path and once OSIDB schema
+        # is changed and released we can change it back to normal
+        #
+        # return osidb_bindings.bindings.python_client.models.AffectResolutionEnum
+        return osidb_bindings.bindings.python_client.models.Resolution3AcEnum
 
     @staticmethod
     def get_affect_impact():
