@@ -113,9 +113,9 @@ click==8.1.3 \
 click-completion==0.5.2 \
     --hash=sha256:5bf816b81367e638a190b6e91b50779007d14301b3f9f3145d68e3cade7bce86
     # via -r requirements/base.in
-component-registry-bindings==1.2.0b0 \
-    --hash=sha256:d9e885138912fc83d97762ae9e3f8cfe453f95a49776d8294b6e83f91c329139 \
-    --hash=sha256:e5502dd7330734dd6b60dfd67b6158c89554eef939fef23d1cdf3e610a1501d1
+component-registry-bindings==1.3.1 \
+    --hash=sha256:3a1166747b5a1e9f3caf38a7336933ca00696a60f094f18c2b9e18cb6fd4336b \
+    --hash=sha256:d6e0cea8576afb1f1ec91a38f8263e460412d7442c88cb225d0cb4614b6d3991
     # via -r requirements/base.in
 decorator==5.1.1 \
     --hash=sha256:637996211036b6385ef91435e4fae22989472f9d571faba8927ba8253acbc330 \
@@ -211,9 +211,9 @@ mdurl==0.1.2 \
     --hash=sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8 \
     --hash=sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba
     # via markdown-it-py
-osidb-bindings==2.1.0 \
-    --hash=sha256:9f5f3811c82c81d0451e0353abc7dd382979681e1c047a7d0db41b661f7f04cd \
-    --hash=sha256:a7d6b0189fed00538485b216d5169f36f655b58124f8bf10fb7f23285b037121
+osidb-bindings==3.0.0 \
+    --hash=sha256:3960422bb21234cfd7e54517e50f0f07044eb38bf4f47f53a8ea11edd781ddcc \
+    --hash=sha256:6ae984a220942209e90324adecbea672852476ca24990451186500481a0c4521
     # via -r requirements/base.in
 packageurl-python==0.10.4 \
     --hash=sha256:5c91334f942cd55d45eb0c67dd339a535ef90e25f05b9ec016ad188ed0ef9048 \
