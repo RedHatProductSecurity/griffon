@@ -214,9 +214,9 @@ click-completion==0.5.2 \
     # via
     #   -r requirements/base.txt
     #   -r requirements/test.txt
-component-registry-bindings==1.2.0b0 \
-    --hash=sha256:d9e885138912fc83d97762ae9e3f8cfe453f95a49776d8294b6e83f91c329139 \
-    --hash=sha256:e5502dd7330734dd6b60dfd67b6158c89554eef939fef23d1cdf3e610a1501d1
+component-registry-bindings==1.3.1 \
+    --hash=sha256:3a1166747b5a1e9f3caf38a7336933ca00696a60f094f18c2b9e18cb6fd4336b \
+    --hash=sha256:d6e0cea8576afb1f1ec91a38f8263e460412d7442c88cb225d0cb4614b6d3991
     # via
     #   -r requirements/base.txt
     #   -r requirements/test.txt
@@ -691,9 +691,9 @@ mypy-extensions==1.0.0 \
     # via
     #   -r requirements/test.txt
     #   mypy
-osidb-bindings==2.1.0 \
-    --hash=sha256:9f5f3811c82c81d0451e0353abc7dd382979681e1c047a7d0db41b661f7f04cd \
-    --hash=sha256:a7d6b0189fed00538485b216d5169f36f655b58124f8bf10fb7f23285b037121
+osidb-bindings==3.0.0 \
+    --hash=sha256:3960422bb21234cfd7e54517e50f0f07044eb38bf4f47f53a8ea11edd781ddcc \
+    --hash=sha256:6ae984a220942209e90324adecbea672852476ca24990451186500481a0c4521
     # via
     #   -r requirements/base.txt
     #   -r requirements/test.txt
