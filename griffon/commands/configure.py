@@ -33,6 +33,11 @@ def setup():
     if not os.path.exists(os.path.expanduser(GRIFFON_CONFIG_DIR)):
         os.makedirs(os.path.expanduser(GRIFFON_CONFIG_DIR))
         logger.warning(f"{GRIFFON_CONFIG_DIR} created")
+        if not os.path.exists(os.path.expanduser(f"{GRIFFON_CONFIG_DIR}/plugins")):
+            os.makedirs(os.path.expanduser(f"{GRIFFON_CONFIG_DIR}/plugins"))
+            logger.warning(f"{GRIFFON_CONFIG_DIR}/plugins created")
+        else:
+            logger.warning(f"{GRIFFON_CONFIG_DIR}/plugins already exists")
     else:
         logger.warning(f"{GRIFFON_CONFIG_DIR} already exists")
 
