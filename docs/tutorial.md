@@ -106,6 +106,7 @@ Commands:
   products-contain-component    List Products containing Component.
   report-affects                Generate Affects example report.
   report-entities               Generate Entity report (with counts).
+  report-license                Generate License report.
 ```
 
 #### Check what Products a Component is shipped in
@@ -325,3 +326,10 @@ What are the **WONTFIX** CVEs for a product?
 
 How many CVE’s are filed against a product + version
 > griffon service product-flaws rhel-9 | wc -l
+
+How to generate license report for a specific Product Stream ?
+> griffon service report-license ansible_automation_platform-2.2
+
+How to generate license report for a specific Component ?
+> griffon service report-license --purl "pkg:oci/redhat/ubi9-container@sha256:f6920213ae98d811051a31c80cefc31cd88206ece680f337b7b67f5e4a4fc0fd?arch=aarch64&repository_url=registry.redhat.io/ubi9&tag=9.1.0-1782"
+ 

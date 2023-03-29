@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+- added service report-license operation
+- 
+### Added
 - added custom_plugin_dir to .griffonrc which defines a custom directory for user plugins
 ### Changed
 - pegged component-registry-bindings==1.3.1 and osidb-bindings=3.0.0

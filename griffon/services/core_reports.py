@@ -346,3 +346,103 @@ class entity_report:
                 },
             }
         }
+
+
+class license_report:
+    """ """
+
+    name = "license_report"
+    description = " "
+    allowed_params = ["product_stream_name", "purl", "exclude_children"]
+
+    def __init__(self, params) -> None:
+        self.corgi_session = CorgiService.create_session()
+        self.params = params
+        self.product_stream_name = params.get("product_stream_name")
+        self.purl = params.get("purl")
+        self.exclude_children = params.get("exclude_children")
+
+    def generate(self) -> dict:
+        output = {}
+        filter = {
+            "include_fields": "uuid,purl,type,license_declared,related_url,software_build.build_id,provides,download_url",  # noqa
+        }
+        if self.purl:
+            filter["purl"] = self.purl
+        if self.product_stream_name:
+            product_stream = self.corgi_session.product_streams.retrieve_list(
+                name=self.product_stream_name
+            )
+            stream_ofuri = product_stream["ofuri"]
+            filter["ofuri"] = stream_ofuri
+        initial_component = self.corgi_session.components.retrieve_list(**filter)
+        component_cnt = initial_component.count
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = []
+            components = list()
+            if self.purl:
+                components.append(
+                    self.corgi_session.components.retrieve(initial_component.to_dict()["uuid"])
+                )
+            else:
+                for batch in range(0, component_cnt, 120):
+                    futures.append(
+                        executor.submit(
+                            self.corgi_session.components.retrieve_list,
+                            **filter,
+                            offset=batch,
+                            limit=120,
+                        )
+                    )
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        components.extend(future.result().results)
+                    except Exception as exc:
+                        logger.warning("%r generated an exception: %s" % (future, exc))
+
+            for component in components:
+                purl = component.purl
+                logger.debug(purl)
+                output[purl] = {
+                    "license_declared": component.license_declared,
+                    "related_url": component.related_url,
+                    "build_id": component.software_build.build_id,
+                }
+                if str(component.type) in ["GEM", "GOLANG", "NPM", "PYPI"]:
+                    output[purl]["upstream_url"] = component.download_url
+
+                children = []
+                provides_filter = {
+                    "sources": purl,
+                    "include_fields": "purl,type,license_declared,related_url,download_url",
+                }
+                provides_cnt = self.corgi_session.components.retrieve_list(**provides_filter).count
+                logger.debug(provides_cnt)
+
+                if not self.exclude_children:
+                    futures_children = []
+                    for batch in range(0, provides_cnt, 120):
+                        futures_children.append(
+                            executor.submit(
+                                self.corgi_session.components.retrieve_list,
+                                **provides_filter,
+                                offset=batch,
+                                limit=120,
+                            )
+                        )
+                    for future in concurrent.futures.as_completed(futures_children):
+                        try:
+                            for c in future.result().results:
+                                child = {
+                                    "purl": c.purl,
+                                    "license_declared": c.license_declared,
+                                    "related_url": c.related_url,
+                                }
+                                if str(c.type) in ["GEM", "GOLANG", "NPM", "PYPI"]:
+                                    child["upstream_url"] = c.download_url
+                                children.append(child)
+                        except Exception as exc:
+                            logger.warning("%r generated an exception: %s" % (future, exc))
+
+                    output[purl]["children"] = children
+        return output
