@@ -60,3 +60,25 @@ def generate_entity_report(ctx, all):
         click.echo(ctx.get_help())
         exit(0)
     cprint(report_service.invoke(core_reports.entity_report, ctx.params), ctx=ctx)
+
+
+@reports_grp.command(name="report-license", help="Generate Product Stream license report.")
+@click.argument(
+    "product_stream_name",
+    required=False,
+    type=click.STRING,
+    shell_complete=get_product_stream_names,
+)
+@click.option("--purl", help="Component Purl (must be quoted).")
+@click.option(
+    "--exclude_children", is_flag=True, default=False, help="Exclude children Component licenses."
+)
+@click.pass_context
+@progress_bar
+def generate_license_report(ctx, product_stream_name, purl, exclude_children):
+    """A report operation"""
+    if not product_stream_name and not purl:
+        click.echo(ctx.get_help())
+        exit(0)
+    ctx.obj["FORMAT"] = "json"
+    cprint(report_service.invoke(core_reports.license_report, ctx.params), ctx=ctx)

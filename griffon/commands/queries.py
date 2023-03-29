@@ -20,7 +20,11 @@ from griffon.commands.entities import (
     get_product_stream_ofuris,
     list_components,
 )
-from griffon.commands.reports import generate_affects_report, generate_entity_report
+from griffon.commands.reports import (
+    generate_affects_report,
+    generate_entity_report,
+    generate_license_report,
+)
 from griffon.output import console, cprint, raw_json_transform
 from griffon.services import QueryService, core_queries  # , exp
 
@@ -38,6 +42,7 @@ def queries_grp(ctx):
 
 queries_grp.add_command(generate_affects_report)
 queries_grp.add_command(generate_entity_report)
+queries_grp.add_command(generate_license_report)
 
 # queries_grp.add_command(generate_affects_for_component_process)
 
