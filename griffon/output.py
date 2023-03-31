@@ -82,7 +82,7 @@ def component_type_style(type):
 def output_version(ctx, version):
     if version:
         if version.startswith("sha256") and ctx.obj["SHORT_VERSION_VALUES"]:
-            return f"sha256 ...{version[-8:]}"
+            return f"sha256-..{version[-8:]}"
     return version
 
 
@@ -549,7 +549,7 @@ def text_output_list(ctx, output, format):
                             component_ns,
                             purl.type.upper(),
                             Text(purl.name, style="bold white"),
-                            purl.version,
+                            output_version(ctx, purl.version),
                             row["related_url"],
                             purl.qualifiers.get("arch"),
                         )
