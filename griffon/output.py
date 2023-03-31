@@ -544,36 +544,36 @@ def text_output_list(ctx, output, format):
                     else:
                         component_ns = Text(purl.namespace.upper(), style="bold red")
 
-                    version = output_version(ctx, purl.version)
-                    if "version" in row:
-                        version = row["version"]
-                        if purl.version:
-                            if purl.version.startswith("sha256"):
-                                version = f"{row['version']} {output_version(ctx,purl.version)}"
+                    sha256 = ""
+                    if purl.version:
+                        if purl.version.startswith("sha256"):
+                            sha256 = output_version(ctx, purl.version)
+                    nvr = None
+                    if "nvr" in row:
+                        nvr = row["nvr"]
 
-                    if "release" in row:
-                        version = f"{version}-{row['release']}"
                     if not ctx.obj["SHOW_PURL"]:
                         if ctx.obj["VERBOSE"] == 0:
                             console.print(
                                 component_ns,
                                 purl.type.upper(),
-                                Text(purl.name, style="bold white"),
-                                version,
+                                Text(nvr, style="bold white"),
+                                sha256,
                                 row["related_url"],
                                 purl.qualifiers.get("arch"),
                             )
                         if ctx.obj["VERBOSE"] == 1:
-                            component_name = purl.name
-                            if "nvr" in row:
-                                component_name = row["nvr"]
+                            download_url = ""
+                            if "download_url" in row:
+                                download_url = row["download_url"]
                             console.print(
                                 component_ns,
                                 purl.type.upper(),
-                                Text(component_name, style="bold white"),
+                                Text(nvr, style="bold white"),
+                                sha256,
                                 row["related_url"],
-                                row["download_url"],
                                 purl.qualifiers.get("arch"),
+                                download_url,
                             )
                     else:
                         console.print(
