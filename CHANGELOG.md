@@ -5,9 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- fixed --search-upstreams to reflect changes on component-registry REST API
+
+### Changed
+- updated to component-registry-bindings v.1.3.2
+
 ### Added
 - added service report-license operation
-- 
+
 ### Added
 - added custom_plugin_dir to .griffonrc which defines a custom directory for user plugins
 ### Changed

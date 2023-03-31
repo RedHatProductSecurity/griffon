@@ -123,9 +123,9 @@ click==8.1.3 \
 click-completion==0.5.2 \
     --hash=sha256:5bf816b81367e638a190b6e91b50779007d14301b3f9f3145d68e3cade7bce86
     # via -r requirements/base.txt
-component-registry-bindings==1.3.1 \
-    --hash=sha256:3a1166747b5a1e9f3caf38a7336933ca00696a60f094f18c2b9e18cb6fd4336b \
-    --hash=sha256:d6e0cea8576afb1f1ec91a38f8263e460412d7442c88cb225d0cb4614b6d3991
+component-registry-bindings==1.3.2 \
+    --hash=sha256:7ecc1e7a6d4f20f8b1b021ef28d49525da3bc5324211dc1cc25c1a972029122d \
+    --hash=sha256:e3918bf72bc9573c5d8aa4307f5bf08360950e157954cfef272c7899bc6b4f07
     # via -r requirements/base.txt
 coverage[toml]==7.2.0 \
     --hash=sha256:049806ae2df69468c130f04f0fab4212c46b34ba5590296281423bb1ae379df2 \
