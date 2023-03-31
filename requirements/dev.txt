@@ -214,9 +214,9 @@ click-completion==0.5.2 \
     # via
     #   -r requirements/base.txt
     #   -r requirements/test.txt
-component-registry-bindings==1.3.1 \
-    --hash=sha256:3a1166747b5a1e9f3caf38a7336933ca00696a60f094f18c2b9e18cb6fd4336b \
-    --hash=sha256:d6e0cea8576afb1f1ec91a38f8263e460412d7442c88cb225d0cb4614b6d3991
+component-registry-bindings==1.3.2 \
+    --hash=sha256:7ecc1e7a6d4f20f8b1b021ef28d49525da3bc5324211dc1cc25c1a972029122d \
+    --hash=sha256:e3918bf72bc9573c5d8aa4307f5bf08360950e157954cfef272c7899bc6b4f07
     # via
     #   -r requirements/base.txt
     #   -r requirements/test.txt

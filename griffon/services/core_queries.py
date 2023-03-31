@@ -400,52 +400,11 @@ class products_containing_component_query:
             # TODO - not in bindings yet
             params = params = {
                 "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
-                "upstreams": self.component_name,
+                "re_upstreams": self.component_name,
                 # "limit": 10000,
             }
             if self.component_type:
                 params["type"] = self.component_type
-            # related_url_search = requests.get(
-            #     url,
-            #     params=params,
-            # )
-
-            # for c in related_url_search.json()["results"]:
-            #     for pv in c["product_versions"]:
-            #         for ps in c["product_streams"]:
-            #             is_dep = False
-            #             if c["arch"] == "src" or c["arch"] == "noarch":
-            #                 is_dep = True
-            #             component = {
-            #                 "is_dep": is_dep,
-            #                 "product_version": pv["name"],
-            #                 "product_version_ofuri": pv["ofuri"],
-            #                 "product_stream": ps["name"],
-            #                 "product_stream_ofuri": ps["ofuri"],
-            #                 "product_active": True,
-            #                 "purl": c["purl"],
-            #                 "type": c["type"],
-            #                 "namespace": c["namespace"],
-            #                 "name": c["name"],
-            #                 "arch": c["arch"],
-            #                 "release": c["release"],
-            #                 "version": c["version"],
-            #                 "sources": c["sources"],
-            #                 "nvr": c["nvr"],
-            #                 "build_id": None,
-            #                 "build_type": None,
-            #                 "build_source_url": None,
-            #                 "related_url": None,
-            #                 "upstream_purl": None,
-            #             }
-            #             if c["software_build"]:
-            #                 component["build_id"] = c["software_build"]["build_id"]
-            #                 component["build_type"] = c["software_build"]["build_type"]
-            #                 component["build_name"] = c["software_build"]["name"]
-            #                 component["build_source_url"] = c["software_build"]["source"]
-            #             if c["upstreams"]:
-            #                 component["upstream_purl"] = c["upstreams"][0]["purl"]
-            #             results.append(component)
 
             component_cnt = self.corgi_session.components.retrieve_list(**params).count
             if component_cnt < 3000000:
