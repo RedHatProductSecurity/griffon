@@ -596,8 +596,8 @@ class components_containing_component_query:
                             self.corgi_session.components.retrieve_list,
                             **cond,
                             offset=batch,
-                            include_fields="link,name,type,version,purl,sources",
-                            limit=120,  # noqa
+                            include_fields="link,name,type,arch,version,purl,nvr,sources,related_url,download_url",  # noqa
+                            limit=120,
                         )
                     )
                 for future in concurrent.futures.as_completed(futures):
@@ -619,6 +619,10 @@ class components_containing_component_query:
                     "type": c.type,
                     "name": c.name,
                     "version": c.version,
+                    "nvr": c.nvr,
+                    "arch": c.arch,
+                    "download_url": c.download_url,
+                    "related_url": c.related_url,
                     "purl": c.purl,
                     "sources": sources,
                 }

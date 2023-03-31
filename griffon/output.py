@@ -353,6 +353,10 @@ def text_output_components_contain_component(ctx, output, format):
     if "results" in output:
         for item in output["results"]:
             component_name = item["name"]
+            component_nvr = item["nvr"]
+            related_url = item["related_url"]
+            download_url = item["download_url"]
+            arch = item["arch"]
 
             if ctx.obj["VERBOSE"] == 0:
                 ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
@@ -362,9 +366,63 @@ def text_output_components_contain_component(ctx, output, format):
                         root_component = source_purl.name
                         if source_purl.type == "oci" and "-source" not in source_purl.name:
                             root_component = f"[u magenta]{source_purl.name}-container[/u magenta]"
+                        if source_purl.type == "oci":
+                            component_ns = Text("REDHAT", style="bold magenta")
+                        elif not source_purl.namespace:
+                            component_ns = Text("UPSTREAM", style="bold magenta")
+                        else:
+                            component_ns = Text(source_purl.namespace.upper(), style="bold red")
                         console.print(
+                            component_ns,
+                            source_purl.type.upper(),
                             root_component,
-                            component_name,
+                            Text(component_name, style="bold white"),
+                            no_wrap=False,
+                        )
+            if ctx.obj["VERBOSE"] == 1:
+                ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
+                for source in ordered_sources:
+                    if "arch=noarch" in source["purl"] or "arch=src" in source["purl"]:
+                        source_purl = PackageURL.from_string(source["purl"])
+                        root_component = f"{source_purl.name}-{source_purl.version}"
+                        if source_purl.type == "oci" and "-source" not in source_purl.name:
+                            root_component = f"[u magenta]{source_purl.name}-container[/u magenta]"
+                        if source_purl.type == "oci":
+                            component_ns = Text("REDHAT", style="bold magenta")
+                        elif not source_purl.namespace:
+                            component_ns = Text("UPSTREAM", style="bold magenta")
+                        else:
+                            component_ns = Text(source_purl.namespace.upper(), style="bold red")
+                        console.print(
+                            component_ns,
+                            source_purl.type.upper(),
+                            root_component,
+                            Text(component_nvr, style="bold white"),
+                            arch,
+                            no_wrap=False,
+                        )
+            if ctx.obj["VERBOSE"] > 1:
+                ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
+                for source in ordered_sources:
+                    if "arch=noarch" in source["purl"] or "arch=src" in source["purl"]:
+                        source_purl = PackageURL.from_string(source["purl"])
+                        root_component = f"{source_purl.name}-{source_purl.version}"
+                        if source_purl.type == "oci" and "-source" not in source_purl.name:
+                            root_component = f"[u magenta]{source_purl.name}-container[/u magenta]"
+                        if source_purl.type == "oci":
+                            component_ns = Text("REDHAT", style="bold magenta")
+                        elif not source_purl.namespace:
+                            component_ns = Text("UPSTREAM", style="bold magenta")
+                        else:
+                            component_ns = Text(source_purl.namespace.upper(), style="bold red")
+                        console.print(
+                            component_ns,
+                            source_purl.type.upper(),
+                            root_component,
+                            Text(component_nvr, style="bold white"),
+                            arch,
+                            related_url,
+                            download_url,
                             no_wrap=False,
                         )
     ctx.exit()
