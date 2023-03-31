@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.8] - 2023-03-31
 ### Changed
+- refine product-components text output
+
+## [0.1.8] - 2023-03-31
+### Changed
 - shortern sha256 versions in service product-components
 ### Added
 - added type,latest and download_url to service component-summary operation
