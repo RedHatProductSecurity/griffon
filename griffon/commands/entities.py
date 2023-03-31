@@ -254,7 +254,9 @@ def list_components(
     session = CorgiService.create_session()
 
     conditions = default_conditions
-    conditions["include_fields"] = "link,purl,nvr,version,type,name,upstreams,related_url"
+    conditions[
+        "include_fields"
+    ] = "link,purl,nvr,version,type,name,upstreams,related_url,download_url"
 
     # TODO- condition union could be a separate helper function
 
