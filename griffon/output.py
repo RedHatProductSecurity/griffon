@@ -82,7 +82,7 @@ def component_type_style(type):
 def output_version(ctx, version):
     if version:
         if version.startswith("sha256") and ctx.obj["SHORT_VERSION_VALUES"]:
-            return f"sha256-..{version[-8:]}"
+            return f"sha256...{version[-8:]}"
     return version
 
 
@@ -544,15 +544,37 @@ def text_output_list(ctx, output, format):
                     else:
                         component_ns = Text(purl.namespace.upper(), style="bold red")
 
+                    version = output_version(ctx, purl.version)
+                    if "version" in row:
+                        version = row["version"]
+                        if purl.version:
+                            if purl.version.startswith("sha256"):
+                                version = f"{row['version']} {output_version(ctx,purl.version)}"
+
+                    if "release" in row:
+                        version = f"{version}-{row['release']}"
                     if not ctx.obj["SHOW_PURL"]:
-                        console.print(
-                            component_ns,
-                            purl.type.upper(),
-                            Text(purl.name, style="bold white"),
-                            output_version(ctx, purl.version),
-                            row["related_url"],
-                            purl.qualifiers.get("arch"),
-                        )
+                        if ctx.obj["VERBOSE"] == 0:
+                            console.print(
+                                component_ns,
+                                purl.type.upper(),
+                                Text(purl.name, style="bold white"),
+                                version,
+                                row["related_url"],
+                                purl.qualifiers.get("arch"),
+                            )
+                        if ctx.obj["VERBOSE"] == 1:
+                            component_name = purl.name
+                            if "nvr" in row:
+                                component_name = row["nvr"]
+                            console.print(
+                                component_ns,
+                                purl.type.upper(),
+                                Text(component_name, style="bold white"),
+                                row["related_url"],
+                                row["download_url"],
+                                purl.qualifiers.get("arch"),
+                            )
                     else:
                         console.print(
                             row["purl"],
