@@ -349,7 +349,7 @@ def get_component_summary(ctx, component_name, strict_name_search):
     session = CorgiService.create_session()
 
     cond = {
-        "include_fields": "name,purl,tags,arch,release,version,product_streams,upstreams,related_url",  # noqa
+        "include_fields": "name,type,download_url,purl,tags,arch,release,version,product_streams,upstreams,related_url",  # noqa
         "name": component_name,
     }
     components = session.components.retrieve_list(**cond, limit=10000)
@@ -359,8 +359,11 @@ def get_component_summary(ctx, component_name, strict_name_search):
     releases = []
     arches = []
     related_urls = []
+    download_urls = []
     tags = []
+    component_type = None
     for component in components.results:
+        component_type = component.type
         related_urls.append(component.related_url)
         arches.append(component.arch)
         versions.append(component.version)
@@ -370,17 +373,37 @@ def get_component_summary(ctx, component_name, strict_name_search):
             upstreams.append(upstream["purl"])
         for ps in component.product_streams:
             product_streams.append(ps["name"])
+
+    cond = {
+        "include_fields": "name,purl,version,type,tags,arch,release,product_streams",  # noqa
+        "name": component_name,
+        "view": "latest",
+    }
+    latest_components = session.components.retrieve_list(**cond, limit=10000)
+
+    latest = []
+
+    for latest_component in latest_components.results:
+        latest.append(
+            {
+                "product_stream": latest_component["product_stream"],
+                "purl": latest_component.purl,
+            }
+        )
     data = {
         "link": f"{CORGI_API_URL}/api/v1/components?name={component_name}",
+        "type": component_type,
         "name": component_name,
         "tags": sorted(list(set(tags))),
         "count": len(components.results),
         "product_streams": sorted(list(set(product_streams))),
         "related_urls": sorted(list(set(related_urls))),
+        "download_urls": sorted(list(set(download_urls))),
         "releases": sorted(list(set(releases))),
         "upstreams": sorted(list(set(upstreams))),
         "arches": sorted(list(set(arches))),
         "versions": sorted(list(set(versions))),
+        "latest": latest,
     }
     cprint(data, ctx=ctx)
 
