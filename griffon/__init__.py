@@ -23,6 +23,9 @@ if "OSIDB_API_URL" not in os.environ:
     print("Must set OSIDB_API_URL environment variable.")
     exit(1)
 OSIDB_API_URL = os.environ["OSIDB_API_URL"]
+OSIDB_USERNAME = os.getenv("OSIDB_USERNAME", "")
+OSIDB_PASSWORD = os.getenv("OSIDB_PASSWORD", "")
+OSIDB_AUTH_METHOD = os.getenv("OSIDB_AUTH_METHOD", "kerberos")
 
 GRIFFON_CONFIG_DIR = os.getenv("GRIFFON_API_URL", "~/.griffon")
 GRIFFON_RC_FILE = "~/.griffonrc"
@@ -127,7 +130,11 @@ class OSIDBService:
     def create_session():
         """init osidb session"""
         try:
-            return osidb_bindings.new_session(osidb_server_uri=OSIDB_API_URL)
+            credentials = {}
+            if OSIDB_AUTH_METHOD == "credentials":
+                credentials["username"] = OSIDB_USERNAME
+                credentials["password"] = OSIDB_PASSWORD
+            return osidb_bindings.new_session(osidb_server_uri=OSIDB_API_URL, **credentials)
         except:  # noqa
             console.log(f"{OSIDB_API_URL} is not accessible (or krb ticket has expired).")
             exit(1)
