@@ -40,7 +40,6 @@ from griffon import (
 from griffon.autocomplete import (
     get_component_names,
     get_component_purls,
-    get_cve_ids,
     get_product_stream_names,
     get_product_stream_ofuris,
 )
@@ -128,7 +127,8 @@ def query_params_options(
         enums - via `click.Choice`
         lists - multiple option
 
-    For each param option, variable, type, help and multiple can be overriden via `options_overrides`
+    For each param option, variable, type, help and multiple can be overriden via
+    `options_overrides`
     """
     if options_overrides is None:
         options_overrides = {}
