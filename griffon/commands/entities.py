@@ -4,21 +4,27 @@ entity operations
 """
 import concurrent.futures
 import inspect
+import json
 import logging
+from datetime import datetime
 from enum import Enum
+from itertools import chain
 from types import ModuleType
-from typing import Callable, Optional
+from typing import Callable, Optional, Union, get_args, get_origin
 
 import click
 from osidb_bindings.bindings.python_client.api.osidb import (
     osidb_api_v1_affects_list,
     osidb_api_v1_affects_retrieve,
+    osidb_api_v1_affects_update,
     osidb_api_v1_flaws_list,
     osidb_api_v1_flaws_retrieve,
+    osidb_api_v1_flaws_update,
     osidb_api_v1_trackers_list,
     osidb_api_v1_trackers_retrieve,
 )
 from osidb_bindings.bindings.python_client.models import Affect, Flaw, Tracker
+from osidb_bindings.bindings.python_client.types import OSIDBModel
 from requests import HTTPError
 
 from griffon import (
@@ -26,6 +32,7 @@ from griffon import (
     OSIDB_API_URL,
     CorgiService,
     OSIDBService,
+    get_config_option,
     progress_bar,
 )
 from griffon.autocomplete import (
@@ -59,6 +66,54 @@ def multivalue_params_to_csv(params: dict) -> dict:
     return params
 
 
+def safe_issubclass(cls: type, class_or_tuple):
+    """Safe variant of issubclass which checks for first argument being a class"""
+    return inspect.isclass(cls) and issubclass(cls, class_or_tuple)
+
+
+def to_option_type(type_):
+    """Convert type to the Click option type"""
+
+    is_multiple = False
+    if get_origin(type_) is list:
+        option_type = get_args(type_)[0]
+        is_multiple = True
+    elif get_origin(type_) == Union and all(safe_issubclass(arg, Enum) for arg in get_args(type_)):
+        option_type = click.Choice(
+            list(chain.from_iterable([list(enum) for enum in get_args(type_)]))
+        )
+    elif safe_issubclass(type_, Enum):
+        option_type = click.Choice(list(type_))
+    elif type_ is datetime:
+        option_type = click.DateTime()
+    else:
+        option_type = type_
+
+    return option_type, is_multiple
+
+
+def filter_request_fields(fields: dict, exclude: list[str]):
+    keep = {}
+    for field, field_type in fields.items():
+        # Filter out related models
+        if safe_issubclass(field_type, OSIDBModel) or (
+            get_origin(field_type) is list and safe_issubclass(get_args(field_type)[0], OSIDBModel)
+        ):
+            continue
+
+        # Filter out excluded fields
+        if field in exclude:
+            continue
+
+        keep[field] = field_type
+
+    return keep
+
+
+def get_editor():
+    return get_config_option("default", "editor", "vi")
+
+
 def query_params_options(
     entity: str, endpoint_module: ModuleType, options_overrides: Optional[dict[dict]] = None
 ) -> Callable:
@@ -79,27 +134,64 @@ def query_params_options(
     def inner(fn):
         wrapper = fn
         for query_param, param_type in endpoint_module.QUERY_PARAMS.items():
-            multiple = False
-            if getattr(param_type, "_name", None) == "List":
-                option_type = param_type.__args__[0]
-                multiple = True
-            elif inspect.isclass(param_type) and issubclass(param_type, Enum):
-                option_type = click.Choice(param_type)
-            else:
-                option_type = param_type
-
+            option_type, is_multiple = to_option_type(param_type)
             option_params = {
                 "option": f"--{query_param.replace('_','-')}",
                 "variable": query_param,
                 "type": option_type,
                 "help": f"{entity.capitalize()} {query_param.replace('_',' ')}",
-                "multiple": multiple,
+                "multiple": is_multiple,
             }
             option_override = options_overrides.get(query_param, {})
             option_params.update(
                 (override, option_override[override])
                 for override in option_params.keys() & option_override.keys()
             )
+            wrapper = (
+                click.option(
+                    option_params.pop("option"), option_params.pop("variable"), **option_params
+                )
+            )(wrapper)
+        return wrapper
+
+    return inner
+
+
+def request_body_options(
+    endpoint_module: ModuleType, exclude: Optional[list[str]] = None
+) -> Callable:
+    """
+    Decorator which obtains all request body fields from the given endpoint module
+    them as `click.option` with respective type
+
+    Type handling:
+        basic types (std, int, bool, etc.) - native
+        enums - via `click.Choice`
+        lists - multiple option
+
+    List of the excluded fields may be supplied
+    """
+    if exclude is None:
+        exclude = []
+
+    def inner(fn):
+        wrapper = fn
+
+        request_body_type = getattr(endpoint_module, "REQUEST_BODY_TYPE", None)
+        if request_body_type is None:
+            return wrapper
+
+        fields = filter_request_fields(request_body_type.get_fields(), exclude=exclude)
+        for field, field_type in fields.items():
+            option_type, is_multiple = to_option_type(field_type)
+            option_params = {
+                "option": f"--{field.replace('_','-')}",
+                "variable": field,
+                "type": option_type,
+                "help": f"{request_body_type.__name__} {field.replace('_',' ')}",
+                "multiple": is_multiple,
+            }
+
             wrapper = (
                 click.option(
                     option_params.pop("option"), option_params.pop("variable"), **option_params
@@ -175,6 +267,66 @@ def get_flaw(ctx, flaw_id, **params):
     return cprint(data, ctx=ctx)
 
 
+@flaws.command(name="update")
+@click.option(
+    "--id",
+    "flaw_id",
+    help="Flaw CVE-ID or UUID.",
+    required=True,
+)
+@request_body_options(
+    endpoint_module=osidb_api_v1_flaws_update, exclude=["uuid", "trackers", "created_dt"]
+)
+@click.pass_context
+@progress_bar
+def update_flaw(ctx, flaw_id, **params):
+    request_body_type = getattr(osidb_api_v1_flaws_update, "REQUEST_BODY_TYPE", None)
+    if request_body_type is None:
+        raise click.ClickException(
+            "No request body template for Flaw update. "
+            "Is correct version of osidb-bindings installed?"
+        )
+
+    fields = filter_request_fields(
+        request_body_type.get_fields(), exclude=["uuid", "trackers", "created_dt"]
+    )
+    params = multivalue_params_to_csv(params)
+
+    session = OSIDBService.create_session()
+
+    try:
+        data = session.flaws.retrieve(id=flaw_id, include_fields=",".join(fields))
+    except Exception as e:
+        if ctx.obj["VERBOSE"]:
+            console.log(e, e.response.json())
+        raise click.ClickException(
+            f"Failed to fetch Flaw with ID '{flaw_id}'. "
+            "Flaw either does not exist or you have insufficient permissions. "
+            "Consider running griffon with -v option for verbose error log."
+        )
+
+    data = data.to_dict()
+    # remove status data from OSIDB server
+    [data.pop(key) for key in ["dt", "env", "revision", "version"]]
+    data.update((field, value) for field, value in params.items() if value is not None)
+
+    if ctx.obj["EDITOR"]:
+        data = click.edit(text=json.dumps(data, indent=4), editor=get_editor(), require_save=False)
+        data = json.loads(data)
+
+    try:
+        data = session.flaws.update(id=flaw_id, form_data=data)
+    except HTTPError as e:
+        if ctx.obj["VERBOSE"]:
+            console.log(e, e.response.json())
+        raise click.ClickException(
+            f"Failed to update Flaw with ID '{flaw_id}'. "
+            "You might have insufficient permission or you've supplied malformed data. "
+            "Consider running griffon with -v option for verbose error log."
+        )
+    return cprint(data, ctx=ctx)
+
+
 # affects
 @entities_grp.group(help=f"{OSIDB_API_URL}/osidb/api/v1/affects")
 @click.pass_context
@@ -227,6 +379,57 @@ def get_affect(ctx, affect_uuid, **params):
 
     session = OSIDBService.create_session()
     data = session.affects.retrieve(affect_uuid, **params)
+    return cprint(data, ctx=ctx)
+
+
+@affects.command(name="update")
+@click.option("--uuid", "affect_uuid", help="Affect UUID.", required=True)
+@request_body_options(endpoint_module=osidb_api_v1_affects_update, exclude=["uuid"])
+@click.pass_context
+@progress_bar
+def update_affect(ctx, affect_uuid, **params):
+    request_body_type = getattr(osidb_api_v1_affects_update, "REQUEST_BODY_TYPE", None)
+    if request_body_type is None:
+        raise click.ClickException(
+            "No request body template for Affect update. "
+            "Is correct version of osidb-bindings installed?"
+        )
+
+    fields = filter_request_fields(request_body_type.get_fields(), exclude=["uuid"])
+    params = multivalue_params_to_csv(params)
+
+    session = OSIDBService.create_session()
+
+    try:
+        data = session.affects.retrieve(id=affect_uuid, include_fields=",".join(fields))
+    except Exception as e:
+        if ctx.obj["VERBOSE"]:
+            console.log(e, e.response.json())
+        raise click.ClickException(
+            f"Failed to fetch Affect with ID '{affect_uuid}'. "
+            "Affect either does not exist or you have insufficient permissions. "
+            "Consider running griffon with -v option for verbose error log."
+        )
+
+    data = data.to_dict()
+    # remove status data from OSIDB server
+    [data.pop(key) for key in ["dt", "env", "revision", "version"]]
+    data.update((field, value) for field, value in params.items() if value is not None)
+
+    if ctx.obj["EDITOR"]:
+        data = click.edit(text=json.dumps(data, indent=4), editor=get_editor(), require_save=False)
+        data = json.loads(data)
+
+    try:
+        data = session.affects.update(id=affect_uuid, form_data=data)
+    except HTTPError as e:
+        if ctx.obj["VERBOSE"]:
+            console.log(e, e.response.json())
+        raise click.ClickException(
+            f"Failed to update Affect with ID '{affect_uuid}'. "
+            "You might have insufficient permission or you've supplied malformed data. "
+            "Consider running griffon with -v option for verbose error log."
+        )
     return cprint(data, ctx=ctx)
 
 
