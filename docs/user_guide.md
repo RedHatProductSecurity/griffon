@@ -51,6 +51,20 @@ And you must ensure your system is properly authorised to access these systems.
 
 **hint**- usually that means run > kinit
 
+If you want to make changes to the OSIDB entities you need to supply your Bugzilla API key as well:
+```commandline
+export BUGZILLA_API_KEY="<your Bugzilla API key>"
+```
+
+If you want to use local development instance of OSIDB you need to specify authentication method
+and supply credentials:
+```commandline
+export OSIDB_AUTH_METHOD="credentials"
+export OSIDB_USERNAME="<your username>"
+export OSIDB_PASSWORD="<your password>"
+```
+
+
 ### Enable autocompletion
 Enable shell autocompletion by following these instructions for your specific shell.
 
