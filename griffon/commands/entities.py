@@ -14,9 +14,11 @@ from typing import Callable, Optional, Union, get_args, get_origin
 
 import click
 from osidb_bindings.bindings.python_client.api.osidb import (
+    osidb_api_v1_affects_create,
     osidb_api_v1_affects_list,
     osidb_api_v1_affects_retrieve,
     osidb_api_v1_affects_update,
+    osidb_api_v1_flaws_create,
     osidb_api_v1_flaws_list,
     osidb_api_v1_flaws_retrieve,
     osidb_api_v1_flaws_update,
@@ -327,6 +329,51 @@ def update_flaw(ctx, flaw_id, **params):
     return cprint(data, ctx=ctx)
 
 
+@flaws.command(name="create")
+@request_body_options(
+    endpoint_module=osidb_api_v1_flaws_create,
+    exclude=["uuid", "trackers", "created_dt", "updated_dt"],
+)
+@click.pass_context
+@progress_bar
+def create_flaw(ctx, **params):
+    request_body_type = getattr(osidb_api_v1_flaws_create, "REQUEST_BODY_TYPE", None)
+    if request_body_type is None:
+        raise click.ClickException(
+            "No request body template for Flaw create. "
+            "Is correct version of osidb-bindings installed?"
+        )
+
+    fields = filter_request_fields(
+        request_body_type.get_fields(),
+        exclude=["uuid", "trackers", "created_dt", "updated_dt"],
+    )
+    params = multivalue_params_to_csv(params)
+
+    session = OSIDBService.create_session()
+
+    data = {field: "" for field in fields}
+    data.update((field, value) for field, value in params.items() if value is not None)
+
+    if ctx.obj["EDITOR"]:
+        data = click.edit(
+            text=json.dumps(data, indent=4, default=str), editor=get_editor(), require_save=False
+        )
+        data = json.loads(data)
+
+    try:
+        data = session.flaws.create(form_data=data)
+    except HTTPError as e:
+        if ctx.obj["VERBOSE"]:
+            console.log(e, e.response.json())
+        raise click.ClickException(
+            "Failed to create Flaw. "
+            "You might have insufficient permission or you've supplied malformed data. "
+            "Consider running griffon with -v option for verbose error log."
+        )
+    return cprint(data, ctx=ctx)
+
+
 # affects
 @entities_grp.group(help=f"{OSIDB_API_URL}/osidb/api/v1/affects")
 @click.pass_context
@@ -427,6 +474,51 @@ def update_affect(ctx, affect_uuid, **params):
             console.log(e, e.response.json())
         raise click.ClickException(
             f"Failed to update Affect with ID '{affect_uuid}'. "
+            "You might have insufficient permission or you've supplied malformed data. "
+            "Consider running griffon with -v option for verbose error log."
+        )
+    return cprint(data, ctx=ctx)
+
+
+@affects.command(name="create")
+@request_body_options(
+    endpoint_module=osidb_api_v1_affects_create,
+    exclude=["uuid", "created_dt", "updated_dt"],
+)
+@click.pass_context
+@progress_bar
+def create_affect(ctx, **params):
+    request_body_type = getattr(osidb_api_v1_affects_create, "REQUEST_BODY_TYPE", None)
+    if request_body_type is None:
+        raise click.ClickException(
+            "No request body template for Affect create. "
+            "Is correct version of osidb-bindings installed?"
+        )
+
+    fields = filter_request_fields(
+        request_body_type.get_fields(),
+        exclude=["uuid", "created_dt", "updated_dt"],
+    )
+    params = multivalue_params_to_csv(params)
+
+    session = OSIDBService.create_session()
+
+    data = {field: "" for field in fields}
+    data.update((field, value) for field, value in params.items() if value is not None)
+
+    if ctx.obj["EDITOR"]:
+        data = click.edit(
+            text=json.dumps(data, indent=4, default=str), editor=get_editor(), require_save=False
+        )
+        data = json.loads(data)
+
+    try:
+        data = session.affects.create(form_data=data)
+    except HTTPError as e:
+        if ctx.obj["VERBOSE"]:
+            console.log(e, e.response.json())
+        raise click.ClickException(
+            "Failed to create Affect. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."
         )
