@@ -7,7 +7,6 @@ import logging
 import re
 from typing import Any, Dict, List
 
-import requests
 from component_registry_bindings.bindings.python_client.models import Component
 
 from griffon import CORGI_API_URL, OSIDB_API_URL, CorgiService, OSIDBService
@@ -189,8 +188,6 @@ class products_containing_component_query:
         self.filter_rh_naming = self.params.get("filter_rh_naming")
 
     def execute(self) -> List[Dict[str, Any]]:
-        url: str = f"{CORGI_API_URL}/api/v1/components"
-
         results = []
         if self.search_latest:
             cond = {"view": "latest"}
@@ -199,132 +196,77 @@ class products_containing_component_query:
             else:
                 cond["name"] = self.component_name  # type: ignore
             cond["namespace"] = "REDHAT"
-            result = self.corgi_session.components.retrieve_list(**cond, limit=1000)
+            result = self.corgi_session.components.retrieve_list(**cond)
             results = result.results
             # TODO: this should be done server side at some point
             if self.component_type:
                 results = [result for result in results if result.type == self.component_type]
 
-        #  TODO: uncomment once component-registry-bindings support related_url
-        # if self.search_related_url:
-        #     # TODO - not in bindings yet
-        #     params = {
-        #         "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
-        #         "related_url": self.component_name,
-        #     }
-        #     params["namespace"] = "REDHAT"
-        #     if self.component_type:
-        #         params["type"] = self.component_type
-        #
-        #     component_cnt = self.corgi_session.components.retrieve_list(**params).count
-        #     if component_cnt < 3000000:
-        #         with concurrent.futures.ThreadPoolExecutor() as executor:
-        #             futures = []
-        #             components = list()
-        #             for batch in range(0, component_cnt, 120):
-        #                 futures.append(
-        #                     executor.submit(
-        #                         self.corgi_session.components.retrieve_list,
-        #                         **params,
-        #                         offset=batch,
-        #                         limit=120,  # noqa
-        #                     )
-        #                 )
-        #             for future in concurrent.futures.as_completed(futures):
-        #                 try:
-        #                     components.extend(future.result().results)
-        #                 except Exception as exc:
-        #                     logger.warning("%r generated an exception: %s" % (future, exc))
-        #
-        #             for c in components:
-        #                 for pv in c.product_versions:
-        #                     for ps in c.product_streams:
-        #                         is_dep = False
-        #                         if c.arch == "src" or c.arch == "noarch":
-        #                             is_dep = True
-        #                         component = {
-        #                             "is_dep": is_dep,
-        #                             "product_version": pv["name"],
-        #                             "product_version_ofuri": pv["ofuri"],
-        #                             "product_stream": ps["name"],
-        #                             "product_stream_ofuri": ps["ofuri"],
-        #                             "product_active": True,
-        #                             "purl": c.purl,
-        #                             "type": c.type,
-        #                             "namespace": c.namespace,
-        #                             "name": c.name,
-        #                             "arch": c.arch,
-        #                             "release": c.release,
-        #                             "version": c.version,
-        #                             "sources": c.sources,
-        #                             "nvr": c.nvr,
-        #                             "build_id": None,
-        #                             "build_type": None,
-        #                             "build_source_url": None,
-        #                             "related_url": None,
-        #                             "upstream_purl": None,
-        #                         }
-        #                         if c.software_build:
-        #                             component["build_id"] = c.software_build.build_id
-        #                             component["build_type"] = c.software_build.build_type
-        #                             component["build_name"] = c.software_build.name
-        #                             component["build_source_url"] = c.software_build.source
-        #                         if c.upstreams:
-        #                             component["upstream_purl"] = c.upstreams[0]["purl"]
-        #                         results.append(component)
-
-        # TODO: remove following search_related_url
         if self.search_related_url:
-            # TODO - not in bindings yet
             params = {
                 "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
                 "related_url": self.component_name,
-                "limit": 10000,
             }
             params["namespace"] = "REDHAT"
             if self.component_type:
                 params["type"] = self.component_type
-            related_url_search = requests.get(
-                url,
-                params=params,
-            )
 
-            for c in related_url_search.json()["results"]:
-                for pv in c["product_versions"]:
-                    for ps in c["product_streams"]:
-                        is_dep = False
-                        if c["arch"] == "src" or c["arch"] == "noarch":
-                            is_dep = True
-                        component = {
-                            "is_dep": is_dep,
-                            "product_version": pv["name"],
-                            "product_version_ofuri": pv["ofuri"],
-                            "product_stream": ps["name"],
-                            "product_stream_ofuri": ps["ofuri"],
-                            "product_active": True,
-                            "purl": c["purl"],
-                            "type": c["type"],
-                            "namespace": c["namespace"],
-                            "name": c["name"],
-                            "arch": c["arch"],
-                            "release": c["release"],
-                            "version": c["version"],
-                            "sources": c["sources"],
-                            "nvr": c["nvr"],
-                            "build_id": None,
-                            "build_type": None,
-                            "build_source_url": None,
-                            "related_url": None,
-                            "upstream_purl": None,
-                        }
-                        if c["software_build"]:
-                            component["build_id"] = c["software_build"]["build_id"]
-                            component["build_type"] = c["software_build"]["build_type"]
-                            component["build_name"] = c["software_build"]["name"]
-                            component["build_source_url"] = c["software_build"]["source"]
-                        if c["upstreams"]:
-                            component["upstream_purl"] = c["upstreams"][0]["purl"]
-                        results.append(component)
+            component_cnt = self.corgi_session.components.retrieve_list(**params).count
+            if component_cnt < 3000000:
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    futures = []
+                    components = list()
+                    for batch in range(0, component_cnt, 120):
+                        futures.append(
+                            executor.submit(
+                                self.corgi_session.components.retrieve_list,
+                                **params,
+                                offset=batch,
+                                limit=120,  # noqa
+                            )
+                        )
+                    for future in concurrent.futures.as_completed(futures):
+                        try:
+                            components.extend(future.result().results)
+                        except Exception as exc:
+                            logger.warning("%r generated an exception: %s" % (future, exc))
+
+                    for c in components:
+                        for pv in c.product_versions:
+                            for ps in c.product_streams:
+                                is_dep = False
+                                if c.arch == "src" or c.arch == "noarch":
+                                    is_dep = True
+                                component = {
+                                    "is_dep": is_dep,
+                                    "product_version": pv["name"],
+                                    "product_version_ofuri": pv["ofuri"],
+                                    "product_stream": ps["name"],
+                                    "product_stream_ofuri": ps["ofuri"],
+                                    "product_active": True,
+                                    "purl": c.purl,
+                                    "type": c.type,
+                                    "namespace": c.namespace,
+                                    "name": c.name,
+                                    "arch": c.arch,
+                                    "release": c.release,
+                                    "version": c.version,
+                                    "sources": c.sources,
+                                    "nvr": c.nvr,
+                                    "build_id": None,
+                                    "build_type": None,
+                                    "build_source_url": None,
+                                    "related_url": None,
+                                    "upstream_purl": None,
+                                }
+                                if c.software_build:
+                                    component["build_id"] = c.software_build.build_id
+                                    component["build_type"] = c.software_build.build_type
+                                    component["build_name"] = c.software_build.name
+                                    component["build_source_url"] = c.software_build.source
+                                if c.upstreams:
+                                    component["upstream_purl"] = c.upstreams[0]["purl"]
+                                results.append(component)
 
         if self.search_all:
             # TODO - not in bindings yet
@@ -401,7 +343,6 @@ class products_containing_component_query:
             params = params = {
                 "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
                 "re_upstreams": self.component_name,
-                # "limit": 10000,
             }
             if self.component_type:
                 params["type"] = self.component_type
