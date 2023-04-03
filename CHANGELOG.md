@@ -6,14 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## [0.1.11] - 2023-04-03
+## [0.1.12] - 2023-04-03
 ### Changed
-- removed old code paths in core-queries
 - enable OSIDB local development instances to be used with Griffon
 - added editor option to .griffonrc
 ### Added
 - CRUD operations for OSIDB entitites. Flaws (create, update, get, list),
   Affects (create, update, delete, get, list), Trackers (get, list)
+
+## [0.1.11] - 2023-04-03
+### Changed
+- removed old code paths in core-queries
 
 ### Changed
 ## [0.1.10] - 2023-03-31
