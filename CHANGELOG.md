@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.11] - 2023-04-03
+### Changed
+- removed old code paths in core-queries
+- significantly enhanced osidb entity operations
+
 ## [0.1.10] - 2023-03-31
 ### Changed
 - tweaked service components-contain-component text output
