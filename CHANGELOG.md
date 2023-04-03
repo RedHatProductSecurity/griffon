@@ -5,19 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [0.1.11] - 2023-04-03
+### Changed
+- removed old code paths in core-queries
+- enable OSIDB local development instances to be used with Griffon
+- added editor option to .griffonrc
 ### Added
 - CRUD operations for OSIDB entitites. Flaws (create, update, get, list),
   Affects (create, update, delete, get, list), Trackers (get, list)
 
 ### Changed
-- enable OSIDB local development instances to be used with Griffon
-- added editor option to .griffonrc
-
-## [0.1.11] - 2023-04-03
-### Changed
-- removed old code paths in core-queries
-- significantly enhanced osidb entity operations
-
 ## [0.1.10] - 2023-03-31
 ### Changed
 - tweaked service components-contain-component text output
