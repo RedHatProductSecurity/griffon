@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- CRUD operations for OSIDB entitites. Flaws (create, update, get, list),
+  Affects (create, update, delete, get, list), Trackers (get, list)
+
+### Changed
+- enable OSIDB local development instances to be used with Griffon
+- added editor option to .griffonrc
 
 ## [0.1.10] - 2023-03-31
 ### Changed
@@ -23,14 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.7] - 2023-03-31
 ### Changed
 - fixed --search-upstreams to reflect changes on component-registry REST API
-### Changed
 - updated dependency component-registry-bindings v.1.3.2
+- pegged component-registry-bindings==1.3.1 and osidb-bindings=3.0.0
+
 ### Added
 - added service report-license operation
-### Added
 - added custom_plugin_dir to .griffonrc which defines a custom directory for user plugins
-### Changed
-- pegged component-registry-bindings==1.3.1 and osidb-bindings=3.0.0
+
 
 ## [0.1.6] - 2023-03-23
 ### Changed

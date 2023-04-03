@@ -129,8 +129,9 @@ def plugins_grp(ctx):
     ),
     help="Activate profile, defined in .griffonrc.",
 )
+@click.option("--editor/--no-editor", default=True, help="Allow text editor prompt.")
 @click.pass_context
-def cli(ctx, debug, format, verbose, no_progress_bar, no_color, profile):
+def cli(ctx, debug, format, verbose, no_progress_bar, no_color, profile, editor):
     """Red Hat product security CLI"""
 
     if ctx.invoked_subcommand is None:
@@ -152,6 +153,7 @@ def cli(ctx, debug, format, verbose, no_progress_bar, no_color, profile):
     ctx.obj["NO_COLOR"] = no_color
     ctx.obj["PROFILE"] = profile
     ctx.obj["SHORT_VERSION_VALUES"] = True
+    ctx.obj["EDITOR"] = editor
 
 
 cli.help = "Red Hat Product Security CLI"

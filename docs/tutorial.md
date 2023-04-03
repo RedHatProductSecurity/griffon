@@ -15,6 +15,7 @@ format = text
 history_log = ~/.griffon/history.log
 profile = latest
 verbosity = 0
+editor = vi
 
 [client]
 sfm2_api_url = http://localhost:5600
