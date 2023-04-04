@@ -15,6 +15,7 @@ from griffon.output import cprint
 logger = logging.getLogger("griffon")
 
 api_url = "https://api.osv.dev/v1/query"
+search_api_url = "https://osv.dev/list"
 
 
 @click.group()
@@ -58,3 +59,18 @@ def query_by_commit_hash(ctx, commit_hash):
         headers={"Content-type": "application/json"},
     )
     cprint(res.json(), ctx=ctx)
+
+
+@plugins.command()
+@click.argument(
+    "query_string",
+    required=True,
+    type=click.STRING,
+)
+@click.pass_context
+def search(ctx, query_string):
+    """Search osv.dev by query term"""
+    if not query_string:
+        click.echo(ctx.get_help())
+        exit(0)
+    click.launch(f"{search_api_url}?ecosystem=&q={query_string}")
