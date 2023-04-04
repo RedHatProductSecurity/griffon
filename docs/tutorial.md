@@ -13,12 +13,10 @@ The griffon dotfile (_~/.griffonrc_) allows the user to configure operation of g
 [default]
 format = text
 history_log = ~/.griffon/history.log
-profile = latest
+profile = default
 verbosity = 0
-editor = vi
-
-[client]
 sfm2_api_url = http://localhost:5600
+custom_plugin_dir = ~/.griffon/plugins/
 
 # profile sections (use with --profile {profile} flag)
 [cloud]
@@ -65,8 +63,9 @@ Options:
                                   -vvv).
   --no-progress-bar               Disable progress bar.
   --no-color                      Disable output of color ansi esc sequences.
-  --profile [cloud|openshift|middleware|latest|all]
+  --profile [default|cloud|openshift|middleware|latest]
                                   Activate profile, defined in .griffonrc.
+  --editor / --no-editor          Allow text editor prompt.
   --help                          Show this message and exit.
 
 Commands:
@@ -107,7 +106,7 @@ Commands:
   products-contain-component    List Products containing Component.
   report-affects                Generate Affects example report.
   report-entities               Generate Entity report (with counts).
-  report-license                Generate License report.
+  report-license                Generate Product Stream license report.
 ```
 
 #### Check what Products a Component is shipped in
@@ -216,7 +215,11 @@ Commands:
   trackers         https://osidb.prodsec.redhat.com/osidb/api/v1/trackers
 ```
 
-#### Components
+#### Component Registry Entities
+
+Currently only provides primitive read only operations.
+
+##### Components
 
 Retrieve a specific component:
 ```commandline
@@ -240,7 +243,7 @@ Search for Components by regular expression name (and version):
 ```commandline
 > griffon entities components list --re_name ansible --version 1.1.1
 ```
-#### Product Streams
+##### Product Streams
 Retrieve a Product Stream
 ```commandline
 > griffon entities product-streams get --ofuri o:redhat:openshift:4.11.z
@@ -254,6 +257,29 @@ Retrieve a Product Stream manifest
 ```commandline
 griffon entities product-streams get-manifest --name ansible_automation_platform-2.2 
 ```
+
+#### OSIDB Entities
+
+Low level operations for interacting with OSIDB entities have both read and write functionality.
+
+##### Flaws
+
+Listing flaws
+
+Creating and updating flaw
+
+##### Affects
+
+Listing affects
+
+Creating and updating affects
+
+##### Trackers
+
+Listing trackers
+
+Creating and updating trackers
+
 
 ### Plugin operations
 
@@ -284,6 +310,7 @@ Search go vulnerability database
 #### osv
 Search osv.dev
 >griffon plugins osv query-by-commit-hash --commit_hash 6879efc2c1596d11a6a6ad296f80063b558d5e0f
+>griffon plugins osv search curl
 
 #### fcc
 Search fcc website
