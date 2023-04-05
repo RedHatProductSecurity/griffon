@@ -12,7 +12,7 @@ from griffon.autocomplete import (
     get_cve_ids,
     get_product_version_names,
 )
-from griffon.commands.entities import (
+from griffon.commands.entities.component_registry import (
     get_component_manifest,
     get_component_summary,
     get_product_stream_manifest,

@@ -28,6 +28,7 @@ setup(
     packages=[
         "griffon",
         "griffon/commands",
+        "griffon/commands/entities",
         "griffon/commands/plugins",
         "griffon/services",
         "griffon/autocomplete",
