@@ -8,14 +8,27 @@ import logging
 import click
 from component_registry_bindings.bindings.python_client.api.v1 import (
     v1_builds_list,
+    v1_builds_retrieve,
+    v1_channels_list,
+    v1_channels_retrieve,
     v1_components_list,
     v1_components_retrieve,
     v1_product_streams_list,
     v1_product_streams_retrieve,
+    v1_product_variants_list,
+    v1_product_variants_retrieve,
+    v1_product_versions_list,
+    v1_product_versions_retrieve,
+    v1_products_list,
+    v1_products_retrieve,
 )
 from component_registry_bindings.bindings.python_client.models import (
+    Channel,
     Component,
+    Product,
     ProductStream,
+    ProductVariant,
+    ProductVersion,
     SoftwareBuild,
 )
 
@@ -24,6 +37,7 @@ from griffon.autocomplete import (
     get_component_purls,
     get_product_stream_names,
     get_product_stream_ofuris,
+    get_product_version_ofuris,
 )
 from griffon.commands.entities.helpers import (
     multivalue_params_to_csv,
@@ -518,12 +532,269 @@ def list_software_builds(ctx, software_build_name, **params):
 
 
 @builds.command(name="get")
-@click.argument("build_id", required=False)
+@click.argument(
+    "software_build_name",
+    required=False,
+    type=click.STRING,
+    shell_complete=get_product_stream_names,
+)
+@query_params_options(
+    entity="SoftwareBuild",
+    endpoint_module=v1_builds_retrieve,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(SoftwareBuild))},
+    },
+)
 @click.pass_context
-def get_software_builds(ctx, build_id):
-    """Retrieve Software Build."""
+@progress_bar
+def get_software_build(ctx, software_build_name, **params):
+    """Retrieve SoftwareBuild."""
+    is_params_empty = [False for v in params.values() if v]
+    if not software_build_name and not is_params_empty:
+        click.echo(ctx.get_help())
+        exit(0)
     session = CorgiService.create_session()
-    data = session.builds.retrieve(build_id)
+    if software_build_name:
+        params["name"] = software_build_name
+    data = session.builds.retrieve_list(**params)
+    return cprint(data, ctx=ctx)
+
+
+# Products
+
+
+@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/products")
+@click.pass_context
+def products(ctx):
+    pass
+
+
+@products.command(name="list")
+@click.argument("product_name", required=False)
+@query_params_options(
+    entity="Product",
+    endpoint_module=v1_products_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(Product))},
+    },
+)
+@click.pass_context
+@progress_bar
+def list_products(ctx, product_name, **params):
+    """Retrieve a list of Software Builds."""
+    session = CorgiService.create_session()
+    if product_name:
+        params["name"] = product_name
+    data = session.products.retrieve_list(**params).results
+    return cprint(data, ctx=ctx)
+
+
+@products.command(name="get")
+@click.argument(
+    "product_name",
+    required=False,
+    type=click.STRING,
+    shell_complete=get_product_stream_names,
+)
+@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
+@query_params_options(
+    entity="Product",
+    endpoint_module=v1_products_retrieve,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(Product))},
+    },
+)
+@click.pass_context
+@progress_bar
+def get_product(ctx, product_name, ofuri, **params):
+    """Retrieve Product."""
+    is_params_empty = [False for v in params.values() if v]
+    if not product_name and not is_params_empty:
+        click.echo(ctx.get_help())
+        exit(0)
+    session = CorgiService.create_session()
+    if ofuri:
+        params["ofuri"] = ofuri
+    if product_name:
+        params["name"] = product_name
+    data = session.products.retrieve_list(**params)
+    return cprint(data, ctx=ctx)
+
+
+# PRODUCT VERSION
+@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/product-versions")
+@click.pass_context
+def product_versions(ctx):
+    pass
+
+
+@product_versions.command(name="list")
+@click.argument("product_version_name", required=False)
+@query_params_options(
+    entity="ProductVersion",
+    endpoint_module=v1_product_versions_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(ProductVersion))},
+    },
+)
+@click.pass_context
+@progress_bar
+def list_product_versions(ctx, product_version_name, **params):
+    """Retrieve a list of Product Versions."""
+    session = CorgiService.create_session()
+    if product_version_name:
+        params["name"] = product_version_name
+    data = session.product_versions.retrieve_list(**params).results
+    return cprint(data, ctx=ctx)
+
+
+@product_versions.command(name="get")
+@click.argument(
+    "product_version_name",
+    required=False,
+    type=click.STRING,
+    shell_complete=get_product_stream_names,
+)
+@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_version_ofuris)
+@query_params_options(
+    entity="ProductVersion",
+    endpoint_module=v1_product_versions_retrieve,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(ProductVersion))},
+    },
+)
+@click.pass_context
+@progress_bar
+def get_product_version(ctx, product_version_name, ofuri, **params):
+    """Retrieve ProductVersion."""
+    is_params_empty = [False for v in params.values() if v]
+    if not product_version_name and not is_params_empty:
+        click.echo(ctx.get_help())
+        exit(0)
+    session = CorgiService.create_session()
+    if ofuri:
+        params["ofuri"] = ofuri
+    if product_version_name:
+        params["name"] = product_version_name
+    data = session.product_versions.retrieve_list(**params)
+    return cprint(data, ctx=ctx)
+
+
+# PRODUCT VARIANT
+@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/product-variants")
+@click.pass_context
+def product_variants(ctx):
+    pass
+
+
+@product_variants.command(name="list")
+@click.argument("product_variant_name", required=False)
+@query_params_options(
+    entity="ProductVariant",
+    endpoint_module=v1_product_variants_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(ProductVariant))},
+    },
+)
+@click.pass_context
+@progress_bar
+def list_product_variants(ctx, product_variant_name, **params):
+    """Retrieve a list of Product Variants."""
+    session = CorgiService.create_session()
+    if product_variant_name:
+        params["name"] = product_variant_name
+    data = session.product_variants.retrieve_list(**params).results
+    return cprint(data, ctx=ctx)
+
+
+@product_variants.command(name="get")
+@click.argument(
+    "product_variant_name",
+    required=False,
+    type=click.STRING,
+    shell_complete=get_product_stream_names,
+)
+@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_version_ofuris)
+@query_params_options(
+    entity="ProductVariant",
+    endpoint_module=v1_product_variants_retrieve,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(ProductVariant))},
+    },
+)
+@click.pass_context
+@progress_bar
+def get_product_variant(ctx, product_variant_name, ofuri, **params):
+    """Retrieve ProductVariant."""
+    is_params_empty = [False for v in params.values() if v]
+    if not product_variant_name and not is_params_empty:
+        click.echo(ctx.get_help())
+        exit(0)
+    session = CorgiService.create_session()
+    if ofuri:
+        params["ofuri"] = ofuri
+    if product_variant_name:
+        params["name"] = product_variant_name
+    data = session.product_varints.retrieve_list(**params)
+    return cprint(data, ctx=ctx)
+
+
+# CHANNEL
+@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/channels")
+@click.pass_context
+def channels(ctx):
+    pass
+
+
+@channels.command(name="list")
+@click.argument("channel_name", required=False)
+@query_params_options(
+    entity="Channel",
+    endpoint_module=v1_channels_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(Channel))},
+    },
+)
+@click.pass_context
+@progress_bar
+def list_channels(ctx, channel_name, **params):
+    """Retrieve a list of Channels."""
+    session = CorgiService.create_session()
+    if channel_name:
+        params["name"] = channel_name
+    data = session.channels.retrieve_list(**params).results
+    return cprint(data, ctx=ctx)
+
+
+@channels.command(name="get")
+@click.argument(
+    "channel_name",
+    required=False,
+    type=click.STRING,
+    shell_complete=get_product_stream_names,
+)
+@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_version_ofuris)
+@query_params_options(
+    entity="Channel",
+    endpoint_module=v1_channels_retrieve,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(Channel))},
+    },
+)
+@click.pass_context
+@progress_bar
+def get_channel(ctx, channel_name, ofuri, **params):
+    """Retrieve ProductVariant."""
+    is_params_empty = [False for v in params.values() if v]
+    if not channel_name and not is_params_empty:
+        click.echo(ctx.get_help())
+        exit(0)
+    session = CorgiService.create_session()
+    if ofuri:
+        params["ofuri"] = ofuri
+    if channel_name:
+        params["name"] = channel_name
+    data = session.channels.retrieve_list(**params)
     return cprint(data, ctx=ctx)
 
 
