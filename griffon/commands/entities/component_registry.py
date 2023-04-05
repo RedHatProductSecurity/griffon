@@ -427,3 +427,44 @@ def get_software_builds(ctx, build_id):
     session = CorgiService.create_session()
     data = session.builds.retrieve(build_id)
     return cprint(data, ctx=ctx)
+
+
+@component_registry_grp.group(name="admin")
+@click.pass_context
+def manage_grp(ctx):
+    """Manage component registry"""
+    pass
+
+
+@manage_grp.command(name="status")
+@click.pass_context
+def corgi_status(ctx):
+    session = CorgiService.create_session()
+    data = session.status()
+    return cprint(data.additional_properties, ctx=ctx)
+
+
+@manage_grp.command(name="health")
+@click.pass_context
+def corgi_health(ctx):
+    try:
+        session = CorgiService.create_session()
+        status = session.status()["status"]
+        if status == "ok":
+            console.log(f"{CORGI_API_URL} is operational")
+        else:
+            console.log(f"{CORGI_API_URL} is NOT operational")
+            exit(1)
+    except:  # noqa
+        console.log(f"{CORGI_API_URL} is NOT operational")
+        raise click.ClickException("Component registry health check failed.")
+
+
+@manage_grp.command(name="data")
+def corgi_data():
+    click.launch(f"{CORGI_API_URL}/data")
+
+
+@manage_grp.command(name="api_doc")
+def corgi_api_docs():
+    click.launch(f"{CORGI_API_URL}/api/v1/schema/docs")

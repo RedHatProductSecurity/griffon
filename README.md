@@ -26,18 +26,17 @@ Options:
                                   -vvv).
   --no-progress-bar               Disable progress bar.
   --no-color                      Disable output of color ansi esc sequences.
-  --profile [cloud|openshift|middleware|latest|all]
+  --profile [default|cloud|openshift|middleware|latest]
                                   Activate profile, defined in .griffonrc.
+  --editor / --no-editor          Allow text editor prompt.
   --help                          Show this message and exit.
 
 Commands:
   configure  Configure griffon.
   docs       Links to useful docs.
-  entities   Entity operations (UNDER DEVELOPMENT).
-  manage     Manage operations.
+  entities   Entity operations.
   plugins    3rd party plugins.
   service    Service operations.
-
 ```
 To install:
 
