@@ -41,7 +41,7 @@ griffon entities CORGI components list --ofuri o:redhat:ansible_automation_platf
 griffon --format text entities CORGI components list curl
 
 # flaws
-griffon entities OSIDB flaws get --cve-id CVE-2023-25166
+griffon entities OSIDB flaws get --id CVE-2023-25166
 griffon entities OSIDB flaws list --state NEW --impact CRITICAL
 
 # affects
