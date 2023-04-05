@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - minor docs updates
 - refactored low level entities with nested entrypoint
 - moved manage to entities
+- expose more flags on product-components
 
 ## [0.1.12] - 2023-04-03
 ### Changed

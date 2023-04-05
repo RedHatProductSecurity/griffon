@@ -1,18 +1,33 @@
 """
-component-registry entity operations
+corgi entity operations
 
 """
 import concurrent.futures
 import logging
 
 import click
+from component_registry_bindings.bindings.python_client.api.v1 import (
+    v1_builds_list,
+    v1_components_list,
+    v1_components_retrieve,
+    v1_product_streams_list,
+    v1_product_streams_retrieve,
+)
+from component_registry_bindings.bindings.python_client.models import (
+    Component,
+    ProductStream,
+    SoftwareBuild,
+)
 
 from griffon import CORGI_API_URL, CorgiService, progress_bar
 from griffon.autocomplete import (
-    get_component_names,
     get_component_purls,
     get_product_stream_names,
     get_product_stream_ofuris,
+)
+from griffon.commands.entities.helpers import (
+    multivalue_params_to_csv,
+    query_params_options,
 )
 from griffon.output import console, cprint
 
@@ -23,110 +38,71 @@ default_conditions: dict = {}
 
 @click.group(name="CORGI")
 @click.pass_context
-def component_registry_grp(ctx):
+def corgi_grp(ctx):
     pass
 
 
-@component_registry_grp.group(help=f"{CORGI_API_URL}/api/v1/components")
+# COMPONENTS
+
+
+@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/components")
 @click.pass_context
 def components(ctx):
-    pass
+    """Corgi Components."""
 
 
 @components.command(name="list")
 @click.argument("component_name", required=False)
-@click.option("--namespace", type=click.Choice(CorgiService.get_component_namespaces()), help="")
-@click.option("--ofuri", shell_complete=get_product_stream_ofuris)
-@click.option("--re_purl", shell_complete=get_component_purls)
-@click.option("--re_name", shell_complete=get_component_names)
-@click.option("--version")
 @click.option(
-    "--type",
-    "component_type",
-    type=click.Choice(CorgiService.get_component_types()),
-    help="",  # noqa
+    "-s",
+    "strict_name_search",
+    is_flag=True,
+    default=False,
+    help="Strict search, exact match of component name.",
 )
-@click.option(
-    "--arch",
-    type=click.Choice(CorgiService.get_component_arches()),
+@query_params_options(
+    entity="Component",
+    endpoint_module=v1_components_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+    },
 )
-@click.option("--product-stream-name", shell_complete=get_product_stream_names)
-@click.option("--product-stream-ofuri", shell_complete=get_product_stream_ofuris)
 @click.pass_context
 @progress_bar
-def list_components(
-    ctx,
-    component_name,
-    namespace,
-    ofuri,
-    re_purl,
-    re_name,
-    version,
-    component_type,
-    arch,
-    product_stream_name,
-    product_stream_ofuri,
-):
-    """Retrieve a list of Components."""
-
-    if (
-        not component_name
-        and not ofuri
-        and not re_purl
-        and not re_name
-        and not version
-        and not arch
-        and not namespace
-        and not component_type
-        and not product_stream_name
-        and not product_stream_ofuri
-    ):
+def list_components(ctx, strict_name_search, component_name, **params):
+    # TODO: handle pagination
+    # TODO: handle output
+    is_params_empty = [False for v in params.values() if v]
+    if not component_name and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
+    if strict_name_search:
+        params["name"] = component_name
+    elif component_name:
+        params["re_name"] = component_name
+
+    if not params["include_fields"]:
+        params[
+            "include_fields"
+        ] = "link,uuid,purl,nvr,version,type,name,upstreams,related_url,download_url"
+
     session = CorgiService.create_session()
+    params = multivalue_params_to_csv(params)
 
-    conditions = default_conditions
-    conditions[
-        "include_fields"
-    ] = "link,purl,nvr,version,type,name,upstreams,related_url,download_url"
-
-    # TODO- condition union could be a separate helper function
-
-    if component_name:
-        conditions["name"] = component_name
-
-    if namespace:
-        conditions["namespace"] = namespace
-    if ofuri:
-        conditions["ofuri"] = ofuri
-    if re_purl:
-        conditions["re_purl"] = re_purl
-    if re_name:
-        conditions["re_name"] = re_name
-    if version:
-        conditions["version"] = version
-    if arch:
-        conditions["arch"] = arch
-    if component_type:
-        conditions["type"] = component_type
-    if product_stream_ofuri:
-        conditions["product_streams"] = product_stream_ofuri
-
-    # TODO- This kind of optimisation should probably be developed in the
-    #       service binding itself rather then here
     logger.debug("starting parallel http requests")
-    component_cnt = session.components.retrieve_list(**conditions).count
+    component_cnt = session.components.retrieve_list(**params).count
+    logger.debug(component_cnt)
     if component_cnt < 3000000:
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
             components = list()
             for batch in range(0, component_cnt, 1200):
+                params["offset"] = batch
+                params["limit"] = 1200
                 futures.append(
                     executor.submit(
                         session.components.retrieve_list,
-                        **conditions,
-                        offset=batch,
-                        limit=1200,  # noqa
+                        **params,
                     )
                 )
 
@@ -139,22 +115,42 @@ def list_components(
             data = sorted(components, key=lambda d: d.purl)
             return cprint(data, ctx=ctx)
     else:
-        console.print("downloading too many")
+        console.warning("Too many components.")
 
 
 @components.command(name="get")
-@click.option("--uuid", "component_uuid")
-@click.option("--purl", shell_complete=get_component_purls, help="Purl are URI and must be quoted.")
-@click.option("--nvr")
+@click.argument("component_id", required=False)
+@click.option("--purl", shell_complete=get_component_purls, help="purls must be quoted!")
+@query_params_options(
+    entity="Component",
+    endpoint_module=v1_components_retrieve,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+    },
+)
 @click.pass_context
 @progress_bar
-def get_component(ctx, component_uuid, purl, nvr):
-    """Retrieve Component."""
-    if not component_uuid and not purl and not nvr:
+def get_component(ctx, component_id, purl, **params):
+    is_params_empty = [False for v in params.values() if v]
+    if not component_id and not purl and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
+
+    if purl:
+        params["purl"] = purl
+
+    if not params["include_fields"]:
+        params[
+            "include_fields"
+        ] = "link,purl,nvr,version,type,name,upstreams,related_url,download_url"
+
+    params = multivalue_params_to_csv(params)
+
     session = CorgiService.create_session()
-    data = session.components.retrieve_list(purl=purl)
+    if component_id:
+        data = session.components.retrieve(component_id, **params)
+    else:
+        data = session.components.retrieve_list(**params)
     return cprint(data, ctx=ctx)
 
 
@@ -173,11 +169,19 @@ def get_component(ctx, component_uuid, purl, nvr):
     default=False,
     help="Strict search, exact match of name.",
 )
+@query_params_options(
+    entity="Component",
+    endpoint_module=v1_components_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+    },
+)
 @click.pass_context
 @progress_bar
-def get_component_summary(ctx, component_name, strict_name_search):
+def get_component_summary(ctx, component_name, strict_name_search, **params):
     """Get Component summary."""
-    if not component_name:
+    is_params_empty = [False for v in params.values() if v]
+    if not component_name and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
     session = CorgiService.create_session()
@@ -245,55 +249,94 @@ def get_component_summary(ctx, component_name, strict_name_search):
 @components.command(name="provides")
 @click.option("--uuid", "component_uuid")
 @click.option("--purl", shell_complete=get_component_purls, help="Purl are URI and must be quoted.")
+@query_params_options(
+    entity="Component",
+    endpoint_module=v1_components_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+    },
+)
 @click.pass_context
 @progress_bar
-def get_component_provides(ctx, component_uuid, purl):
+def get_component_provides(ctx, component_uuid, purl, **params):
     """Retrieve all Components provided by a Component."""
-    if not component_uuid and not purl:
+    is_params_empty = [False for v in params.values() if v]
+    if not component_uuid and not purl and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
+    if not params["include_fields"]:
+        params[
+            "include_fields"
+        ] = "link,purl,nvr,version,type,name,upstreams,related_url,download_url"
+    if purl:
+        params["sources"] = purl
+
     session = CorgiService.create_session()
     if component_uuid:
-        data = session.components.retrieve(component_uuid).provides
+        purl = session.components.retrieve(component_uuid).purl
+        params["sources"] = purl
+        data = session.components.retrieve_list(**params)
         return cprint(data, ctx=ctx)
     else:
-        c = session.components.retrieve_list(purl=purl)
-        if c:
-            data = session.components.retrieve(c["uuid"]).provides
-            return cprint(data, ctx=ctx)
+        data = session.components.retrieve_list(**params)
+        return cprint(data, ctx=ctx)
 
 
 @components.command(name="sources")
 @click.option("--uuid", "component_uuid")
 @click.option("--purl", shell_complete=get_component_purls, help="Purl are URI and must be quoted.")
+@query_params_options(
+    entity="Component",
+    endpoint_module=v1_components_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+    },
+)
 @click.pass_context
 @progress_bar
-def get_component_sources(ctx, component_uuid, purl):
+def get_component_sources(ctx, component_uuid, purl, **params):
     """Retrieve all Components that contain Component."""
-    if not component_uuid and not purl:
+    is_params_empty = [False for v in params.values() if v]
+    if not component_uuid and not purl and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
+    if not params["include_fields"]:
+        params[
+            "include_fields"
+        ] = "link,purl,nvr,version,type,name,upstreams,related_url,download_url"
+    if purl:
+        params["provides"] = purl
     session = CorgiService.create_session()
     if component_uuid:
-        data = session.components.retrieve(component_uuid).sources
+        purl = session.components.retrieve(component_uuid).purl
+        params["provides"] = purl
+        data = session.components.retrieve_list(**params)
         return cprint(data, ctx=ctx)
     else:
-        c = session.components.retrieve_list(purl=purl)
-        if c:
-            data = session.components.retrieve(c["uuid"]).sources
-            return cprint(data, ctx=ctx)
+        data = session.components.retrieve_list(**params)
+        return cprint(data, ctx=ctx)
 
 
 @components.command(name="manifest")
 @click.option("--uuid", "component_uuid")
 @click.option("--purl", shell_complete=get_component_purls, help="Purl are URI and must be quoted.")
+@click.option(
+    "--spdx-json",
+    "spdx_json_format",
+    is_flag=True,
+    default=False,
+    help="Generate spdx manifest (json).",
+)
 @click.pass_context
 @progress_bar
-def get_component_manifest(ctx, component_uuid, purl):
+def get_component_manifest(ctx, component_uuid, purl, spdx_json_format):
     """Retrieve Component manifest."""
     if not component_uuid and not purl:
         click.echo(ctx.get_help())
         exit(0)
+    if spdx_json_format:
+        ctx.ensure_object(dict)
+        ctx.obj["FORMAT"] = "json"  # TODO - investigate if we need yaml format.
     session = CorgiService.create_session()
     if component_uuid:
         data = session.components.retrieve_manifest(component_uuid)
@@ -305,8 +348,8 @@ def get_component_manifest(ctx, component_uuid, purl):
             return cprint(data, ctx=ctx)
 
 
-# product streams
-@component_registry_grp.group(help=f"{CORGI_API_URL}/api/v1/product_streams")
+# PRODUCT STREAM
+@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/product_streams")
 @click.pass_context
 def product_streams(ctx):
     pass
@@ -319,14 +362,27 @@ def product_streams(ctx):
     type=click.STRING,
     shell_complete=get_product_stream_names,
 )
+@query_params_options(
+    entity="ProductStream",
+    endpoint_module=v1_product_streams_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(ProductStream))},
+    },
+)
 @click.pass_context
-def list_product_streams(ctx, product_stream_name):
+def list_product_streams(ctx, product_stream_name, **params):
     """Retrieve a list of Product Streams."""
+    is_params_empty = [False for v in params.values() if v]
+    if not product_stream_name and not is_params_empty:
+        click.echo(ctx.get_help())
+        exit(0)
     session = CorgiService.create_session()
-    cond = default_conditions
+    if not params["include_fields"]:
+        params["include_fields"] = "link,uuid,ofuri,name"
+
     if product_stream_name:
-        cond["re_name"] = product_stream_name
-    data = session.product_streams.retrieve_list(**cond, limit=1000).results
+        params["re_name"] = product_stream_name
+    data = session.product_streams.retrieve_list(**params).results
     return cprint(data, ctx=ctx)
 
 
@@ -339,20 +395,27 @@ def list_product_streams(ctx, product_stream_name):
 )
 @click.option("--inactive", is_flag=True, default=False, help="Show inactive project streams")
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
+@query_params_options(
+    entity="ProductStream",
+    endpoint_module=v1_product_streams_retrieve,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(ProductStream))},
+    },
+)
 @click.pass_context
 @progress_bar
-def get_product_stream(ctx, product_stream_name, inactive, ofuri):
+def get_product_stream(ctx, product_stream_name, inactive, ofuri, **params):
     """Retrieve Product Stream."""
-    if not ofuri and not product_stream_name:
+    is_params_empty = [False for v in params.values() if v]
+    if not product_stream_name and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
     session = CorgiService.create_session()
-    cond = {}
     if ofuri:
-        cond["ofuri"] = ofuri
+        params["ofuri"] = ofuri
     if product_stream_name:
-        cond["name"] = product_stream_name
-    data = session.product_streams.retrieve_list(**cond)
+        params["name"] = product_stream_name
+    data = session.product_streams.retrieve_list(**params)
     return cprint(data, ctx=ctx)
 
 
@@ -363,16 +426,32 @@ def get_product_stream(ctx, product_stream_name, inactive, ofuri):
     type=click.STRING,
     shell_complete=get_product_stream_names,
 )
-@click.option("--namespace", type=click.Choice(CorgiService.get_component_namespaces()), help="")
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
-@click.option("--view", default="summary")
+@query_params_options(
+    entity="Component",
+    endpoint_module=v1_components_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+    },
+)
 @click.pass_context
-def get_product_stream_components(ctx, product_stream_name, namespace, ofuri, view):
+def get_product_stream_components(ctx, product_stream_name, ofuri, **params):
     """Retrieve Product Stream latest Components."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
         exit(0)
-    ctx.invoke(list_components, ofuri=ofuri)
+    if not params["include_fields"]:
+        params[
+            "include_fields"
+        ] = "link,uuid,purl,nvr,version,type,name,upstreams,related_url,download_url"
+
+    if product_stream_name:
+        session = CorgiService.create_session()
+        ps = session.product_streams.retrieve_list(name=product_stream_name)
+        params["ofuri"] = ps["ofuri"]
+    if ofuri:
+        params["ofuri"] = ofuri
+    ctx.invoke(list_components, **params)
 
 
 @product_streams.command(name="manifest")
@@ -383,13 +462,23 @@ def get_product_stream_components(ctx, product_stream_name, namespace, ofuri, vi
     shell_complete=get_product_stream_names,
 )
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
+@click.option(
+    "--spdx-json",
+    "spdx_json_format",
+    is_flag=True,
+    default=False,
+    help="Generate spdx manifest (json).",
+)
 @click.pass_context
-def get_product_stream_manifest(ctx, product_stream_name, ofuri):
+def get_product_stream_manifest(ctx, product_stream_name, ofuri, spdx_json_format):
     """Retrieve Product Stream manifest."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
         exit(0)
     session = CorgiService.create_session()
+    if spdx_json_format:
+        ctx.ensure_object(dict)
+        ctx.obj["FORMAT"] = "json"  # TODO - investigate if we need yaml format.
     pv = None
     if ofuri:
         pv = session.product_streams.retrieve_list(ofuri=ofuri).additional_properties
@@ -400,7 +489,10 @@ def get_product_stream_manifest(ctx, product_stream_name, ofuri):
         return cprint(data, ctx=ctx)
 
 
-@component_registry_grp.group(help=f"{CORGI_API_URL}/api/v1/builds")
+# BUILDS
+
+
+@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/builds")
 @click.pass_context
 def builds(ctx):
     pass
@@ -408,14 +500,20 @@ def builds(ctx):
 
 @builds.command(name="list")
 @click.argument("software_build_name", required=False)
+@query_params_options(
+    entity="SoftwareBuild",
+    endpoint_module=v1_builds_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(SoftwareBuild))},
+    },
+)
 @click.pass_context
-def list_software_builds(ctx, software_build_name):
+def list_software_builds(ctx, software_build_name, **params):
     """Retrieve a list of Software Builds."""
     session = CorgiService.create_session()
-    cond = default_conditions
     if software_build_name:
-        cond["name"] = software_build_name
-    data = session.builds.retrieve_list(**cond, limit=1000).results
+        params["name"] = software_build_name
+    data = session.builds.retrieve_list(**params).results
     return cprint(data, ctx=ctx)
 
 
@@ -429,7 +527,8 @@ def get_software_builds(ctx, build_id):
     return cprint(data, ctx=ctx)
 
 
-@component_registry_grp.group(name="admin")
+# ADMIN
+@corgi_grp.group(name="admin")
 @click.pass_context
 def manage_grp(ctx):
     """Manage component registry"""

@@ -120,6 +120,22 @@ class CorgiService:
             "ppc64le",
         ]
 
+    @staticmethod
+    def get_fields(model, prefix=""):
+        """
+        get model fields and fields of its related models with
+        respective prefixes using dot notation
+
+        eg. field, related_model.field, related_model_1.related_model2.field
+        """
+
+        # get rid of the self attribute
+        fields = [f"{prefix}{field}" for field in model.get_fields().keys()]
+        for name, related_model in RELATED_MODELS_MAPPING.get(model, {}).items():
+            fields.extend(CorgiService.get_fields(related_model, prefix=f"{prefix}{name}."))
+
+        return fields
+
 
 class OSIDBService:
     name = "osidb"

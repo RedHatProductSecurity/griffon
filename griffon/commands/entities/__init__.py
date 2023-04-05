@@ -2,7 +2,7 @@ import logging
 
 import click
 
-from .component_registry import component_registry_grp
+from .corgi import corgi_grp
 from .osidb import osidb_grp
 
 logger = logging.getLogger("griffon")
@@ -22,4 +22,4 @@ def entities_grp(ctx, open_browser, limit):
 
 
 entities_grp.add_command(osidb_grp)
-entities_grp.add_command(component_registry_grp)
+entities_grp.add_command(corgi_grp)

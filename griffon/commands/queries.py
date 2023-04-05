@@ -5,21 +5,24 @@ import copy
 import logging
 
 import click
+from component_registry_bindings.bindings.python_client.api.v1 import v1_components_list
+from component_registry_bindings.bindings.python_client.models import Component
 
 from griffon import CorgiService, OSIDBService, progress_bar
 from griffon.autocomplete import (
     get_component_names,
     get_cve_ids,
+    get_product_stream_names,
+    get_product_stream_ofuris,
     get_product_version_names,
 )
-from griffon.commands.entities.component_registry import (
+from griffon.commands.entities.corgi import (
     get_component_manifest,
     get_component_summary,
     get_product_stream_manifest,
-    get_product_stream_names,
-    get_product_stream_ofuris,
     list_components,
 )
+from griffon.commands.entities.helpers import query_params_options
 from griffon.commands.reports import (
     generate_affects_report,
     generate_entity_report,
@@ -473,23 +476,29 @@ def get_product_manifest_query(ctx, product_stream_name, ofuri, spdx_json_format
     name="product-components",
     help="List LATEST Root Components of Product.",
 )
-@click.pass_context
 @click.argument("product_stream_name", required=False, shell_complete=get_product_stream_names)
 @click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
-def get_product_latest_components_query(ctx, product_stream_name, ofuri):
+@query_params_options(
+    entity="Component",
+    endpoint_module=v1_components_list,
+    options_overrides={
+        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+    },
+)
+@click.pass_context
+def get_product_latest_components_query(ctx, product_stream_name, ofuri, **params):
     """List components of a specific product version."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
         exit(0)
-    cond = {}
     if ofuri:
-        cond["ofuri"] = ofuri
+        params["ofuri"] = ofuri
     if product_stream_name:
         # lookup ofuri
-        q = query_service.invoke(core_queries.product_stream_summary, ctx.params)
-        ofuri = q[0]["ofuri"]
-        cond["ofuri"] = ofuri
-    ctx.invoke(list_components, **cond)
+        session = CorgiService.create_session()
+        ps = session.product_streams.retrieve_list(name=product_stream_name)
+        params["ofuri"] = ps["ofuri"]
+    ctx.invoke(list_components, **params)
 
 
 @queries_grp.command(
