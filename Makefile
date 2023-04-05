@@ -36,7 +36,7 @@ acceptance-tests:
 	$(tox) -e acceptance-tests
 
 smoke-tests:
-	scripts/smoke-tests.sh > smoke-tests.log
+	scripts/smoke-tests.sh > smoke-tests.log 2>&1
 
 ############################################################################
 # requirements target
