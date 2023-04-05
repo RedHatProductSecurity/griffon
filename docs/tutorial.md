@@ -71,8 +71,7 @@ Options:
 Commands:
   configure  Configure griffon.
   docs       Links to useful docs.
-  entities   Entity operations (UNDER DEVELOPMENT).
-  manage     Manage operations.
+  entities   Entity operations.
   plugins    3rd party plugins.
   service    Service operations.
 

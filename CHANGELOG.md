@@ -8,7 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - minor plugin enhancements
 - minor docs updates
-- 
+- refactored low level entities with nested entrypoint
+- moved manage to entities
+
 ## [0.1.12] - 2023-04-03
 ### Changed
 - enable OSIDB local development instances to be used with Griffon

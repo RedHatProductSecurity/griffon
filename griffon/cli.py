@@ -16,7 +16,6 @@ from griffon import (
 from .commands.configure import configure_grp
 from .commands.docs import docs_grp
 from .commands.entities import entities_grp
-from .commands.manage import manage_grp
 from .commands.plugin_commands import plugin_commands
 from .commands.queries import queries_grp
 from .output import OUTPUT_FORMAT
@@ -42,15 +41,6 @@ def entities(ctx):
 
 
 entities.add_command(entities_grp)
-
-
-@click.group()
-@click.pass_context
-def manage(ctx):
-    pass
-
-
-manage.add_command(manage_grp)
 
 
 @click.group()
@@ -91,7 +81,7 @@ def plugins_grp(ctx):
 
 @click.group(
     cls=click.CommandCollection,
-    sources=(configure, entities, services_grp, manage, docs, plugins),
+    sources=(configure, entities, services_grp, docs, plugins),
 )
 @click.option(
     "--version",
