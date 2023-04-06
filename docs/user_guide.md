@@ -5,7 +5,7 @@
 Learn how to use griffon cli by using its built in autocompletion 
 and help information provided at the command line.
 
-Otherwise, please read the (under development) [tutorial](tutorial.md). 
+For more information, please read the [tutorial](tutorial.md). 
 
 ## Installation
 
@@ -23,15 +23,22 @@ Setup virtualenv (if you do not want griffon installed in your system)
 > python3.9 -m venv venv
 > source venv/bin/activate
 ```
-Install python requirements and the griffon app
-```commandline
-> pip install -e git+https://github.com/RedHatProductSecurity/griffon#egg=griffon
-```
 
-**Note**- Eventually we will distribute via PyPI (**NOT SUPPORTED YET**) where 
-the installation process should just be:
+The installation process should just be:
 ```commandline
 pip install griffon
+```
+and check version that was installed with
+```commandline
+griffon --version
+```
+To force installation
+```commandline
+pip install --force griffon
+```
+To uninstall
+```commandline
+pip uninstall griffon
 ```
 
 ### Set env vars
@@ -49,7 +56,7 @@ export CORGI_API_URL="https://<INSERT COMPONENT REGISTRY API URL>"
 ```
 And you must ensure your system is properly authorised to access these systems.
 
-**hint**- usually that means run > kinit
+**hint**- usually this means running > kinit to be able to access OSIDB.
 
 If you want to make changes to the OSIDB entities you need to supply your Bugzilla API key as well:
 ```commandline
@@ -64,28 +71,28 @@ export OSIDB_USERNAME="<your username>"
 export OSIDB_PASSWORD="<your password>"
 ```
 
-
 ### Enable autocompletion
 Enable shell autocompletion by following these instructions for your specific shell.
 
-Add this to ~/.bashrc:
+Ensuring to source (ex. source ~/.zshrc) to pickup the change. 
 
+https://click.palletsprojects.com/en/8.1.x/shell-completion/
+
+#### bash
+Add this to ~/.bashrc:
 ```commandline
 eval "$(_GRIFFON_COMPLETE=bash_source griffon)"
 ```
 
+#### zsh
 Add this to ~/.zshrc:
-
 ```commandline
 eval "$(_GRIFFON_COMPLETE=zsh_source griffon)"
 ```
 
-ensuring to source (ex. source ~/.zshrc) to pickup the change. 
-
-https://click.palletsprojects.com/en/8.1.x/shell-completion/
-
 
 ## Building and running container
+The container is intended for testing and unsupported.
 
 First set some env vars
 
@@ -115,17 +122,14 @@ we will make a release container.
 
 ## Writing custom plugins
 
-Griffon can be extended with custom plugins - handy for integrating with 
-3rd party services.
+Griffon can be extended with custom plugins - handy for integrating with 3rd party services.
 
 To create plugins emulate provided [examples](https://github.com/RedHatProductSecurity/griffon/tree/main/griffon/commands/plugins)
 
 The **griffon/commands/plugins** directory (in your python site packages) will dynamically
 register custom plugins.
 
-If you think your custom plugin could be useful for others then
-raise a [pull request](https://github.com/RedHatProductSecurity/griffon/pulls).
+The **~/.griffonrc** defines a directory (default ~/.griffon/plugins) where you can drop in your own custom plugins.
 
-## Writing custom service processes or queries
+If you think your custom plugin could be useful for others then raise a [pull request](https://github.com/RedHatProductSecurity/griffon/pulls).
 
-The griffon/service_layer directory contains service query and operations.
