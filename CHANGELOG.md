@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - refactored low level entities with nested entrypoint
 - moved manage to entities
 - expose more flags on product-components
+- add license_concluded to license report when available
+- rename upstream_url to download_url in license report
+- include upstream_url / download_url on more component types in license report
 
 ## [0.1.12] - 2023-04-03
 ### Changed

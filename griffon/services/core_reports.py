@@ -364,18 +364,21 @@ class license_report:
 
     def generate(self) -> dict:
         output = {}
-        filter = {
-            "include_fields": "uuid,purl,type,license_declared,related_url,software_build.build_id,provides,download_url",  # noqa
+        component_filter = {
+            "include_fields": "uuid,purl,type,"
+            "license_concluded,license_declared,"
+            "related_url,download_url,"
+            "software_build.build_id,provides",
         }
         if self.purl:
-            filter["purl"] = self.purl
+            component_filter["purl"] = self.purl
         if self.product_stream_name:
             product_stream = self.corgi_session.product_streams.retrieve_list(
                 name=self.product_stream_name
             )
             stream_ofuri = product_stream["ofuri"]
-            filter["ofuri"] = stream_ofuri
-        initial_component = self.corgi_session.components.retrieve_list(**filter)
+            component_filter["ofuri"] = stream_ofuri
+        initial_component = self.corgi_session.components.retrieve_list(**component_filter)
         component_cnt = initial_component.count
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
@@ -389,7 +392,7 @@ class license_report:
                     futures.append(
                         executor.submit(
                             self.corgi_session.components.retrieve_list,
-                            **filter,
+                            **component_filter,
                             offset=batch,
                             limit=120,
                         )
@@ -408,13 +411,24 @@ class license_report:
                     "related_url": component.related_url,
                     "build_id": component.software_build.build_id,
                 }
-                if str(component.type) in ["GEM", "GOLANG", "NPM", "PYPI"]:
-                    output[purl]["upstream_url"] = component.download_url
+                if component.license_concluded:
+                    # Some components can't be scanned, e.g. binary RPMs
+                    output[purl]["license_concluded"] = component.license_concluded
+                if str(component.type) not in ("RPM", "RPMMOD") and (
+                    # Report container's exact repository_url if present
+                    # Container Catalog search page is used as a fallback
+                    # Just ignore it if no specific URL is available
+                    component.download_url
+                    != "https://catalog.redhat.com/software/containers/search"
+                ):
+                    output[purl]["download_url"] = component.download_url
 
                 children = []
                 provides_filter = {
                     "sources": purl,
-                    "include_fields": "purl,type,license_declared,related_url,download_url",
+                    "include_fields": "purl,type,"
+                    "license_concluded,license_declared,"
+                    "related_url,download_url",
                 }
                 provides_cnt = self.corgi_session.components.retrieve_list(**provides_filter).count
                 logger.debug(provides_cnt)
@@ -438,8 +452,17 @@ class license_report:
                                     "license_declared": c.license_declared,
                                     "related_url": c.related_url,
                                 }
-                                if str(c.type) in ["GEM", "GOLANG", "NPM", "PYPI"]:
-                                    child["upstream_url"] = c.download_url
+                                if c.license_concluded:
+                                    # Some components can't be scanned, e.g. binary RPMs
+                                    child["license_concluded"] = c.license_concluded
+                                if str(c.type) not in ("RPM", "RPMMOD") and (
+                                    # Report container's exact repository_url if present
+                                    # Container Catalog search page is used as a fallback
+                                    # Just ignore it if no specific URL is available
+                                    c.download_url
+                                    != "https://catalog.redhat.com/software/containers/search"
+                                ):
+                                    child["download_url"] = c.download_url
                                 children.append(child)
                         except Exception as exc:
                             logger.warning("%r generated an exception: %s" % (future, exc))
