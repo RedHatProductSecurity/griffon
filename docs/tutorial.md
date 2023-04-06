@@ -198,7 +198,7 @@ A set of low level data operations.
 > griffon entities                
 Usage: griffon entities [OPTIONS] COMMAND [ARGS]...
 
-  Entity operations (UNDER DEVELOPMENT).
+  Entity operations.
 
 Options:
   --open-browser   open browser to service results.
@@ -206,12 +206,8 @@ Options:
   --help           Show this message and exit.
 
 Commands:
-  affects          https://osidb.prodsec.redhat.com/osidb/api/v1/affects
-  builds           https://corgi-stage.prodsec.redhat.com/api/v1/builds
-  components       https://corgi-stage.prodsec.redhat.com/api/v1/components
-  flaws            https://osidb.prodsec.redhat.com/osidb/api/v1/flaws
-  product-streams  ...
-  trackers         https://osidb.prodsec.redhat.com/osidb/api/v1/trackers
+  CORGI
+  OSIDB
 ```
 
 #### Component Registry Entities
@@ -222,39 +218,39 @@ Currently only provides primitive read only operations.
 
 Retrieve a specific component:
 ```commandline
-> griffon entities components get --purl "pkg:rpm/redhat/curl@7.29.0-19.el7?arch=aarch64" 
+> griffon entities CORGI components get --purl "pkg:rpm/redhat/curl@7.29.0-19.el7?arch=aarch64" 
 ```
 **Note** - purl are URI and they need to be quoted.
 
 Retrieve a specific Component provides:
 ```commandline
-> griffon entities components provides --purl "pkg:rpm/redhat/curl@7.29.0-19.el7?arch=aarch64" 
+> griffon entities CORGI components provides --purl "pkg:rpm/redhat/curl@7.29.0-19.el7?arch=aarch64" 
 ```
-Retrieve a specific Component sources:
+Retrieve a specific CORGI Component sources:
 ```commandline
-> griffon entities components sources --purl "pkg:rpm/redhat/curl@7.29.0-19.el7?arch=aarch64" 
+> griffon entities CORGI components sources --purl "pkg:rpm/redhat/curl@7.29.0-19.el7?arch=aarch64" 
 ```
 Retrieve list of Components by name
 ```commandline
-> griffon entities components list curl | jq '.results[].purl'
+> griffon entities CORGI components list curl | jq '.results[].purl'
 ```
 Search for Components by regular expression name (and version):
 ```commandline
-> griffon entities components list --re_name ansible --version 1.1.1
+> griffon entities CORGI components list --re_name ansible --version 1.1.1
 ```
 ##### Product Streams
 Retrieve a Product Stream
 ```commandline
-> griffon entities product-streams get --ofuri o:redhat:openshift:4.11.z
+> griffon entities CORGI product-streams get --ofuri o:redhat:openshift:4.11.z
 ```
 List Product Streams
 ```commandline
-> griffon entities product-streams list rhel
+> griffon entities CORGI product-streams list rhel
 ```
 
 Retrieve a Product Stream manifest
 ```commandline
-griffon entities product-streams get-manifest --name ansible_automation_platform-2.2 
+griffon entities CORGI product-streams get-manifest --name ansible_automation_platform-2.2 
 ```
 
 #### OSIDB Entities
@@ -293,10 +289,13 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  cvelib   cvelib plugin
-  fcc      FCC plugin
-  go_vuln  vuln.go.dev plugin
-  osv      OSV plugin
+  cve_mitre  mitre cve plugin
+  cvelib     cvelib plugin
+  fcc        FCC plugin
+  go_vuln    vuln.go.dev plugin
+  my_test    mitre cve plugin
+  osv        OSV plugin
+  semgrep    semgrep plugin
 ```
 #### go_vuln
 

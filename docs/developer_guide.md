@@ -23,6 +23,11 @@ Alternatively, replace the pip-sync call with:
 > make install-dev-deps
 ```
 
+To install from source
+```bash
+> pip install .
+```
+
 ## Development
 
 Raising issues
