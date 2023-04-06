@@ -31,6 +31,9 @@ griffon service report-affects
 # products
 griffon entities CORGI product-streams get pipelines-1.6.2
 griffon entities CORGI product-streams list ansible
+griffon entities CORGI products list --limit 1000
+griffon entities CORGI product-versions list ansible
+
 
 # components
 griffon entities CORGI components list curl
