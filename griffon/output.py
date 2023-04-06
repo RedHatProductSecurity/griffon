@@ -666,7 +666,15 @@ def text_output_list(ctx, output, format):
                     row["ofuri"],
                     no_wrap=True,
                 )
-
+        # handle channels
+        if "relative_url" in output["results"][0]:
+            for row in output["results"]:
+                console.print(
+                    Text(row["name"], style="magenta bold u"),
+                    row["type"],
+                    row["description"],
+                    no_wrap=True,
+                )
         # handle builds
         if "build_id" in output["results"][0]:
             for row in output["results"]:

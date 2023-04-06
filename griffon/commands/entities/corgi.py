@@ -584,7 +584,7 @@ def list_products(ctx, product_name, **params):
     """Retrieve a list of Software Builds."""
     session = CorgiService.create_session()
     if product_name:
-        params["name"] = product_name
+        params["re_name"] = product_name
     data = session.products.retrieve_list(**params).results
     return cprint(data, ctx=ctx)
 
@@ -643,7 +643,7 @@ def list_product_versions(ctx, product_version_name, **params):
     """Retrieve a list of Product Versions."""
     session = CorgiService.create_session()
     if product_version_name:
-        params["name"] = product_version_name
+        params["re_name"] = product_version_name
     data = session.product_versions.retrieve_list(**params).results
     return cprint(data, ctx=ctx)
 
@@ -702,7 +702,7 @@ def list_product_variants(ctx, product_variant_name, **params):
     """Retrieve a list of Product Variants."""
     session = CorgiService.create_session()
     if product_variant_name:
-        params["name"] = product_variant_name
+        params["re_name"] = product_variant_name
     data = session.product_variants.retrieve_list(**params).results
     return cprint(data, ctx=ctx)
 
@@ -761,7 +761,7 @@ def list_channels(ctx, channel_name, **params):
     """Retrieve a list of Channels."""
     session = CorgiService.create_session()
     if channel_name:
-        params["name"] = channel_name
+        params["re_name"] = channel_name
     data = session.channels.retrieve_list(**params).results
     return cprint(data, ctx=ctx)
 
