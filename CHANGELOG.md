@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.14] - 2023-04-06
+### Changed
+- enhanced griffon service report-license
+
 ## [0.1.13] - 2023-04-06
 ### Added
 - simple griffon plugins semgrep
