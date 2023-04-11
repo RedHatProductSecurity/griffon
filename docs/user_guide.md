@@ -54,6 +54,11 @@ and set service urls.
 export OSIDB_API_URL="https://<INSERT OSIDB API URL>"
 export CORGI_API_URL="https://<INSERT COMPONENT REGISTRY API URL>"
 ```
+and the following must be set to be able to search community components:
+```commandline
+export COMMUNITY_COMPONENTS_API_URL="https://component-registry.fedoraproject.org"
+```
+
 And you must ensure your system is properly authorised to access these systems.
 
 **hint**- usually this means running > kinit to be able to access OSIDB.

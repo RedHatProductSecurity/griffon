@@ -2,6 +2,7 @@ import logging
 
 import click
 
+from .community_component_registry import commmunity_components_grp
 from .corgi import corgi_grp
 from .osidb import osidb_grp
 
@@ -23,3 +24,4 @@ def entities_grp(ctx, open_browser, limit):
 
 entities_grp.add_command(osidb_grp)
 entities_grp.add_command(corgi_grp)
+entities_grp.add_command(commmunity_components_grp)

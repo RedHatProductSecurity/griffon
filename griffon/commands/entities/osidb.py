@@ -37,7 +37,7 @@ logger = logging.getLogger("griffon")
 default_conditions: dict = {}
 
 
-@click.group(name="OSIDB")
+@click.group(name="osidb")
 @click.pass_context
 def osidb_grp(ctx):
     pass

@@ -32,7 +32,12 @@ from component_registry_bindings.bindings.python_client.models import (
     SoftwareBuild,
 )
 
-from griffon import CORGI_API_URL, CorgiService, progress_bar
+from griffon import (
+    COMMUNITY_COMPONENTS_API_URL,
+    CORGI_API_URL,
+    CommunityComponentService,
+    progress_bar,
+)
 from griffon.autocomplete import (
     get_component_purls,
     get_product_stream_names,
@@ -50,16 +55,16 @@ logger = logging.getLogger("griffon")
 default_conditions: dict = {}
 
 
-@click.group(name="component-registry")
+@click.group(name="community-component-registry")
 @click.pass_context
-def corgi_grp(ctx):
+def commmunity_components_grp(ctx):
     pass
 
 
 # COMPONENTS
 
 
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/components")
+@commmunity_components_grp.group(help=f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components")
 @click.pass_context
 def components(ctx):
     """Corgi Components."""
@@ -78,7 +83,7 @@ def components(ctx):
     entity="Component",
     endpoint_module=v1_components_list,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+        "include_fields": {"type": click.Choice(CommunityComponentService.get_fields(Component))},
     },
 )
 @click.pass_context
@@ -100,7 +105,7 @@ def list_components(ctx, strict_name_search, component_name, **params):
             "include_fields"
         ] = "link,uuid,purl,nvr,version,type,name,upstreams,related_url,download_url"
 
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     params = multivalue_params_to_csv(params)
 
     logger.debug("starting parallel http requests")
@@ -139,7 +144,7 @@ def list_components(ctx, strict_name_search, component_name, **params):
     entity="Component",
     endpoint_module=v1_components_retrieve,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+        "include_fields": {"type": click.Choice(CommunityComponentService.get_fields(Component))},
     },
 )
 @click.pass_context
@@ -160,7 +165,7 @@ def get_component(ctx, component_id, purl, **params):
 
     params = multivalue_params_to_csv(params)
 
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if component_id:
         data = session.components.retrieve(component_id, **params)
     else:
@@ -187,7 +192,7 @@ def get_component(ctx, component_id, purl, **params):
     entity="Component",
     endpoint_module=v1_components_list,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+        "include_fields": {"type": click.Choice(CommunityComponentService.get_fields(Component))},
     },
 )
 @click.pass_context
@@ -198,7 +203,7 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
     if not component_name and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
 
     cond = {
         "include_fields": "name,type,download_url,purl,tags,arch,release,version,product_streams,upstreams,related_url",  # noqa
@@ -267,7 +272,7 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
     entity="Component",
     endpoint_module=v1_components_list,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+        "include_fields": {"type": click.Choice(CommunityComponentService.get_fields(Component))},
     },
 )
 @click.pass_context
@@ -285,7 +290,7 @@ def get_component_provides(ctx, component_uuid, purl, **params):
     if purl:
         params["sources"] = purl
 
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if component_uuid:
         purl = session.components.retrieve(component_uuid).purl
         params["sources"] = purl
@@ -303,7 +308,7 @@ def get_component_provides(ctx, component_uuid, purl, **params):
     entity="Component",
     endpoint_module=v1_components_list,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+        "include_fields": {"type": click.Choice(CommunityComponentService.get_fields(Component))},
     },
 )
 @click.pass_context
@@ -320,7 +325,7 @@ def get_component_sources(ctx, component_uuid, purl, **params):
         ] = "link,purl,nvr,version,type,name,upstreams,related_url,download_url"
     if purl:
         params["provides"] = purl
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if component_uuid:
         purl = session.components.retrieve(component_uuid).purl
         params["provides"] = purl
@@ -351,7 +356,7 @@ def get_component_manifest(ctx, component_uuid, purl, spdx_json_format):
     if spdx_json_format:
         ctx.ensure_object(dict)
         ctx.obj["FORMAT"] = "json"  # TODO - investigate if we need yaml format.
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if component_uuid:
         data = session.components.retrieve_manifest(component_uuid)
         return cprint(data, ctx=ctx)
@@ -363,7 +368,7 @@ def get_component_manifest(ctx, component_uuid, purl, spdx_json_format):
 
 
 # PRODUCT STREAM
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/product_streams")
+@commmunity_components_grp.group(help=f"{CORGI_API_URL}/api/v1/product_streams")
 @click.pass_context
 def product_streams(ctx):
     pass
@@ -380,7 +385,9 @@ def product_streams(ctx):
     entity="ProductStream",
     endpoint_module=v1_product_streams_list,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(ProductStream))},
+        "include_fields": {
+            "type": click.Choice(CommunityComponentService.get_fields(ProductStream))
+        },
     },
 )
 @click.pass_context
@@ -390,7 +397,7 @@ def list_product_streams(ctx, product_stream_name, **params):
     if not product_stream_name and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if not params["include_fields"]:
         params["include_fields"] = "link,uuid,ofuri,name"
 
@@ -413,7 +420,9 @@ def list_product_streams(ctx, product_stream_name, **params):
     entity="ProductStream",
     endpoint_module=v1_product_streams_retrieve,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(ProductStream))},
+        "include_fields": {
+            "type": click.Choice(CommunityComponentService.get_fields(ProductStream))
+        },
     },
 )
 @click.pass_context
@@ -424,7 +433,7 @@ def get_product_stream(ctx, product_stream_name, inactive, ofuri, **params):
     if not product_stream_name and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if ofuri:
         params["ofuri"] = ofuri
     if product_stream_name:
@@ -445,7 +454,7 @@ def get_product_stream(ctx, product_stream_name, inactive, ofuri, **params):
     entity="Component",
     endpoint_module=v1_components_list,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
+        "include_fields": {"type": click.Choice(CommunityComponentService.get_fields(Component))},
     },
 )
 @click.pass_context
@@ -460,7 +469,7 @@ def get_product_stream_components(ctx, product_stream_name, ofuri, **params):
         ] = "link,uuid,purl,nvr,version,type,name,upstreams,related_url,download_url"
 
     if product_stream_name:
-        session = CorgiService.create_session()
+        session = CommunityComponentService.create_session()
         ps = session.product_streams.retrieve_list(name=product_stream_name)
         params["ofuri"] = ps["ofuri"]
     if ofuri:
@@ -489,7 +498,7 @@ def get_product_stream_manifest(ctx, product_stream_name, ofuri, spdx_json_forma
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
         exit(0)
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if spdx_json_format:
         ctx.ensure_object(dict)
         ctx.obj["FORMAT"] = "json"  # TODO - investigate if we need yaml format.
@@ -506,7 +515,7 @@ def get_product_stream_manifest(ctx, product_stream_name, ofuri, spdx_json_forma
 # BUILDS
 
 
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/builds")
+@commmunity_components_grp.group(help=f"{CORGI_API_URL}/api/v1/builds")
 @click.pass_context
 def builds(ctx):
     pass
@@ -518,13 +527,15 @@ def builds(ctx):
     entity="SoftwareBuild",
     endpoint_module=v1_builds_list,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(SoftwareBuild))},
+        "include_fields": {
+            "type": click.Choice(CommunityComponentService.get_fields(SoftwareBuild))
+        },
     },
 )
 @click.pass_context
 def list_software_builds(ctx, software_build_name, **params):
     """Retrieve a list of Software Builds."""
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if software_build_name:
         params["name"] = software_build_name
     data = session.builds.retrieve_list(**params).results
@@ -542,7 +553,9 @@ def list_software_builds(ctx, software_build_name, **params):
     entity="SoftwareBuild",
     endpoint_module=v1_builds_retrieve,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(SoftwareBuild))},
+        "include_fields": {
+            "type": click.Choice(CommunityComponentService.get_fields(SoftwareBuild))
+        },
     },
 )
 @click.pass_context
@@ -553,7 +566,7 @@ def get_software_build(ctx, software_build_name, **params):
     if not software_build_name and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if software_build_name:
         params["name"] = software_build_name
     data = session.builds.retrieve_list(**params)
@@ -563,7 +576,7 @@ def get_software_build(ctx, software_build_name, **params):
 # Products
 
 
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/products")
+@commmunity_components_grp.group(help=f"{CORGI_API_URL}/api/v1/products")
 @click.pass_context
 def products(ctx):
     pass
@@ -575,14 +588,14 @@ def products(ctx):
     entity="Product",
     endpoint_module=v1_products_list,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(Product))},
+        "include_fields": {"type": click.Choice(CommunityComponentService.get_fields(Product))},
     },
 )
 @click.pass_context
 @progress_bar
 def list_products(ctx, product_name, **params):
     """Retrieve a list of Software Builds."""
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if product_name:
         params["re_name"] = product_name
     data = session.products.retrieve_list(**params).results
@@ -601,7 +614,7 @@ def list_products(ctx, product_name, **params):
     entity="Product",
     endpoint_module=v1_products_retrieve,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(Product))},
+        "include_fields": {"type": click.Choice(CommunityComponentService.get_fields(Product))},
     },
 )
 @click.pass_context
@@ -612,7 +625,7 @@ def get_product(ctx, product_name, ofuri, **params):
     if not product_name and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if ofuri:
         params["ofuri"] = ofuri
     if product_name:
@@ -622,7 +635,7 @@ def get_product(ctx, product_name, ofuri, **params):
 
 
 # PRODUCT VERSION
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/product-versions")
+@commmunity_components_grp.group(help=f"{CORGI_API_URL}/api/v1/product-versions")
 @click.pass_context
 def product_versions(ctx):
     pass
@@ -634,14 +647,16 @@ def product_versions(ctx):
     entity="ProductVersion",
     endpoint_module=v1_product_versions_list,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(ProductVersion))},
+        "include_fields": {
+            "type": click.Choice(CommunityComponentService.get_fields(ProductVersion))
+        },
     },
 )
 @click.pass_context
 @progress_bar
 def list_product_versions(ctx, product_version_name, **params):
     """Retrieve a list of Product Versions."""
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if product_version_name:
         params["re_name"] = product_version_name
     data = session.product_versions.retrieve_list(**params).results
@@ -660,7 +675,9 @@ def list_product_versions(ctx, product_version_name, **params):
     entity="ProductVersion",
     endpoint_module=v1_product_versions_retrieve,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(ProductVersion))},
+        "include_fields": {
+            "type": click.Choice(CommunityComponentService.get_fields(ProductVersion))
+        },
     },
 )
 @click.pass_context
@@ -671,7 +688,7 @@ def get_product_version(ctx, product_version_name, ofuri, **params):
     if not product_version_name and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if ofuri:
         params["ofuri"] = ofuri
     if product_version_name:
@@ -681,7 +698,7 @@ def get_product_version(ctx, product_version_name, ofuri, **params):
 
 
 # PRODUCT VARIANT
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/product-variants")
+@commmunity_components_grp.group(help=f"{CORGI_API_URL}/api/v1/product-variants")
 @click.pass_context
 def product_variants(ctx):
     pass
@@ -693,14 +710,16 @@ def product_variants(ctx):
     entity="ProductVariant",
     endpoint_module=v1_product_variants_list,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(ProductVariant))},
+        "include_fields": {
+            "type": click.Choice(CommunityComponentService.get_fields(ProductVariant))
+        },
     },
 )
 @click.pass_context
 @progress_bar
 def list_product_variants(ctx, product_variant_name, **params):
     """Retrieve a list of Product Variants."""
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if product_variant_name:
         params["re_name"] = product_variant_name
     data = session.product_variants.retrieve_list(**params).results
@@ -719,7 +738,9 @@ def list_product_variants(ctx, product_variant_name, **params):
     entity="ProductVariant",
     endpoint_module=v1_product_variants_retrieve,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(ProductVariant))},
+        "include_fields": {
+            "type": click.Choice(CommunityComponentService.get_fields(ProductVariant))
+        },
     },
 )
 @click.pass_context
@@ -730,7 +751,7 @@ def get_product_variant(ctx, product_variant_name, ofuri, **params):
     if not product_variant_name and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if ofuri:
         params["ofuri"] = ofuri
     if product_variant_name:
@@ -740,7 +761,7 @@ def get_product_variant(ctx, product_variant_name, ofuri, **params):
 
 
 # CHANNEL
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/channels")
+@commmunity_components_grp.group(help=f"{CORGI_API_URL}/api/v1/channels")
 @click.pass_context
 def channels(ctx):
     pass
@@ -752,14 +773,14 @@ def channels(ctx):
     entity="Channel",
     endpoint_module=v1_channels_list,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(Channel))},
+        "include_fields": {"type": click.Choice(CommunityComponentService.get_fields(Channel))},
     },
 )
 @click.pass_context
 @progress_bar
 def list_channels(ctx, channel_name, **params):
     """Retrieve a list of Channels."""
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if channel_name:
         params["re_name"] = channel_name
     data = session.channels.retrieve_list(**params).results
@@ -778,7 +799,7 @@ def list_channels(ctx, channel_name, **params):
     entity="Channel",
     endpoint_module=v1_channels_retrieve,
     options_overrides={
-        "include_fields": {"type": click.Choice(CorgiService.get_fields(Channel))},
+        "include_fields": {"type": click.Choice(CommunityComponentService.get_fields(Channel))},
     },
 )
 @click.pass_context
@@ -789,7 +810,7 @@ def get_channel(ctx, channel_name, ofuri, **params):
     if not channel_name and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     if ofuri:
         params["ofuri"] = ofuri
     if channel_name:
@@ -799,7 +820,7 @@ def get_channel(ctx, channel_name, ofuri, **params):
 
 
 # ADMIN
-@corgi_grp.group(name="admin")
+@commmunity_components_grp.group(name="admin")
 @click.pass_context
 def manage_grp(ctx):
     """Manage component registry"""
@@ -809,7 +830,7 @@ def manage_grp(ctx):
 @manage_grp.command(name="status")
 @click.pass_context
 def corgi_status(ctx):
-    session = CorgiService.create_session()
+    session = CommunityComponentService.create_session()
     data = session.status()
     return cprint(data.additional_properties, ctx=ctx)
 
@@ -818,7 +839,7 @@ def corgi_status(ctx):
 @click.pass_context
 def corgi_health(ctx):
     try:
-        session = CorgiService.create_session()
+        session = CommunityComponentService.create_session()
         status = session.status()["status"]
         if status == "ok":
             console.log(f"{CORGI_API_URL} is operational")

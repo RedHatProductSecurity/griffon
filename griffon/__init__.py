@@ -27,6 +27,11 @@ OSIDB_USERNAME = os.getenv("OSIDB_USERNAME", "")
 OSIDB_PASSWORD = os.getenv("OSIDB_PASSWORD", "")
 OSIDB_AUTH_METHOD = os.getenv("OSIDB_AUTH_METHOD", "kerberos")
 
+# required to enable --search-community
+COMMUNITY_COMPONENTS_API_URL = os.getenv(
+    "COMMUNITY_COMPONENTS_API_URL", "https://component-registry.fedoraproject.org/"
+)
+
 GRIFFON_CONFIG_DIR = os.getenv("GRIFFON_API_URL", "~/.griffon")
 GRIFFON_RC_FILE = "~/.griffonrc"
 GRIFFON_DEFAULT_LOG_FILE = os.getenv("GRIFFON_DEFAULT_LOG_FILE", "~/.griffon/history.log")
@@ -238,6 +243,70 @@ class OSIDBService:
             fields.extend(
                 OSIDBService.get_meta_attr_fields(related_model, prefix=f"{prefix}{name}.")
             )
+
+        return fields
+
+
+class CommunityComponentService:
+    name = "community-component-registry"
+    description = "Red Hat component registry"
+    has_binding = True
+
+    @staticmethod
+    def create_session():
+        """init corgi session"""
+        try:
+            return component_registry_bindings.new_session(
+                component_registry_server_uri=COMMUNITY_COMPONENTS_API_URL
+            )
+        except:  # noqa
+            console.log(f"{COMMUNITY_COMPONENTS_API_URL} is not accessible.")
+            exit(1)
+
+    @staticmethod
+    def get_component_types():
+        """get component type enum"""
+        return (
+            component_registry_bindings.bindings.python_client.models.component_type_enum.ComponentTypeEnum  # noqa
+        )
+
+    @staticmethod
+    def get_component_namespaces():
+        """get component namespaces enum"""
+        return (
+            component_registry_bindings.bindings.python_client.models.namespace_enum.NamespaceEnum
+        )
+
+    @staticmethod
+    def get_component_arches():
+        """get component arch enum"""
+        return [
+            "src",
+            "noarch",
+            "i386",
+            "ia64",
+            "s390",
+            "x86_64",
+            "s390x",
+            "ppc",
+            "ppc64",
+            "aarch64",
+            "ppc64le",
+        ]
+
+    @staticmethod
+    def get_fields(model, prefix=""):
+        """
+        get model fields and fields of its related models with
+        respective prefixes using dot notation
+
+        eg. field, related_model.field, related_model_1.related_model2.field
+        """
+
+        # get rid of the self attribute
+        fields = [f"{prefix}{field}" for field in model.get_fields().keys()]
+        for name, related_model in RELATED_MODELS_MAPPING.get(model, {}).items():
+            fields.extend(CorgiService.get_fields(related_model, prefix=f"{prefix}{name}."))
 
         return fields
 

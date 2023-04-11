@@ -24,38 +24,39 @@ griffon service products-contain-component --purl "pkg:rpm/curl@7.29.0"
 griffon service products-contain-component webkitgtk --search-related-url --search-latest --search-all
 
 griffon service component-summary curl
+griffon service products-contain-component --search-community --search-all curl
 
 # reports
 griffon service report-affects
 
 # products
-griffon entities CORGI product-streams get pipelines-1.6.2
-griffon entities CORGI product-streams list ansible
-griffon entities CORGI products list --limit 1000
-griffon entities CORGI product-versions list ansible
+griffon entities component-registry product-streams get pipelines-1.6.2
+griffon entities component-registry product-streams list ansible
+griffon entities component-registry products list --limit 1000
+griffon entities component-registry product-versions list ansible
 
 
 # components
-griffon entities CORGI components list curl
-griffon entities CORGI components list curl --namespace UPSTREAM
-griffon entities CORGI components get --purl "pkg:rpm/redhat/vim@8.2.2637-16.el9_0.3?arch=src&epoch=2"
-griffon entities CORGI components manifest --purl "pkg:rpm/curl@7.76.1"
-griffon entities CORGI components list --ofuri o:redhat:ansible_automation_platform:2.2 --type OCI
-griffon --format text entities CORGI components list curl
+griffon entities component-registry components list curl
+griffon entities component-registry components list curl --namespace UPSTREAM
+griffon entities component-registry components get --purl "pkg:rpm/redhat/vim@8.2.2637-16.el9_0.3?arch=src&epoch=2"
+griffon entities component-registry components manifest --purl "pkg:rpm/curl@7.76.1"
+griffon entities component-registry components list --ofuri o:redhat:ansible_automation_platform:2.2 --type OCI
+griffon --format text entities component-registry components list curl
 
 # flaws
-griffon entities OSIDB flaws get --id CVE-2023-25166
-griffon entities OSIDB flaws list --state NEW --impact CRITICAL
+griffon entities osidb flaws get --id CVE-2023-25166
+griffon entities osidb flaws list --state NEW --impact CRITICAL
 
 # affects
-griffon entities OSIDB affects list --affectedness AFFECTED --impact CRITICAL
+griffon entities osidb affects list --affectedness AFFECTED --impact CRITICAL
 
 # trackers
-griffon entities OSIDB trackers list --help
+griffon entities osidb trackers list --help
 
 # manage
-griffon entities CORGI admin health
-griffon entities OSIDB admin health
+griffon entities component-registry admin health
+griffon entities osidb admin health
 
 # plugins
 griffon plugins go_vuln get --cve-id CVE-2018-16873
