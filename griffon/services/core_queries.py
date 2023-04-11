@@ -206,6 +206,7 @@ class products_containing_component_query:
             # Note: related_url filter has no concept of strict
             params = {
                 "include_fields": "name,arch,release,version,nvr,type,link,software_build,product_versions,product_streams,sources,upstreams,namespace,purl",  # noqa
+                "arch": "src",
                 "related_url": self.component_name,
             }
             params["namespace"] = "REDHAT"
@@ -226,6 +227,18 @@ class products_containing_component_query:
                                 limit=120,  # noqa
                             )
                         )
+                    params["arch"] = "noarch"
+                    component_cnt = self.corgi_session.components.retrieve_list(**params).count
+                    for batch in range(0, component_cnt, 120):
+                        futures.append(
+                            executor.submit(
+                                self.corgi_session.components.retrieve_list,
+                                **params,
+                                offset=batch,
+                                limit=120,  # noqa
+                            )
+                        )
+
                     for future in concurrent.futures.as_completed(futures):
                         try:
                             components.extend(future.result().results)
