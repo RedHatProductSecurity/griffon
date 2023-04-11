@@ -9,7 +9,13 @@ from typing import Any, Dict, List
 
 from component_registry_bindings.bindings.python_client.models import Component
 
-from griffon import CORGI_API_URL, OSIDB_API_URL, CorgiService, OSIDBService
+from griffon import (
+    CORGI_API_URL,
+    OSIDB_API_URL,
+    CommunityComponentService,
+    CorgiService,
+    OSIDBService,
+)
 
 logger = logging.getLogger("griffon")
 
@@ -488,6 +494,89 @@ class products_containing_component_query:
                             break
 
             results = filtered_results
+
+        if self.search_community:
+            self.community_session = CommunityComponentService.create_session()
+
+            params = {
+                "include_fields": "name,arch,release,version,nvr,type,link,software_build,product_versions,product_streams,sources,upstreams,namespace,purl",  # noqa
+                "arch": "src",
+            }
+            if not self.strict_name_search:
+                params["re_name"] = self.component_name
+            else:
+                params["name"] = self.component_name
+
+            if self.component_type:
+                params["type"] = self.component_type
+
+            component_cnt = self.community_session.components.retrieve_list(**params).count
+            if component_cnt < 3000000:
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    futures = []
+                    components = list()
+                    for batch in range(0, component_cnt, 100):
+                        futures.append(
+                            executor.submit(
+                                self.community_session.components.retrieve_list,
+                                **params,
+                                offset=batch,
+                                limit=100,  # noqa
+                            )
+                        )
+                    params["arch"] = "noarch"
+                    component_cnt = self.corgi_session.components.retrieve_list(**params).count
+                    for batch in range(0, component_cnt, 120):
+                        futures.append(
+                            executor.submit(
+                                self.community_session.components.retrieve_list,
+                                **params,
+                                offset=batch,
+                                limit=120,  # noqa
+                            )
+                        )
+                    for future in concurrent.futures.as_completed(futures):
+                        try:
+                            components.extend(future.result().results)
+                        except Exception as exc:
+                            logger.warning("%r generated an exception: %s" % (future, exc))
+
+                    for c in components:
+                        for pv in c.product_versions:
+                            for ps in c.product_streams:
+                                is_dep = False
+                                if c.arch == "src" or c.arch == "noarch":
+                                    is_dep = True
+                                component = {
+                                    "is_dep": is_dep,
+                                    "product_version": pv["name"],
+                                    "product_version_ofuri": pv["ofuri"],
+                                    "product_stream": ps["name"],
+                                    "product_stream_ofuri": ps["ofuri"],
+                                    "product_active": True,
+                                    "purl": c.purl,
+                                    "type": c.type,
+                                    "namespace": c.namespace,
+                                    "name": c.name,
+                                    "arch": c.arch,
+                                    "release": c.release,
+                                    "version": c.version,
+                                    "sources": c.sources,
+                                    "nvr": c.nvr,
+                                    "build_id": None,
+                                    "build_type": None,
+                                    "build_source_url": None,
+                                    "related_url": None,
+                                    "upstream_purl": None,
+                                }
+                                if c.software_build:
+                                    component["build_id"] = c.software_build.build_id
+                                    component["build_type"] = c.software_build.build_type
+                                    component["build_name"] = c.software_build.name
+                                    component["build_source_url"] = c.software_build.source
+                                if c.upstreams:
+                                    component["upstream_purl"] = c.upstreams[0]["purl"]
+                                results.append(component)
 
         return results
 
