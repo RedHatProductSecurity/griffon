@@ -203,8 +203,9 @@ class products_containing_component_query:
                 results = [result for result in results if result.type == self.component_type]
 
         if self.search_related_url:
+            # Note: related_url filter has no concept of strict
             params = {
-                "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
+                "include_fields": "name,arch,release,version,nvr,type,link,software_build,product_versions,product_streams,sources,upstreams,namespace,purl",  # noqa
                 "related_url": self.component_name,
             }
             params["namespace"] = "REDHAT"
@@ -232,6 +233,9 @@ class products_containing_component_query:
                             logger.warning("%r generated an exception: %s" % (future, exc))
 
                     for c in components:
+                        if self.strict_name_search:
+                            if c.name != self.component_name:
+                                continue
                         for pv in c.product_versions:
                             for ps in c.product_streams:
                                 is_dep = False
@@ -269,9 +273,9 @@ class products_containing_component_query:
                                 results.append(component)
 
         if self.search_all:
-            # TODO - not in bindings yet
             params = {
-                "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
+                "include_fields": "name,arch,release,version,nvr,type,link,software_build,product_versions,product_streams,sources,upstreams,namespace,purl",  # noqa
+                "arch": "src",
             }
             if not self.strict_name_search:
                 params["re_name"] = self.component_name
@@ -293,6 +297,17 @@ class products_containing_component_query:
                                 **params,
                                 offset=batch,
                                 limit=100,  # noqa
+                            )
+                        )
+                    params["arch"] = "noarch"
+                    component_cnt = self.corgi_session.components.retrieve_list(**params).count
+                    for batch in range(0, component_cnt, 120):
+                        futures.append(
+                            executor.submit(
+                                self.corgi_session.components.retrieve_list,
+                                **params,
+                                offset=batch,
+                                limit=120,  # noqa
                             )
                         )
                     for future in concurrent.futures.as_completed(futures):
@@ -339,9 +354,11 @@ class products_containing_component_query:
                                 results.append(component)
 
         if self.search_upstreams:
-            # TODO - not in bindings yet
+            # Note: upstreams only takes a purl ... so we must use re_upstreams for
+            # both strict and not strict search
             params = params = {
-                "include_fields": "name,arch,namespace,release,version,nvr,type,link,purl,software_build,product_versions,product_streams,sources,upstreams",  # noqa
+                "include_fields": "name,arch,release,version,nvr,type,link,software_build,product_versions,product_streams,sources,upstreams,namespace,purl",  # noqa
+                "arch": "src",
                 "re_upstreams": self.component_name,
             }
             if self.component_type:
@@ -350,6 +367,7 @@ class products_containing_component_query:
             component_cnt = self.corgi_session.components.retrieve_list(**params).count
             if component_cnt < 3000000:
                 with concurrent.futures.ThreadPoolExecutor() as executor:
+                    # search src and noarch
                     futures = []
                     components = list()
                     for batch in range(0, component_cnt, 120):
@@ -361,6 +379,18 @@ class products_containing_component_query:
                                 limit=120,  # noqa
                             )
                         )
+                    params["arch"] = "noarch"
+                    component_cnt = self.corgi_session.components.retrieve_list(**params).count
+                    for batch in range(0, component_cnt, 120):
+                        futures.append(
+                            executor.submit(
+                                self.corgi_session.components.retrieve_list,
+                                **params,
+                                offset=batch,
+                                limit=120,  # noqa
+                            )
+                        )
+
                     for future in concurrent.futures.as_completed(futures):
                         try:
                             components.extend(future.result().results)
@@ -368,6 +398,9 @@ class products_containing_component_query:
                             logger.warning("%r generated an exception: %s" % (future, exc))
 
                     for c in components:
+                        if self.strict_name_search:
+                            if c.name != self.component_name:
+                                continue
                         for pv in c.product_versions:
                             for ps in c.product_streams:
                                 is_dep = False
