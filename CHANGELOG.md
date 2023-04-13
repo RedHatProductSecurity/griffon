@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.18] - 2023-04-13
+### Changed
+- refactored service flaw related operations to take advantage of faster filters
+
 ## [0.1.17] - 2023-04-11
 ### Added
 - enable griffon service products-contains-component --search-community
