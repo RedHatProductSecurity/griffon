@@ -433,29 +433,38 @@ def text_output_components_affected_by_cve(ctx, output, format):
     console.print(
         "affects:",
     )
-    ordered_affects = sorted(output["affects"], key=lambda d: d["product_version_name"])
-    for affect in ordered_affects:
-        if "components" in affect:
-            for component in affect["components"]:
-                affected_component1 = f"({component['purl']})"
-                if not ctx.obj["SHOW_PURL"]:
-                    purl = PackageURL.from_string(component["purl"])
-                    ns = "UPSTREAM"
-                    if purl.namespace:
-                        ns = purl.namespace.upper()
-                    affected_component1 = f"([bold cyan]{ns}[/bold cyan] {purl.name}-{purl.version},{purl.type.upper()})"  # noqa
-                    if ctx.obj["VERBOSE"] == 0:
-                        console.print(
-                            ns,
-                            affected_component1,
-                            no_wrap=True,
-                        )
-                    if ctx.obj["VERBOSE"] == 1:
-                        console.print(
-                            ns,
-                            affected_component1,
-                            no_wrap=True,
-                        )
+    for component in output["components"]:
+        affected_component1 = f"({component['purl']})"
+        if not ctx.obj["SHOW_PURL"]:
+            purl = PackageURL.from_string(component["purl"])
+            ns = "UPSTREAM"
+            if purl.namespace:
+                ns = purl.namespace.upper()
+            affected_component = f"([bold cyan]{ns}[/bold cyan] {purl.name}-{purl.version},{purl.type.upper()})"  # noqa
+            if ctx.obj["VERBOSE"] == 0:
+                console.print(
+                    Text(component["product_version"], style="bold magenta u"),
+                    ns,
+                    affected_component1,
+                    no_wrap=False,
+                )
+            if ctx.obj["VERBOSE"] == 1:
+                console.print(
+                    Text(component["product_stream"], style="bold magenta u"),
+                    ns,
+                    affected_component1,
+                    no_wrap=False,
+                )
+            if ctx.obj["VERBOSE"] > 1:
+                console.print(
+                    Text(component["product_stream"], style="bold magenta u"),
+                    ns,
+                    affected_component1,
+                    Text(component["build_source_url"], style="i"),
+                    Text(component["related_url"], style="i"),
+                    Text(component["download_url"], style="i"),
+                    no_wrap=False,
+                )
     ctx.exit()
 
 
@@ -463,21 +472,20 @@ def text_output_products_affected_by_cve(ctx, output, format, exclude_products):
     console.print("[white]link:[/white]", output["link"])
     console.print("[white]cve_id:[/white]", output["cve_id"])
     console.print("[white]title:[/white]", output["title"])
-    console.print(
-        "[white]product_versions:[/white]",
-    )
     if ctx.obj["VERBOSE"] == 0:
-        ordered_product_versions = sorted(output["product_versions"], key=lambda d: d["name"])
+        console.print(
+            "[white]product_versions:[/white]",
+        )
+        ordered_product_versions = sorted(output["product_versions"])
         for product_version in ordered_product_versions:
-            console.print(Text(product_version["name"], style="bold magenta u"), no_wrap=True)
+            console.print(Text(product_version, style="bold magenta u"), no_wrap=True)
     if ctx.obj["VERBOSE"] > 0:
-        ordered_affects = sorted(output["affects"], key=lambda d: d["product_version_name"])
-        for affect in ordered_affects:
-            console.print(
-                Text(affect["product_version_name"], style="bold magenta u"),
-                affect["component_name"],
-                no_wrap=True,
-            )
+        console.print(
+            "[white]product_streams:[/white]",
+        )
+        ordered_product_streams = sorted(output["product_streams"])
+        for product_stream in ordered_product_streams:
+            console.print(Text(product_stream, style="bold magenta u"), no_wrap=True)
     ctx.exit()
 
 
@@ -518,6 +526,7 @@ def text_output_component_flaws(ctx, output, format):
                 console.print(
                     Text(flaw_cve_id, style="magenta"),
                     Text(component_name, style="white"),
+                    Text(affect["affect_product_version"], style="cyan"),
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
@@ -527,8 +536,8 @@ def text_output_component_flaws(ctx, output, format):
                 console.print(
                     Text(flaw_cve_id, style="magenta"),
                     Text(component_name, style="white"),
-                    f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
                     Text(affect["affect_product_version"], style="cyan"),
+                    f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
@@ -538,8 +547,8 @@ def text_output_component_flaws(ctx, output, format):
                 console.print(Text(affect["title"], style="white"))
                 console.print(
                     Text(component_name, style="magenta"),
-                    f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
                     Text(affect["affect_product_version"], style="cyan"),
+                    f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
@@ -552,11 +561,14 @@ def text_output_product_flaws(ctx, output, format):
     for item in output["results"]:
         component_name = item["name"]
         for affect in item["affects"]:
+            flaw_cve_id = "Vulnerability"
+            if affect["flaw_cve_id"]:
+                flaw_cve_id = affect["flaw_cve_id"]
             if ctx.obj["VERBOSE"] == 0:
                 console.print(
-                    Text(affect["flaw_cve_id"], style="magenta"),
+                    Text(flaw_cve_id, style="magenta"),
                     Text(component_name, style="white"),
-                    affect["affect_name"],
+                    affect["affect_component_name"],
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
@@ -564,10 +576,10 @@ def text_output_product_flaws(ctx, output, format):
                 )
             if ctx.obj["VERBOSE"] == 1:
                 console.print(
-                    Text(affect["flaw_cve_id"], style="magenta"),
+                    Text(flaw_cve_id, style="magenta"),
                     Text(component_name, style="white"),
                     f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
-                    affect["affect_name"],
+                    affect["affect_component_name"],
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
@@ -576,9 +588,10 @@ def text_output_product_flaws(ctx, output, format):
             if ctx.obj["VERBOSE"] > 1:
                 console.print(affect["title"])
                 console.print(
+                    Text(flaw_cve_id, style="magenta"),
                     Text(component_name, style="white"),
                     f"(state: {affect['flaw_state']} resolution:{affect['flaw_resolution']})",
-                    affect["affect_name"],
+                    affect["affect_component_name"],
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
@@ -751,7 +764,6 @@ def cprint(
     format = OUTPUT_FORMAT.JSON
     if ctx and "FORMAT" in ctx.obj:
         format = OUTPUT_FORMAT(ctx.obj["FORMAT"])
-
     if format is OUTPUT_FORMAT.TEXT:
         if ctx.info_name == "product-summary":
             text_output_product_summary(ctx, output, format, exclude_products)
@@ -759,9 +771,9 @@ def cprint(
             text_output_products_contain_component(ctx, output, format, exclude_products)
         if ctx.info_name == "components-contain-component":
             text_output_components_contain_component(ctx, output, format)
-        if ctx.info_name == "components-affected-by-cve":
+        if ctx.info_name == "components-affected-by-flaw":
             text_output_components_affected_by_cve(ctx, output, format)
-        if ctx.info_name == "products-affected-by-cve":
+        if ctx.info_name == "products-affected-by-flaw":
             text_output_products_affected_by_cve(ctx, output, format, exclude_products)
         if ctx.info_name == "get-manifest":
             text_output_get_manifest(ctx, output, format)

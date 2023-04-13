@@ -717,6 +717,7 @@ def cves_for_specific_component_query(
     help="Strict search, exact match of component name.",
 )
 @click.pass_context
+@progress_bar
 def cves_for_specific_product_query(
     ctx,
     product_version_name,

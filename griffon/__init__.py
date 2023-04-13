@@ -29,7 +29,7 @@ OSIDB_AUTH_METHOD = os.getenv("OSIDB_AUTH_METHOD", "kerberos")
 
 # required to enable --search-community
 COMMUNITY_COMPONENTS_API_URL = os.getenv(
-    "COMMUNITY_COMPONENTS_API_URL", "https://component-registry.fedoraproject.org/"
+    "COMMUNITY_COMPONENTS_API_URL", "https://component-registry.fedoraproject.org"
 )
 
 GRIFFON_CONFIG_DIR = os.getenv("GRIFFON_API_URL", "~/.griffon")

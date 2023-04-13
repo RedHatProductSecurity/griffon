@@ -7,9 +7,11 @@ import logging
 import re
 from typing import Any, Dict, List
 
+import requests
 from component_registry_bindings.bindings.python_client.models import Component
 
 from griffon import (
+    COMMUNITY_COMPONENTS_API_URL,
     CORGI_API_URL,
     OSIDB_API_URL,
     CommunityComponentService,
@@ -94,34 +96,64 @@ class products_versions_affected_by_specific_cve_query:
 
     def __init__(self, params: dict) -> None:
         self.osidb_session = OSIDBService.create_session()
+        self.corgi_session = CorgiService.create_session()
         self.params = params
+        self.cve_id = self.params.get("cve_id")
+        self.affectedness = self.params.get("affectedness")
+        self.affect_resolution = self.params.get("affect_resolution")
+        self.affect_impact = self.params.get("affect_impact")
+        self.component_type = self.params.get("component_type")
+        self.namespace = self.params.get("namespace")
 
     def execute(self) -> dict:
-        cve_id = self.params["cve_id"]
-        flaw = self.osidb_session.flaws.retrieve(cve_id)
-        affects = list()
-        pv_names = list()
-        for affect in flaw.affects:
-            pv_names.append(affect.ps_module)
-            affects.append(
-                {"component_name": affect.ps_component, "product_version_name": affect.ps_module}
-            )
-        pv_names = list(set(pv_names))
-        product_versions = list()
-        for pv_name in pv_names:
-            product_versions.append(
-                {
-                    "link": f"{CORGI_API_URL}/api/v1/product_versions?name={pv_name}",
-                    "name": pv_name,
-                }
-            )
+        cond = {}
+        if self.affectedness:
+            cond["affectedness"] = self.affectedness
+        if self.affect_resolution:
+            cond["resolution"] = self.affect_resolution
+        if self.affect_impact:
+            cond["impact"] = self.affect_impact
+
+        component_cond = {}
+        if self.namespace:
+            component_cond["namespace"] = self.namespace
+        if self.component_type:
+            component_cond["type"] = self.component_type
+
+        flaw = self.osidb_session.flaws.retrieve(self.cve_id)
+        affects = flaw.affects
+        results = list()
+        product_versions = set()
+        product_streams = set()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = []
+            for affect in affects:
+                futures.append(
+                    executor.submit(
+                        self.corgi_session.components.retrieve_list,
+                        name=affect.ps_component,
+                        view="latest",
+                    )
+                )
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    for c in future.result().results:
+                        results.append(c.to_dict())
+                except Exception as exc:
+                    logger.error("%r generated an exception: %s" % (future, exc))
+                    exit(0)
+
+            for c in results:
+                product_streams.add(c["product_stream"])
+                product_versions.add(c["product_version"])
         return {
-            "link": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{cve_id}",
-            "cve_id": cve_id,
+            "link": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
+            "cve_id": flaw.cve_id,
             "title": flaw.title,
             "description": flaw.description,
-            "product_versions": product_versions,
-            "affects": affects,
+            "product_versions": sorted(list(product_versions)),
+            "product_streams": sorted(list(product_streams)),
+            # "components": results,
         }
 
 
@@ -747,59 +779,32 @@ class components_affected_by_specific_cve_query:
             component_cond["type"] = self.component_type
 
         flaw = self.osidb_session.flaws.retrieve(self.cve_id)
-        affects = self.osidb_session.affects.retrieve_list(
-            flaw=flaw.uuid, **cond, limit=1000
-        ).results
+        affects = flaw.affects
         results = list()
-        for affect in affects:
-            try:
-                product_version = self.corgi_session.product_versions.retrieve_list(
-                    name=affect.ps_module
-                ).results[0]
-                components = []
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    futures = []
-                    for ps in product_version.product_streams:
-                        futures.append(
-                            executor.submit(
-                                self.corgi_session.components.retrieve_list,
-                                **component_cond,
-                                ofuri=ps["ofuri"],
-                                name=affect.ps_component,
-                                include_fields="link,purl,name,type",
-                                limit=50000,
-                            )
-                        )
-                    for future in concurrent.futures.as_completed(futures):
-                        try:
-                            for c in future.result().results:
-                                components.append(c.to_dict())
-                        except Exception as exc:
-                            logger.error("%r generated an exception: %s" % (future, exc))
-                            exit(0)
-
-                results.append(
-                    {
-                        "link": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect.uuid}",
-                        "product_version_name": affect.ps_module,
-                        "component_name": affect.ps_component,
-                        "affectedness": affect.affectedness,
-                        "affect_impact": affect.impact,
-                        "affect_resolution": affect.resolution,
-                        "components": components,
-                    }
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = []
+            for affect in affects:
+                futures.append(
+                    executor.submit(
+                        self.corgi_session.components.retrieve_list,
+                        name=affect.ps_component,
+                        view="latest",
+                    )
                 )
-            except IndexError:
-                logger.warning(
-                    f"{affect.ps_module} product stream not found in component-registry (may not exist or a community product)."  # noqa
-                )
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    for c in future.result().results:
+                        results.append(c.to_dict())
+                except Exception as exc:
+                    logger.error("%r generated an exception: %s" % (future, exc))
+                    exit(0)
 
         return {
             "link": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
             "cve_id": flaw.cve_id,
             "title": flaw.title,
             "description": flaw.description,
-            "affects": results,
+            "components": results,
         }
 
 
@@ -838,44 +843,80 @@ class cves_for_specific_component_query:
         components = []
         if self.component_name:
             affects: list = []
-            # component = self.corgi_session.components.retrieve_list(name=self.component_name)
-            cond = {}
-            cond["ps_component"] = self.component_name
+            params = {
+                "include_fields": "cve_id,title,state,resolution,impact,affects",
+            }
+            params["affects__ps_component"] = self.component_name
+            if self.flaw_state:
+                params["state"] = self.flaw_state
+            if self.flaw_resolution:
+                params["resolution"] = self.flaw_resolution
+            if self.flaw_impact:
+                params["impact"] = self.flaw_impact
             if self.affectedness:
-                cond["affectedness"] = self.affectedness
+                params["affects__affectedness"] = self.affectedness
             if self.affect_resolution:
-                cond["resolution"] = self.affect_resolution
+                params["affects__resolution"] = self.affect_resolution
             if self.affect_impact:
-                cond["impact"] = self.affect_impact
+                params["affects__impact"] = self.affect_impact
 
-            for affect in self.osidb_session.affects.retrieve_list(
-                **cond,
-                limit=1000,
-            ).results:
-                flaw = self.osidb_session.flaws.retrieve(affect.flaw)
-                if flaw:
-                    affects.append(
-                        {
-                            "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect.uuid}",  # noqa
-                            "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
-                            "flaw_cve_id": flaw.cve_id,
-                            "title": flaw.title,
-                            "flaw_state": flaw.state,
-                            "flaw_resolution": flaw.resolution,
-                            "affect_name": affect.ps_component,
-                            "affect_product_version": affect.ps_module,
-                            "affect_affectedness": affect.affectedness,
-                            "affect_impact": affect.impact,
-                            "affect_resolution": affect.resolution,
-                        }
+            res = requests.get(f"{OSIDB_API_URL}/osidb/api/v1/flaws", params=params)
+            flaws = res.json()
+            flaws_cnt = int(flaws["count"])
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = []
+                flaws = list()
+                for batch in range(0, flaws_cnt, 75):
+                    params["offset"] = batch  # type: ignore
+                    params["limit"] = 75  # type: ignore
+                    futures.append(
+                        executor.submit(
+                            requests.get,
+                            f"{OSIDB_API_URL}/osidb/api/v1/flaws",
+                            params=params,
+                        )
                     )
-            components.append(
-                {
-                    "link": f"{CORGI_API_URL}/api/v1/components?purl=",
-                    "name": self.component_name,
-                    "affects": affects,
-                }
-            )
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        flaws.extend(future.result().json()["results"])
+                    except Exception as exc:
+                        logger.warning("%r generated an exception: %s" % (future, exc))
+
+                for flaw in flaws:
+                    for affect in flaw["affects"]:
+                        if self.affectedness:
+                            if self.affectedness != affect["affectedness"]:
+                                continue
+                        if self.affect_resolution:
+                            if self.affect_resolution != affect["resolution"]:
+                                continue
+                        if self.affect_impact:
+                            if self.affect_impact != affect["impact"]:
+                                continue
+                        affects.append(
+                            {
+                                "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect['uuid']}",  # noqa
+                                "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw['cve_id']}",  # noqa
+                                "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect['ps_component']}&view=latest",  # noqa
+                                "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect['ps_component']}&view=latest",  # noqa
+                                "flaw_cve_id": flaw["cve_id"],
+                                "title": flaw["title"],
+                                "flaw_state": flaw["state"],
+                                "flaw_resolution": flaw["resolution"],
+                                "affect_component_name": affect["ps_component"],
+                                "affect_product_version": affect["ps_module"],
+                                "affect_affectedness": affect["affectedness"],
+                                "affect_impact": affect["impact"],
+                                "affect_resolution": affect["resolution"],
+                            }
+                        )
+                components.append(
+                    {
+                        "link": f"{CORGI_API_URL}/api/v1/components?name={self.component_name}",
+                        "name": self.component_name,
+                        "affects": affects,
+                    }
+                )
 
         if self.purl:
             pass
@@ -915,46 +956,79 @@ class cves_for_specific_product_query:
         components = []
         if self.product_version_name:
             affects: list = []
-            # component = self.corgi_session.components.retrieve_list(name=self.component_name)
-            cond = {}
-            cond["ps_module"] = self.product_version_name
+            params = {
+                "include_fields": "cve_id,title,state,resolution,impact,affects",
+            }
+            params["affects__ps_module"] = self.product_version_name
+            if self.flaw_state:
+                params["state"] = self.flaw_state
+            if self.flaw_resolution:
+                params["resolution"] = self.flaw_resolution
+            if self.flaw_impact:
+                params["impact"] = self.flaw_impact
             if self.affectedness:
-                cond["affectedness"] = self.affectedness
+                params["affects__affectedness"] = self.affectedness
             if self.affect_resolution:
-                cond["resolution"] = self.affect_resolution
+                params["affects__resolution"] = self.affect_resolution
             if self.affect_impact:
-                cond["impact"] = self.affect_impact
+                params["affects__impact"] = self.affect_impact
 
-            for affect in self.osidb_session.affects.retrieve_list(
-                **cond,
-                limit=1000,
-            ).results:
-                flaw = self.osidb_session.flaws.retrieve(affect.flaw)
-                if flaw:
-                    affects.append(
-                        {
-                            "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect.uuid}",  # noqa
-                            "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
-                            "flaw_cve_id": flaw.cve_id,
-                            "title": flaw.title,
-                            "flaw_state": flaw.state,
-                            "flaw_resolution": flaw.resolution,
-                            "affect_name": affect.ps_component,
-                            "affect_product_version": affect.ps_module,
-                            "affect_affectedness": affect.affectedness,
-                            "affect_impact": affect.impact,
-                            "affect_resolution": affect.resolution,
-                        }
+            res = requests.get(f"{OSIDB_API_URL}/osidb/api/v1/flaws", params=params)
+            flaws = res.json()
+            flaws_cnt = int(flaws["count"])
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = []
+                flaws = list()
+                for batch in range(0, flaws_cnt, 75):
+                    params["offset"] = batch  # type: ignore
+                    params["limit"] = 75  # type: ignore
+                    futures.append(
+                        executor.submit(
+                            requests.get,
+                            f"{OSIDB_API_URL}/osidb/api/v1/flaws",
+                            params=params,
+                        )
                     )
-            components.append(
-                {
-                    "link": f"{CORGI_API_URL}/api/v1/product_version?ofuri=",
-                    "name": self.product_version_name,
-                    "affects": affects,
-                }
-            )
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        flaws.extend(future.result().json()["results"])
+                    except Exception as exc:
+                        logger.warning("%r generated an exception: %s" % (future, exc))
 
-        if self.ofuri:
-            pass
+                for flaw in flaws:
+                    for affect in flaw["affects"]:
+                        if self.affectedness:
+                            if self.affectedness != affect["affectedness"]:
+                                continue
+                        if self.affect_resolution:
+                            if self.affect_resolution != affect["resolution"]:
+                                continue
+                        if self.affect_impact:
+                            if self.affect_impact != affect["impact"]:
+                                continue
+                        affects.append(
+                            {
+                                "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect['uuid']}",  # noqa
+                                "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw['cve_id']}",  # noqa
+                                "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect['ps_component']}&view=latest",  # noqa
+                                "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect['ps_component']}&view=latest",  # noqa
+                                "flaw_cve_id": flaw["cve_id"],
+                                "title": flaw["title"],
+                                "flaw_state": flaw["state"],
+                                "flaw_resolution": flaw["resolution"],
+                                "affect_component_name": affect["ps_component"],
+                                "affect_product_version": affect["ps_module"],
+                                "affect_affectedness": affect["affectedness"],
+                                "affect_impact": affect["impact"],
+                                "affect_resolution": affect["resolution"],
+                            }
+                        )
+                components.append(
+                    {
+                        "link": f"{CORGI_API_URL}/api/v1/product_versions?name={self.product_version_name}",  # noqa
+                        "name": self.product_version_name,
+                        "affects": affects,
+                    }
+                )
 
         return components
