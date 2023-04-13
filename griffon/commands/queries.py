@@ -192,7 +192,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "--filter-rh-naming",
     is_flag=True,
     default=False,
-    help="Filter rh naming (\033[1menabled by default\033[0m).",
+    help="Filter rh naming.",
 )
 @click.option(
     "--search-all",
@@ -206,7 +206,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "search_community",
     is_flag=True,
     default=False,
-    help="Search community Components (\033[1mNot Implemented\033[0m).",
+    help="Search community Components.",
 )
 @click.option(
     "--search-upstreams",
@@ -717,6 +717,7 @@ def cves_for_specific_component_query(
     help="Strict search, exact match of component name.",
 )
 @click.pass_context
+@progress_bar
 def cves_for_specific_product_query(
     ctx,
     product_version_name,
