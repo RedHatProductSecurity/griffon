@@ -6,6 +6,7 @@ import concurrent.futures
 import logging
 
 import click
+import requests
 from component_registry_bindings.bindings.python_client.api.v1 import (
     v1_builds_list,
     v1_builds_retrieve,
@@ -493,6 +494,7 @@ def get_product_stream_components(ctx, product_stream_name, ofuri, **params):
     help="Generate spdx manifest (json).",
 )
 @click.pass_context
+@progress_bar
 def get_product_stream_manifest(ctx, product_stream_name, ofuri, spdx_json_format):
     """Retrieve Product Stream manifest."""
     if not ofuri and not product_stream_name:
@@ -502,14 +504,15 @@ def get_product_stream_manifest(ctx, product_stream_name, ofuri, spdx_json_forma
     if spdx_json_format:
         ctx.ensure_object(dict)
         ctx.obj["FORMAT"] = "json"  # TODO - investigate if we need yaml format.
-    pv = None
+    ps = None
     if ofuri:
-        pv = session.product_streams.retrieve_list(ofuri=ofuri).additional_properties
+        ps = session.product_streams.retrieve_list(ofuri=ofuri).additional_properties
     if product_stream_name:
-        pv = session.product_streams.retrieve_list(name=product_stream_name).additional_properties
-    if pv:
-        data = session.product_streams.retrieve_manifest(pv["uuid"])
-        return cprint(data, ctx=ctx)
+        ps = session.product_streams.retrieve_list(name=product_stream_name).additional_properties
+    if not ps:
+        logger.warning("could not find active product stream.")
+    data = requests.get(ps["manifest"])
+    cprint(data.json(), ctx=ctx)
 
 
 # BUILDS
