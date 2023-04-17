@@ -129,7 +129,9 @@ def text_output_product_summary(ctx, output, format, exclude_products):
     ctx.exit()
 
 
-def text_output_products_contain_component(ctx, output, format, exclude_products):
+def text_output_products_contain_component(
+    ctx, output, format, exclude_products, exclude_components
+):
     component_name = ctx.params["component_name"]
 
     # handle single component
@@ -187,13 +189,18 @@ def text_output_products_contain_component(ctx, output, format, exclude_products
                     ]
                     names = list(set(names))
                     for name in names:
-                        dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
-                        dep = f"[white]({dep_name})[/white]"
-                        console.print(
-                            Text(pv, style="magenta b u"),
-                            dep,
-                            no_wrap=False,
-                        )
+                        exclude_component = False
+                        for exclude in exclude_components:
+                            if exclude in name:
+                                exclude_component = True
+                        if not exclude_component:
+                            dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
+                            dep = f"[white]({dep_name})[/white]"
+                            console.print(
+                                Text(pv, style="magenta b u"),
+                                dep,
+                                no_wrap=False,
+                            )
 
             if ctx.obj["VERBOSE"] == 1:  # product_stream X source component
                 product_streams = sorted(
@@ -206,23 +213,28 @@ def text_output_products_contain_component(ctx, output, format, exclude_products
                     names = sorted(list(set([item["name"] for item in ps_components])))
 
                     for name in names:
-                        sources = []
-                        for item in ps_components:
-                            if item["name"] == name and "sources" in item:
-                                sources.extend(item["sources"])
+                        exclude_component = False
+                        for exclude in exclude_components:
+                            if exclude in name:
+                                exclude_component = True
+                        if not exclude_component:
+                            sources = []
+                            for item in ps_components:
+                                if item["name"] == name and "sources" in item:
+                                    sources.extend(item["sources"])
 
-                        root_component = "root component"
-                        if sources:
-                            source_purl = PackageURL.from_string(sources[0]["purl"])
-                            root_component = source_purl.name
-                        dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
-                        dep = f"[white]({dep_name})[/white]"
-                        console.print(
-                            Text(ps, style="magenta b u"),
-                            root_component,
-                            dep,
-                            no_wrap=False,
-                        )
+                            root_component = "root component"
+                            if sources:
+                                source_purl = PackageURL.from_string(sources[0]["purl"])
+                                root_component = source_purl.name
+                            dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
+                            dep = f"[white]({dep_name})[/white]"
+                            console.print(
+                                Text(ps, style="magenta b u"),
+                                root_component,
+                                dep,
+                                no_wrap=False,
+                            )
 
             if ctx.obj["VERBOSE"] == 2:  # product_stream X nvr
                 product_streams = sorted(
@@ -235,26 +247,31 @@ def text_output_products_contain_component(ctx, output, format, exclude_products
                     names = sorted(list(set([item["name"] for item in ps_components])))
 
                     for name in names:
-                        sources = []
-                        for item in ps_components:
-                            if item["name"] == name and "sources" in item:
-                                sources.extend(item["sources"])
+                        exclude_component = False
+                        for exclude in exclude_components:
+                            if exclude in name:
+                                exclude_component = True
+                        if not exclude_component:
+                            sources = []
+                            for item in ps_components:
+                                if item["name"] == name and "sources" in item:
+                                    sources.extend(item["sources"])
 
-                        root_component = "root component"
-                        if sources:
-                            source_purl = PackageURL.from_string(sources[0]["purl"])
-                            root_component = (
-                                f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
+                            root_component = "root component"
+                            if sources:
+                                source_purl = PackageURL.from_string(sources[0]["purl"])
+                                root_component = (
+                                    f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
+                                )
+
+                            dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
+                            dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
+                            console.print(
+                                Text(ps, style="magenta b u"),
+                                root_component,
+                                dep,
+                                no_wrap=False,
                             )
-
-                        dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
-                        dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
-                        console.print(
-                            Text(ps, style="magenta b u"),
-                            root_component,
-                            dep,
-                            no_wrap=False,
-                        )
 
             if ctx.obj["VERBOSE"] == 3:  # source url, upstream
                 product_streams = sorted(
@@ -266,38 +283,43 @@ def text_output_products_contain_component(ctx, output, format, exclude_products
                     ]
                     names = sorted(list(set([item["name"] for item in ps_components])))
                     for name in names:
-                        sources = []
-                        related_url = ""
-                        build_source_url = ""
-                        nvr = ""
-                        for item in ps_components:
-                            if item["name"] == name:
-                                if item["nvr"]:
-                                    nvr = item["nvr"]
-                                if "sources" in item:
-                                    sources.extend(item["sources"])
-                                if item["related_url"]:
-                                    related_url = item["related_url"]
-                                if item["build_source_url"]:
-                                    build_source_url = item["build_source_url"]
-                        root_component = "root component"
-                        if sources:
-                            source_purl = PackageURL.from_string(sources[0]["purl"])
-                            root_component = (
-                                f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
+                        exclude_component = False
+                        for exclude in exclude_components:
+                            if exclude in name:
+                                exclude_component = True
+                        if not exclude_component:
+                            sources = []
+                            related_url = ""
+                            build_source_url = ""
+                            nvr = ""
+                            for item in ps_components:
+                                if item["name"] == name:
+                                    if item["nvr"]:
+                                        nvr = item["nvr"]
+                                    if "sources" in item:
+                                        sources.extend(item["sources"])
+                                    if item["related_url"]:
+                                        related_url = item["related_url"]
+                                    if item["build_source_url"]:
+                                        build_source_url = item["build_source_url"]
+                            root_component = "root component"
+                            if sources:
+                                source_purl = PackageURL.from_string(sources[0]["purl"])
+                                root_component = (
+                                    f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
+                                )
+                            dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
+                            dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
+                            related_url = related_url.replace(
+                                component_name, f"[b]{component_name}[/b]"
                             )
-                        dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
-                        dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
-                        related_url = related_url.replace(
-                            component_name, f"[b]{component_name}[/b]"
-                        )
-                        console.print(
-                            Text(ps, style="magenta b u"),
-                            root_component,
-                            dep,
-                            related_url,
-                            no_wrap=False,
-                        )
+                            console.print(
+                                Text(ps, style="magenta b u"),
+                                root_component,
+                                dep,
+                                related_url,
+                                no_wrap=False,
+                            )
             if ctx.obj["VERBOSE"] > 3:  # source url, upstream
                 product_streams = sorted(
                     list(set([item["product_stream"] for item in ordered_results]))
@@ -308,48 +330,53 @@ def text_output_products_contain_component(ctx, output, format, exclude_products
                     ]
                     names = sorted(list(set([item["name"] for item in ps_components])))
                     for name in names:
-                        sources = []
-                        related_url = ""
-                        build_source_url = ""
-                        nvr = ""
-                        for item in ps_components:
-                            if item["name"] == name:
-                                if item["nvr"]:
-                                    nvr = item["nvr"]
-                                if "sources" in item:
-                                    sources.extend(item["sources"])
-                                if item["related_url"]:
-                                    related_url = item["related_url"]
-                                if item["build_source_url"]:
-                                    build_source_url = item["build_source_url"]
-                        root_component = "root component"
-                        if sources:
-                            source_purl = PackageURL.from_string(sources[0]["purl"])
-                            root_component = (
-                                f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
+                        exclude_component = False
+                        for exclude in exclude_components:
+                            if exclude in name:
+                                exclude_component = True
+                        if not exclude_component:
+                            sources = []
+                            related_url = ""
+                            build_source_url = ""
+                            nvr = ""
+                            for item in ps_components:
+                                if item["name"] == name:
+                                    if item["nvr"]:
+                                        nvr = item["nvr"]
+                                    if "sources" in item:
+                                        sources.extend(item["sources"])
+                                    if item["related_url"]:
+                                        related_url = item["related_url"]
+                                    if item["build_source_url"]:
+                                        build_source_url = item["build_source_url"]
+                            root_component = "root component"
+                            if sources:
+                                source_purl = PackageURL.from_string(sources[0]["purl"])
+                                root_component = (
+                                    f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
+                                )
+                            upstream = ""
+                            if item["upstream_purl"]:
+                                upstream = f"[cyan]{item['upstream_purl']}[/cyan]"
+                            dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
+                            dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
+                            related_url = related_url.replace(
+                                component_name, f"[b]{component_name}[/b]"
                             )
-                        upstream = ""
-                        if item["upstream_purl"]:
-                            upstream = f"[cyan]{item['upstream_purl']}[/cyan]"
-                        dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
-                        dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
-                        related_url = related_url.replace(
-                            component_name, f"[b]{component_name}[/b]"
-                        )
-                        console.print(
-                            Text(ps, style="magenta b u"),
-                            root_component,
-                            dep,
-                            related_url,
-                            build_source_url,
-                            upstream,
-                            no_wrap=False,
-                        )
+                            console.print(
+                                Text(ps, style="magenta b u"),
+                                root_component,
+                                dep,
+                                related_url,
+                                build_source_url,
+                                upstream,
+                                no_wrap=False,
+                            )
 
         ctx.exit()
 
 
-def text_output_components_contain_component(ctx, output, format):
+def text_output_components_contain_component(ctx, output, format, exclude_components):
     if "results" in output:
         for item in output["results"]:
             component_name = item["name"]
@@ -357,74 +384,85 @@ def text_output_components_contain_component(ctx, output, format):
             related_url = item["related_url"]
             download_url = item["download_url"]
             arch = item["arch"]
+            exclude_component = False
+            for exclude in exclude_components:
+                if exclude in component_name:
+                    exclude_component = True
+            if not exclude_component:
+                if ctx.obj["VERBOSE"] == 0:
+                    ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
+                    for source in ordered_sources:
+                        if "arch=noarch" in source["purl"] or "arch=src" in source["purl"]:
+                            source_purl = PackageURL.from_string(source["purl"])
+                            root_component = source_purl.name
+                            if source_purl.type == "oci" and "-source" not in source_purl.name:
+                                root_component = (
+                                    f"[u magenta]{source_purl.name}-container[/u magenta]"
+                                )
+                            if source_purl.type == "oci":
+                                component_ns = Text("REDHAT", style="bold magenta")
+                            elif not source_purl.namespace:
+                                component_ns = Text("UPSTREAM", style="bold magenta")
+                            else:
+                                component_ns = Text(source_purl.namespace.upper(), style="bold red")
 
-            if ctx.obj["VERBOSE"] == 0:
-                ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
-                for source in ordered_sources:
-                    if "arch=noarch" in source["purl"] or "arch=src" in source["purl"]:
-                        source_purl = PackageURL.from_string(source["purl"])
-                        root_component = source_purl.name
-                        if source_purl.type == "oci" and "-source" not in source_purl.name:
-                            root_component = f"[u magenta]{source_purl.name}-container[/u magenta]"
-                        if source_purl.type == "oci":
-                            component_ns = Text("REDHAT", style="bold magenta")
-                        elif not source_purl.namespace:
-                            component_ns = Text("UPSTREAM", style="bold magenta")
-                        else:
-                            component_ns = Text(source_purl.namespace.upper(), style="bold red")
-                        console.print(
-                            component_ns,
-                            source_purl.type.upper(),
-                            root_component,
-                            Text(component_name, style="bold white"),
-                            no_wrap=False,
-                        )
-            if ctx.obj["VERBOSE"] == 1:
-                ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
-                for source in ordered_sources:
-                    if "arch=noarch" in source["purl"] or "arch=src" in source["purl"]:
-                        source_purl = PackageURL.from_string(source["purl"])
-                        root_component = f"{source_purl.name}-{source_purl.version}"
-                        if source_purl.type == "oci" and "-source" not in source_purl.name:
-                            root_component = f"[u magenta]{source_purl.name}-container[/u magenta]"
-                        if source_purl.type == "oci":
-                            component_ns = Text("REDHAT", style="bold magenta")
-                        elif not source_purl.namespace:
-                            component_ns = Text("UPSTREAM", style="bold magenta")
-                        else:
-                            component_ns = Text(source_purl.namespace.upper(), style="bold red")
-                        console.print(
-                            component_ns,
-                            source_purl.type.upper(),
-                            root_component,
-                            Text(component_nvr, style="bold white"),
-                            arch,
-                            no_wrap=False,
-                        )
-            if ctx.obj["VERBOSE"] > 1:
-                ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
-                for source in ordered_sources:
-                    if "arch=noarch" in source["purl"] or "arch=src" in source["purl"]:
-                        source_purl = PackageURL.from_string(source["purl"])
-                        root_component = f"{source_purl.name}-{source_purl.version}"
-                        if source_purl.type == "oci" and "-source" not in source_purl.name:
-                            root_component = f"[u magenta]{source_purl.name}-container[/u magenta]"
-                        if source_purl.type == "oci":
-                            component_ns = Text("REDHAT", style="bold magenta")
-                        elif not source_purl.namespace:
-                            component_ns = Text("UPSTREAM", style="bold magenta")
-                        else:
-                            component_ns = Text(source_purl.namespace.upper(), style="bold red")
-                        console.print(
-                            component_ns,
-                            source_purl.type.upper(),
-                            root_component,
-                            Text(component_nvr, style="bold white"),
-                            arch,
-                            related_url,
-                            download_url,
-                            no_wrap=False,
-                        )
+                            console.print(
+                                component_ns,
+                                source_purl.type.upper(),
+                                root_component,
+                                Text(component_name, style="bold white"),
+                                no_wrap=False,
+                            )
+                if ctx.obj["VERBOSE"] == 1:
+                    ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
+                    for source in ordered_sources:
+                        if "arch=noarch" in source["purl"] or "arch=src" in source["purl"]:
+                            source_purl = PackageURL.from_string(source["purl"])
+                            root_component = f"{source_purl.name}-{source_purl.version}"
+                            if source_purl.type == "oci" and "-source" not in source_purl.name:
+                                root_component = (
+                                    f"[u magenta]{source_purl.name}-container[/u magenta]"
+                                )
+                            if source_purl.type == "oci":
+                                component_ns = Text("REDHAT", style="bold magenta")
+                            elif not source_purl.namespace:
+                                component_ns = Text("UPSTREAM", style="bold magenta")
+                            else:
+                                component_ns = Text(source_purl.namespace.upper(), style="bold red")
+                            console.print(
+                                component_ns,
+                                source_purl.type.upper(),
+                                root_component,
+                                Text(component_nvr, style="bold white"),
+                                arch,
+                                no_wrap=False,
+                            )
+                if ctx.obj["VERBOSE"] > 1:
+                    ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
+                    for source in ordered_sources:
+                        if "arch=noarch" in source["purl"] or "arch=src" in source["purl"]:
+                            source_purl = PackageURL.from_string(source["purl"])
+                            root_component = f"{source_purl.name}-{source_purl.version}"
+                            if source_purl.type == "oci" and "-source" not in source_purl.name:
+                                root_component = (
+                                    f"[u magenta]{source_purl.name}-container[/u magenta]"
+                                )
+                            if source_purl.type == "oci":
+                                component_ns = Text("REDHAT", style="bold magenta")
+                            elif not source_purl.namespace:
+                                component_ns = Text("UPSTREAM", style="bold magenta")
+                            else:
+                                component_ns = Text(source_purl.namespace.upper(), style="bold red")
+                            console.print(
+                                component_ns,
+                                source_purl.type.upper(),
+                                root_component,
+                                Text(component_nvr, style="bold white"),
+                                arch,
+                                related_url,
+                                download_url,
+                                no_wrap=False,
+                            )
     ctx.exit()
 
 
@@ -600,56 +638,62 @@ def text_output_product_flaws(ctx, output, format):
     ctx.exit()
 
 
-def text_output_list(ctx, output, format):
+def text_output_list(ctx, output, format, exclude_components):
     if "results" in output and output["count"] > 0:
         # handle component
         if "purl" in output["results"][0]:
             ordered_components = sorted(output["results"], key=lambda d: d["name"])
             for row in ordered_components:
-                if "purl" in row:
-                    purl = PackageURL.from_string(row["purl"])
-                    if purl.type == "oci":
-                        component_ns = Text("REDHAT", style="bold magenta")
-                    elif not purl.namespace:
-                        component_ns = Text("UPSTREAM", style="bold magenta")
-                    else:
-                        component_ns = Text(purl.namespace.upper(), style="bold red")
+                exclude_component = False
+                for exclude in exclude_components:
+                    if exclude in row["purl"]:
+                        logger.info("hit")
+                        exclude_component = True
+                if not exclude_component:
+                    if "purl" in row:
+                        purl = PackageURL.from_string(row["purl"])
+                        if purl.type == "oci":
+                            component_ns = Text("REDHAT", style="bold magenta")
+                        elif not purl.namespace:
+                            component_ns = Text("UPSTREAM", style="bold magenta")
+                        else:
+                            component_ns = Text(purl.namespace.upper(), style="bold red")
 
-                    sha256 = ""
-                    if purl.version:
-                        if purl.version.startswith("sha256"):
-                            sha256 = output_version(ctx, purl.version)
-                    nvr = None
-                    if "nvr" in row:
-                        nvr = row["nvr"]
+                        sha256 = ""
+                        if purl.version:
+                            if purl.version.startswith("sha256"):
+                                sha256 = output_version(ctx, purl.version)
+                        nvr = None
+                        if "nvr" in row:
+                            nvr = row["nvr"]
 
-                    if not ctx.obj["SHOW_PURL"]:
-                        if ctx.obj["VERBOSE"] == 0:
+                        if not ctx.obj["SHOW_PURL"]:
+                            if ctx.obj["VERBOSE"] == 0:
+                                console.print(
+                                    component_ns,
+                                    purl.type.upper(),
+                                    Text(nvr, style="bold white"),
+                                    sha256,
+                                    row["related_url"],
+                                    purl.qualifiers.get("arch"),
+                                )
+                            if ctx.obj["VERBOSE"] == 1:
+                                download_url = ""
+                                if "download_url" in row:
+                                    download_url = row["download_url"]
+                                console.print(
+                                    component_ns,
+                                    purl.type.upper(),
+                                    Text(nvr, style="bold white"),
+                                    sha256,
+                                    row["related_url"],
+                                    purl.qualifiers.get("arch"),
+                                    download_url,
+                                )
+                        else:
                             console.print(
-                                component_ns,
-                                purl.type.upper(),
-                                Text(nvr, style="bold white"),
-                                sha256,
-                                row["related_url"],
-                                purl.qualifiers.get("arch"),
+                                row["purl"],
                             )
-                        if ctx.obj["VERBOSE"] == 1:
-                            download_url = ""
-                            if "download_url" in row:
-                                download_url = row["download_url"]
-                            console.print(
-                                component_ns,
-                                purl.type.upper(),
-                                Text(nvr, style="bold white"),
-                                sha256,
-                                row["related_url"],
-                                purl.qualifiers.get("arch"),
-                                download_url,
-                            )
-                    else:
-                        console.print(
-                            row["purl"],
-                        )
         # handle flaw
         if "cve_id" in output["results"][0]:
             for row in output["results"]:
@@ -754,9 +798,15 @@ def cprint(
     """handle format and output"""
     from griffon import get_config_option
 
-    exclude_products = None
-    if ctx.obj["PROFILE"] != "default":
+    exclude_products = []
+    if get_config_option(ctx.obj["PROFILE"], "exclude"):
         exclude_products = get_config_option(ctx.obj["PROFILE"], "exclude").split("\n")
+    logger.debug(f"exclude products = {exclude_products}")
+
+    exclude_components = []
+    if get_config_option(ctx.obj["PROFILE"], "exclude_components"):
+        exclude_components = get_config_option(ctx.obj["PROFILE"], "exclude_components").split("\n")
+    logger.debug(f"exclude_components = {exclude_components}")
 
     output = raw_json_transform(data, show_count)
     if ctx and ctx.obj["NO_COLOR"]:
@@ -768,9 +818,11 @@ def cprint(
         if ctx.info_name == "product-summary":
             text_output_product_summary(ctx, output, format, exclude_products)
         if ctx.info_name == "products-contain-component":
-            text_output_products_contain_component(ctx, output, format, exclude_products)
+            text_output_products_contain_component(
+                ctx, output, format, exclude_products, exclude_components
+            )
         if ctx.info_name == "components-contain-component":
-            text_output_components_contain_component(ctx, output, format)
+            text_output_components_contain_component(ctx, output, format, exclude_components)
         if ctx.info_name == "components-affected-by-flaw":
             text_output_components_affected_by_cve(ctx, output, format)
         if ctx.info_name == "products-affected-by-flaw":
@@ -778,7 +830,7 @@ def cprint(
         if ctx.info_name == "get-manifest":
             text_output_get_manifest(ctx, output, format)
         if ctx.info_name == "list":
-            text_output_list(ctx, output, format)
+            text_output_list(ctx, output, format, exclude_components)
         if ctx.info_name == "component-flaws":
             text_output_component_flaws(ctx, output, format)
         if ctx.info_name == "product-flaws":

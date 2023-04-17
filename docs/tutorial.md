@@ -17,6 +17,8 @@ profile = default
 verbosity = 0
 sfm2_api_url = http://localhost:5600
 custom_plugin_dir = ~/.griffon/plugins/
+editor = vi
+exclude_components = -container-source
 
 # profile sections (use with --profile {profile} flag)
 [cloud]
