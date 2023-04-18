@@ -173,11 +173,12 @@ def text_output_products_contain_component(
                 names = [item["name"] for item in ordered_results if pv == item["product_version"]]
                 names = list(set(names))
                 for name in names:
-                    dep_name = name
-                    console.print(
-                        f"{pv}/{name}={flaw_operation}",
-                        no_wrap=False,
-                    )
+                    if not any([match in name for match in exclude_components]):
+                        dep_name = name
+                        console.print(
+                            f"{pv}/{name}={flaw_operation}",
+                            no_wrap=False,
+                        )
         else:
             if ctx.obj["VERBOSE"] == 0:  # product_version X source component
                 product_versions = sorted(
