@@ -106,7 +106,7 @@ eval "$(_GRIFFON_COMPLETE=zsh_source griffon)"
 
 
 ## Building and running container
-The container is intended for testing and unsupported.
+The container is unsupported.
 
 First set some env vars
 

@@ -43,9 +43,26 @@ RUN dnf --nodocs --setopt install_weak_deps=false -y install \
     && dnf --nodocs --setopt install_weak_deps=false -y upgrade --security \
     && dnf clean all
 
+# # TODO - this will be removed once we ship corgi_bindings to pypi
+RUN pip3 install -e git+https://github.com/RedHatProductSecurity/component-registry-bindings#egg=component_registry_bindings
+
+COPY ./files/.zshrc /root/.zshrc
+
 WORKDIR /opt/app-root/src/
 
-RUN pip3 install griffon
+COPY ./requirements ./requirements
+
+# Install Python package dependencies from requirements file passed in PIP_REQUIREMENT (local
+# docker-compose may override this in the build step).
+RUN pip3 install -r "./requirements/base.txt"
+
+# Limit copied files to only the ones required to run the app
+COPY ./*.sh ./*.py ./
+COPY ./griffon ./griffon
+COPY ./README.md ./README.md
+COPY ./LICENSE ./LICENSE
+
+RUN pip3 install .
 
 RUN chgrp -R 0 /opt/app-root && \
     chmod -R g=u /opt/app-root

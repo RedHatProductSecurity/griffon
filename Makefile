@@ -18,9 +18,9 @@ build-container: Containerfile
 					--build-arg REQUESTS_CA_BUNDLE="${REQUESTS_CA_BUNDLE}" \
 					--build-arg PIP_INDEX_URL="${PIP_INDEX_URL}" \
 					--build-arg ROOT_CA_URL="${ROOT_CA_URL}" \
-					--tag localhost/griffon:dev .
+					--tag localhost/griffon .
 run-container:
-	podman run --privileged -it -v ~/.griffonrc:/root/.griffonrc -v /etc/krb5.conf:/etc/krb5.conf localhost/griffon:dev
+	podman run --privileged -it -v ~/.griffonrc:/root/.griffonrc -v /etc/krb5.conf:/etc/krb5.conf localhost/griffon
 
 ############################################################################
 # test targets
