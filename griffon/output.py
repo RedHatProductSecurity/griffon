@@ -189,11 +189,7 @@ def text_output_products_contain_component(
                     ]
                     names = list(set(names))
                     for name in names:
-                        exclude_component = False
-                        for exclude in exclude_components:
-                            if exclude in name:
-                                exclude_component = True
-                        if not exclude_component:
+                        if not any([match in name for match in exclude_components]):
                             dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
                             dep = f"[white]({dep_name})[/white]"
                             console.print(
@@ -213,11 +209,7 @@ def text_output_products_contain_component(
                     names = sorted(list(set([item["name"] for item in ps_components])))
 
                     for name in names:
-                        exclude_component = False
-                        for exclude in exclude_components:
-                            if exclude in name:
-                                exclude_component = True
-                        if not exclude_component:
+                        if not any([match in name for match in exclude_components]):
                             sources = []
                             for item in ps_components:
                                 if item["name"] == name and "sources" in item:
@@ -247,11 +239,7 @@ def text_output_products_contain_component(
                     names = sorted(list(set([item["name"] for item in ps_components])))
 
                     for name in names:
-                        exclude_component = False
-                        for exclude in exclude_components:
-                            if exclude in name:
-                                exclude_component = True
-                        if not exclude_component:
+                        if not any([match in name for match in exclude_components]):
                             sources = []
                             for item in ps_components:
                                 if item["name"] == name and "sources" in item:
@@ -283,11 +271,7 @@ def text_output_products_contain_component(
                     ]
                     names = sorted(list(set([item["name"] for item in ps_components])))
                     for name in names:
-                        exclude_component = False
-                        for exclude in exclude_components:
-                            if exclude in name:
-                                exclude_component = True
-                        if not exclude_component:
+                        if not any([match in name for match in exclude_components]):
                             sources = []
                             related_url = ""
                             build_source_url = ""
@@ -330,11 +314,7 @@ def text_output_products_contain_component(
                     ]
                     names = sorted(list(set([item["name"] for item in ps_components])))
                     for name in names:
-                        exclude_component = False
-                        for exclude in exclude_components:
-                            if exclude in name:
-                                exclude_component = True
-                        if not exclude_component:
+                        if not any([match in name for match in exclude_components]):
                             sources = []
                             related_url = ""
                             build_source_url = ""
@@ -384,11 +364,7 @@ def text_output_components_contain_component(ctx, output, format, exclude_compon
             related_url = item["related_url"]
             download_url = item["download_url"]
             arch = item["arch"]
-            exclude_component = False
-            for exclude in exclude_components:
-                if exclude in component_name:
-                    exclude_component = True
-            if not exclude_component:
+            if not any([match in component_name for match in exclude_components]):
                 if ctx.obj["VERBOSE"] == 0:
                     ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
                     for source in ordered_sources:
@@ -644,12 +620,7 @@ def text_output_list(ctx, output, format, exclude_components):
         if "purl" in output["results"][0]:
             ordered_components = sorted(output["results"], key=lambda d: d["name"])
             for row in ordered_components:
-                exclude_component = False
-                for exclude in exclude_components:
-                    if exclude in row["purl"]:
-                        logger.info("hit")
-                        exclude_component = True
-                if not exclude_component:
+                if not any([match in row["purl"] for match in exclude_components]):
                     if "purl" in row:
                         purl = PackageURL.from_string(row["purl"])
                         if purl.type == "oci":
