@@ -15,19 +15,19 @@ You will need the following dependencies installed, for example for fedora 35:
 
 * python39
 * gcc (to build gssapi wheel)
-* python-39-devel (so gssapi wheel can be built)
-* krb5-workstation (provides access to OSIDB)
+* python-39-devel (to build gssapi wheel)
+* krb5-workstation (provides access to OSIDB) with valid /etc/krb5.config
 * virtualenv (if you do not want to install python deps into your system)
 
 or more generally
 
+* python
 * gcc (to build gssapi wheel)
-* python (so gssapi wheel can be built)
-* python-devel (so gssapi wheel can be built)
-* krb5-workstation (provides access to OSIDB)
+* python-devel (to build gssapi wheel)
+* krb5-workstation (provides access to OSIDB) with valid /etc/krb5.config
 * virtualenv (if you do not want to install python deps into your system)
 
-Setup virtualenv (if you do not want griffon installed in your system)
+Setup virtualenv
 ```commandline
 > python3.9 -m venv venv
 > source venv/bin/activate
@@ -58,19 +58,21 @@ Ensure REQUESTS_CA_BUNDLE is set and accessible in your environment
 ```commandline
 export REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt
 ```
-and set service urls.
+
+Set service urls.
 ```commandline
 export OSIDB_API_URL="https://<INSERT OSIDB API URL>"
 export CORGI_API_URL="https://<INSERT COMPONENT REGISTRY API URL>"
 ```
-and the following must be set to be able to search community components:
+
+and the following is set to enable searching community components:
 ```commandline
 export COMMUNITY_COMPONENTS_API_URL="https://component-registry.fedoraproject.org"
 ```
 
-And you must ensure your system is properly authorised to access these systems.
+Your system must be properly authorised to access all these systems.
 
-**hint**- usually this means running > kinit to be able to access OSIDB.
+**hint**- run kinit to be able to access OSIDB.
 
 If you want to make changes to the OSIDB entities you need to supply your Bugzilla API key as well:
 ```commandline
@@ -78,7 +80,7 @@ export BUGZILLA_API_KEY="<your Bugzilla API key>"
 ```
 
 If you want to use local development instance of OSIDB you need to specify authentication method
-and supply credentials:
+and supply credentials to your local OSIDB environment:
 ```commandline
 export OSIDB_AUTH_METHOD="credentials"
 export OSIDB_USERNAME="<your username>"

@@ -213,13 +213,15 @@ Options:
   --help           Show this message and exit.
 
 Commands:
-  CORGI
-  OSIDB
+  community-component-registry
+  component-registry
+  osidb
+
 ```
 
-#### Component Registry Entities
+#### Component Registry and Community Component Registry Entities
 
-Currently only provides primitive read only operations.
+Currently only provide primitive read only operations.
 
 ##### Components
 
@@ -300,7 +302,6 @@ Commands:
   cvelib     cvelib plugin
   fcc        FCC plugin
   go_vuln    vuln.go.dev plugin
-  my_test    mitre cve plugin
   osv        OSV plugin
   semgrep    semgrep plugin
 ```
