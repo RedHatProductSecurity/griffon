@@ -25,6 +25,7 @@ griffon service products-contain-component webkitgtk --search-related-url --sear
 
 griffon service component-summary curl
 griffon service products-contain-component --search-community --search-all curl
+griffon -vvv service products-contain-component -a libtiff
 
 # reports
 griffon service report-affects
