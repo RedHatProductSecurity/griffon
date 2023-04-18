@@ -292,7 +292,7 @@ class products_containing_component_query:
                                 is_dep = False
                                 if c.arch == "src" or c.arch == "noarch":
                                     is_dep = True
-                                sources = [{"purl":source["purl"]} for source in c.sources]
+                                sources = [{"purl": source["purl"]} for source in c.sources]
                                 component = {
                                     "is_dep": is_dep,
                                     "product_version": pv["name"],
@@ -374,7 +374,7 @@ class products_containing_component_query:
                                 is_dep = False
                                 if c.arch == "src" or c.arch == "noarch":
                                     is_dep = True
-                                sources = [{"purl":source["purl"]} for source in c.sources]
+                                sources = [{"purl": source["purl"]} for source in c.sources]
                                 component = {
                                     "is_dep": is_dep,
                                     "product_version": pv["name"],
@@ -459,7 +459,7 @@ class products_containing_component_query:
                                 is_dep = False
                                 if c.arch == "src" or c.arch == "noarch":
                                     is_dep = True
-                                sources = [{"purl":source["purl"]} for source in c.sources]
+                                sources = [{"purl": source["purl"]} for source in c.sources]
                                 component = {
                                     "is_dep": is_dep,
                                     "product_version": pv["name"],
@@ -582,7 +582,7 @@ class products_containing_component_query:
                                 is_dep = False
                                 if c.arch == "src" or c.arch == "noarch":
                                     is_dep = True
-                                sources = [{"purl":source["purl"]} for source in c.sources]
+                                sources = [{"purl": source["purl"]} for source in c.sources]
                                 component = {
                                     "is_dep": is_dep,
                                     "product_version": pv["name"],
