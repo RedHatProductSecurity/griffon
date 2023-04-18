@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.23] - 2023-04-18
+### Changed
+- fixed json format output
+
 ## [0.1.22] - 2023-04-18
 ### Changed
 - added exclude_component logic when generating affects with -a
