@@ -292,6 +292,7 @@ class products_containing_component_query:
                                 is_dep = False
                                 if c.arch == "src" or c.arch == "noarch":
                                     is_dep = True
+                                sources = [{"purl":source["purl"]} for source in c.sources]
                                 component = {
                                     "is_dep": is_dep,
                                     "product_version": pv["name"],
@@ -300,13 +301,13 @@ class products_containing_component_query:
                                     "product_stream_ofuri": ps["ofuri"],
                                     "product_active": True,
                                     "purl": c.purl,
-                                    "type": c.type,
-                                    "namespace": c.namespace,
+                                    "type": str(c.type),
+                                    "namespace": str(c.namespace),
                                     "name": c.name,
                                     "arch": c.arch,
                                     "release": c.release,
                                     "version": c.version,
-                                    "sources": c.sources,
+                                    "sources": sources,
                                     "nvr": c.nvr,
                                     "build_id": None,
                                     "build_type": None,
@@ -316,7 +317,7 @@ class products_containing_component_query:
                                 }
                                 if c.software_build:
                                     component["build_id"] = c.software_build.build_id
-                                    component["build_type"] = c.software_build.build_type
+                                    component["build_type"] = str(c.software_build.build_type)
                                     component["build_name"] = c.software_build.name
                                     component["build_source_url"] = c.software_build.source
                                 if c.upstreams:
@@ -373,6 +374,7 @@ class products_containing_component_query:
                                 is_dep = False
                                 if c.arch == "src" or c.arch == "noarch":
                                     is_dep = True
+                                sources = [{"purl":source["purl"]} for source in c.sources]
                                 component = {
                                     "is_dep": is_dep,
                                     "product_version": pv["name"],
@@ -381,13 +383,13 @@ class products_containing_component_query:
                                     "product_stream_ofuri": ps["ofuri"],
                                     "product_active": True,
                                     "purl": c.purl,
-                                    "type": c.type,
-                                    "namespace": c.namespace,
+                                    "type": str(c.type),
+                                    "namespace": str(c.namespace),
                                     "name": c.name,
                                     "arch": c.arch,
                                     "release": c.release,
                                     "version": c.version,
-                                    "sources": c.sources,
+                                    "sources": sources,
                                     "nvr": c.nvr,
                                     "build_id": None,
                                     "build_type": None,
@@ -397,7 +399,7 @@ class products_containing_component_query:
                                 }
                                 if c.software_build:
                                     component["build_id"] = c.software_build.build_id
-                                    component["build_type"] = c.software_build.build_type
+                                    component["build_type"] = str(c.software_build.build_type)
                                     component["build_name"] = c.software_build.name
                                     component["build_source_url"] = c.software_build.source
                                 if c.upstreams:
@@ -457,6 +459,7 @@ class products_containing_component_query:
                                 is_dep = False
                                 if c.arch == "src" or c.arch == "noarch":
                                     is_dep = True
+                                sources = [{"purl":source["purl"]} for source in c.sources]
                                 component = {
                                     "is_dep": is_dep,
                                     "product_version": pv["name"],
@@ -465,13 +468,13 @@ class products_containing_component_query:
                                     "product_stream_ofuri": ps["ofuri"],
                                     "product_active": True,
                                     "purl": c.purl,
-                                    "type": c.type,
-                                    "namespace": c.namespace,
+                                    "type": str(c.type),
+                                    "namespace": str(c.namespace),
                                     "name": c.name,
                                     "arch": c.arch,
                                     "release": c.release,
                                     "version": c.version,
-                                    "sources": c.sources,
+                                    "sources": sources,
                                     "nvr": c.nvr,
                                     "build_id": None,
                                     "build_type": None,
@@ -481,7 +484,7 @@ class products_containing_component_query:
                                 }
                                 if c.software_build:
                                     component["build_id"] = c.software_build.build_id
-                                    component["build_type"] = c.software_build.build_type
+                                    component["build_type"] = str(c.software_build.build_type)
                                     component["build_name"] = c.software_build.name
                                     component["build_source_url"] = c.software_build.source
                                 if c.upstreams:
@@ -579,6 +582,7 @@ class products_containing_component_query:
                                 is_dep = False
                                 if c.arch == "src" or c.arch == "noarch":
                                     is_dep = True
+                                sources = [{"purl":source["purl"]} for source in c.sources]
                                 component = {
                                     "is_dep": is_dep,
                                     "product_version": pv["name"],
@@ -587,13 +591,13 @@ class products_containing_component_query:
                                     "product_stream_ofuri": ps["ofuri"],
                                     "product_active": True,
                                     "purl": c.purl,
-                                    "type": c.type,
-                                    "namespace": c.namespace,
+                                    "type": str(c.type),
+                                    "namespace": str(c.namespace),
                                     "name": c.name,
                                     "arch": c.arch,
                                     "release": c.release,
                                     "version": c.version,
-                                    "sources": c.sources,
+                                    "sources": sources,
                                     "nvr": c.nvr,
                                     "build_id": None,
                                     "build_type": None,
@@ -603,7 +607,7 @@ class products_containing_component_query:
                                 }
                                 if c.software_build:
                                     component["build_id"] = c.software_build.build_id
-                                    component["build_type"] = c.software_build.build_type
+                                    component["build_type"] = str(c.software_build.build_type)
                                     component["build_name"] = c.software_build.name
                                     component["build_source_url"] = c.software_build.source
                                 if c.upstreams:
