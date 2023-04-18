@@ -22,9 +22,10 @@ You will need the following dependencies installed, for example for fedora 35:
 or more generally
 
 * gcc (to build gssapi wheel)
-* python-39-devel (so gssapi wheel can be built)
+* python (so gssapi wheel can be built)
 * python-devel (so gssapi wheel can be built)
 * krb5-workstation (provides access to OSIDB)
+* virtualenv (if you do not want to install python deps into your system)
 
 Setup virtualenv (if you do not want griffon installed in your system)
 ```commandline
