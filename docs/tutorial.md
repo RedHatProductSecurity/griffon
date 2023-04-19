@@ -25,7 +25,7 @@ exclude_components = -container-source
 	-common-debuginfo
 	-doc
 
-# profile sections (use with --profile {profile} flag)
+# profile sections (override profile= with --profile {profile} flag)
 [cloud]
 ...
 [openshift]
@@ -83,7 +83,7 @@ Commands:
   service    Service operations.
 
 ```
-To activate a specific profile either change .griffonrc default_profile or use --profile flag.
+To activate a specific profile either change .griffonrc default_profile or override using --profile flag.
 
 ### Service operations
 
@@ -135,10 +135,14 @@ Use of -v (up to -vvvv) to get more information
 > griffon -vvvv service products-contain-component "^webkitgtk(\d)"
 ```
 
-Find what Products a component exists in, searching both root components and all dependencies
+Find what Products a component exists in, searching both Red Hat and Community root components and all dependencies
 ```commandline
 > griffon service products-contain-component webkitgtk --search-all
 > griffon service products-contain-component github.com/go-redis/redis/v8/internal/hscan --search-all      
+```
+Find what Products a component exists in, searching only Red Hat root components and all dependencies
+```commandline
+> griffon service products-contain-component webkitgtk --search-redhat
 ```
 
 Find Products that contain Component searching both latest components and related_url
@@ -149,6 +153,9 @@ Note this is the default setting eg. the following is equivalent.
 
 Find products that contain upstream Components.
 > griffon service products-contain-component webkitgtk --search-upstreams
+
+Find products that contain community Components.
+> griffon service products-contain-component webkitgtk --search-community
 
 #### Creating and updating affects
 
