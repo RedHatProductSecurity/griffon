@@ -205,6 +205,7 @@ class products_containing_component_query:
         "search_latest",
         "search_all",
         "search_related_url",
+        "search_redhat",
         "search_community",
         "search_upstreams",
         "filter_rh_naming",
@@ -221,6 +222,7 @@ class products_containing_component_query:
         self.search_latest = self.params.get("search_latest")
         self.search_all = self.params.get("search_all")
         self.search_related_url = self.params.get("search_related_url")
+        self.search_redhat = self.params.get("search_redhat")
         self.search_community = self.params.get("search_community")
         self.search_upstreams = self.params.get("search_upstreams")
         self.filter_rh_naming = self.params.get("filter_rh_naming")
@@ -240,7 +242,7 @@ class products_containing_component_query:
             if self.component_type:
                 results = [result for result in results if result.type == self.component_type]
 
-        if self.search_related_url:
+        if self.search_community or self.search_related_url:
             # Note: related_url filter has no concept of strict
             params = {
                 "include_fields": "name,arch,release,version,nvr,type,link,software_build,product_versions,product_streams,sources,upstreams,namespace,purl",  # noqa
@@ -530,7 +532,7 @@ class products_containing_component_query:
 
             results = filtered_results
 
-        if self.search_community:
+        if self.search_community or self.search_all:
             self.community_session = CommunityComponentService.create_session()
 
             params = {

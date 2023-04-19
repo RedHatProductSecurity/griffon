@@ -199,7 +199,14 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "search_all",
     is_flag=True,
     default=False,
-    help="Search root Components and dependencies.",
+    help="Search all root Components and dependencies.",
+)
+@click.option(
+    "--search-redhat",
+    "search_redhat",
+    is_flag=True,
+    default=False,
+    help="Search all Red Hat root Components and dependencies.",
 )
 @click.option(
     "--search-community",
@@ -231,6 +238,7 @@ def get_product_contain_component(
     search_related_url,
     filter_rh_naming,
     search_all,
+    search_redhat,
     search_community,
     search_upstreams,
 ):
