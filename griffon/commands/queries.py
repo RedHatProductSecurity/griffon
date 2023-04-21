@@ -256,10 +256,9 @@ def get_product_contain_component(
             and not search_related_url
             and not search_community
             and not search_upstreams
+            and not search_redhat
         ):
             ctx.params["search_latest"] = True
-            ctx.params["search_related_url"] = True
-            # ctx.params["filter_rh_naming"] = True
 
         params = copy.deepcopy(ctx.params)
         params.pop("sfm2_flaw_id")
