@@ -172,6 +172,8 @@ def text_output_products_contain_component(
             for pv in product_versions:
                 names = [item["name"] for item in ordered_results if pv == item["product_version"]]
                 names = list(set(names))
+                if component_name in names and f"{component_name}-container" in names:
+                    names.remove(f"{component_name}-container")
                 for name in names:
                     if not any([match in name for match in exclude_components]):
                         dep_name = name
@@ -189,6 +191,8 @@ def text_output_products_contain_component(
                         item["name"] for item in ordered_results if pv == item["product_version"]
                     ]
                     names = list(set(names))
+                    if component_name in names and f"{component_name}-container" in names:
+                        names.remove(f"{component_name}-container")
                     for name in names:
                         if not any([match in name for match in exclude_components]):
                             dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
@@ -208,6 +212,8 @@ def text_output_products_contain_component(
                         item for item in ordered_results if item["product_stream"] == ps
                     ]
                     names = sorted(list(set([item["name"] for item in ps_components])))
+                    if component_name in names and f"{component_name}-container" in names:
+                        names.remove(f"{component_name}-container")
 
                     for name in names:
                         if not any([match in name for match in exclude_components]):
@@ -238,6 +244,8 @@ def text_output_products_contain_component(
                         item for item in ordered_results if item["product_stream"] == ps
                     ]
                     names = sorted(list(set([item["name"] for item in ps_components])))
+                    if component_name in names and f"{component_name}-container" in names:
+                        names.remove(f"{component_name}-container")
 
                     for name in names:
                         if not any([match in name for match in exclude_components]):
@@ -271,6 +279,8 @@ def text_output_products_contain_component(
                         item for item in ordered_results if item["product_stream"] == ps
                     ]
                     names = sorted(list(set([item["name"] for item in ps_components])))
+                    if component_name in names and f"{component_name}-container" in names:
+                        names.remove(f"{component_name}-container")
                     for name in names:
                         if not any([match in name for match in exclude_components]):
                             sources = []
@@ -314,6 +324,8 @@ def text_output_products_contain_component(
                         item for item in ordered_results if item["product_stream"] == ps
                     ]
                     names = sorted(list(set([item["name"] for item in ps_components])))
+                    if component_name in names and f"{component_name}-container" in names:
+                        names.remove(f"{component_name}-container")
                     for name in names:
                         if not any([match in name for match in exclude_components]):
                             sources = []
