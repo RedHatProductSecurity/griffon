@@ -242,7 +242,7 @@ class products_containing_component_query:
             if self.component_type:
                 results = [result for result in results if result.type == self.component_type]
 
-        if self.search_community or self.search_related_url:
+        if self.search_related_url:
             # Note: related_url filter has no concept of strict
             params = {
                 "include_fields": "name,arch,release,version,nvr,type,link,software_build,product_versions,product_streams,sources,upstreams,namespace,purl",  # noqa
