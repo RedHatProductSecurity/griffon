@@ -6,6 +6,7 @@ import click
 from packageurl import PackageURL
 from rich.console import Console
 from rich.text import Text
+from rich.tree import Tree
 
 console = Console(color_system="auto")
 
@@ -84,6 +85,30 @@ def output_version(ctx, version):
         if version.startswith("sha256") and ctx.obj["SHORT_VERSION_VALUES"]:
             return f"sha256...{version[-8:]}"
     return version
+
+
+def walk_component_tree(obj, key, tree, show_purl=False):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if isinstance(v, (dict, list)):
+                walk_component_tree(v, k, tree, show_purl=show_purl)
+    elif isinstance(obj, list):
+        for item in obj:
+            label = f"{item['node_type']}: {item['nvr']},{item['type']}"
+            if show_purl:
+                label = f"{item['node_type']}: {item['purl']}"
+            child = tree.add(label)
+            walk_component_tree(item, None, child, show_purl=show_purl)
+    return tree
+
+
+def text_output_tree(ctx, output):
+    tree = Tree(
+        "component dependency tree",
+        guide_style="bold magenta",
+    )
+    console.print(walk_component_tree(output, None, tree, show_purl=ctx.params["show_purl"]))
+    ctx.exit()
 
 
 def text_output_product_summary(ctx, output, format, exclude_products):
@@ -823,6 +848,8 @@ def cprint(
             text_output_purls(ctx, output, format)
         if ctx.info_name == "sources":
             text_output_purls(ctx, output, format)
+        if ctx.info_name == "tree":
+            text_output_tree(ctx, output)
 
         # last chance text formatted output
         text_output_generic(ctx, output, format)
