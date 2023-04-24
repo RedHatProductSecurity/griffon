@@ -363,6 +363,41 @@ def get_component_manifest(ctx, component_uuid, purl, spdx_json_format):
             return cprint(data, ctx=ctx)
 
 
+@components.command(name="tree")
+@click.option("--uuid", "component_uuid")
+@click.option("--nvr", "nvr")
+@click.option("--purl", shell_complete=get_component_purls, help="Purl are URI and must be quoted.")
+@click.option(
+    "--show-purl",
+    "show_purl",
+    is_flag=True,
+    default=False,
+    help="Display purl.",
+)
+@click.pass_context
+@progress_bar
+def get_component_tree(ctx, component_uuid, nvr, purl, show_purl):
+    """Retrieve Component dependency tree."""
+    if not component_uuid and not purl and not nvr:
+        click.echo(ctx.get_help())
+        exit(0)
+    ctx.ensure_object(dict)
+    # ctx.obj["FORMAT"] = "text"
+    session = CorgiService.create_session()
+    if purl:
+        c = session.components.retrieve_list(purl=purl, include_fields="uuid")
+        component_uuid = c["uuid"]
+    elif nvr:
+        c = session.components.retrieve_list(nvr=nvr, include_fields="uuid")
+        component_uuid = c.results[0].uuid
+    c = session.components.retrieve(component_uuid, include_fields="uuid,nvr,arch")
+    if c.arch == "src" or c.arch == "noarch":
+        data = requests.get(f"{CORGI_API_URL}/api/v1/components/{component_uuid}/taxonomy")
+        return cprint(data.json(), ctx=ctx)
+    else:
+        logger.info(f"{c.nvr},{c.arch} not a root component.")
+
+
 # PRODUCT STREAM
 @corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/product_streams")
 @click.pass_context
