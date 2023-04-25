@@ -686,7 +686,7 @@ def text_output_list(ctx, output, format, exclude_components):
                                     row["related_url"],
                                     purl.qualifiers.get("arch"),
                                 )
-                            if ctx.obj["VERBOSE"] == 1:
+                            if ctx.obj["VERBOSE"] > 0:
                                 download_url = ""
                                 if "download_url" in row:
                                     download_url = row["download_url"]

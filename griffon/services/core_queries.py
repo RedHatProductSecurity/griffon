@@ -27,7 +27,7 @@ class product_stream_summary:
 
     name = "product_stream_summary"
     description = "retrieve product_stream summary"
-    allowed_params = ["strict_name_search", "all", "product_stream_name", "ofuri"]
+    allowed_params = ["strict_name_search", "all", "product_stream_name", "ofuri", "verbose"]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
@@ -633,6 +633,7 @@ class components_containing_specific_component_query:
         "component_arch",
         "namespace",
         "strict_name_search",
+        "verbose",
     ]
 
     def __init__(self, params: dict):
@@ -672,6 +673,7 @@ class components_containing_component_query:
         "component_arch",
         "namespace",
         "strict_name_search",
+        "verbose",
     ]
 
     def __init__(self, params: dict) -> None:
