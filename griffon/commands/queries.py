@@ -8,7 +8,7 @@ import click
 from component_registry_bindings.bindings.python_client.api.v1 import v1_components_list
 from component_registry_bindings.bindings.python_client.models import Component
 
-from griffon import CorgiService, OSIDBService, progress_bar
+from griffon import CorgiService, OSIDBService, get_config_option, progress_bar
 from griffon.autocomplete import (
     get_component_names,
     get_cve_ids,
@@ -82,10 +82,19 @@ queries_grp.add_command(generate_license_report)
     default=False,
     help="Return all Products.",
 )
+@click.option(
+    "-v",
+    "verbose",
+    count=True,
+    default=get_config_option("default", "verbosity", 0),
+    help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
+)  # noqa
 @click.pass_context
 @progress_bar
-def get_product_summary(ctx, product_stream_name, strict_name_search, all):
+def get_product_summary(ctx, product_stream_name, strict_name_search, all, verbose):
     """get product stream."""
+    if verbose:
+        ctx.obj["VERBOSE"] = verbose
     if not product_stream_name and not all and not strict_name_search:
         click.echo(ctx.get_help())
         exit(0)
@@ -222,6 +231,13 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     default=False,
     help="Search for Components by upstream.",
 )
+@click.option(
+    "-v",
+    "verbose",
+    count=True,
+    default=get_config_option("default", "verbosity", 0),
+    help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
+)  # noqa
 @click.pass_context
 def get_product_contain_component(
     ctx,
@@ -241,9 +257,12 @@ def get_product_contain_component(
     search_redhat,
     search_community,
     search_upstreams,
+    verbose,
 ):
     with console.status("griffoning", spinner="line") as operation_status:
         """List products of a latest component."""
+        if verbose:
+            ctx.obj["VERBOSE"] = verbose
         if not purl and not component_name:
             click.echo(ctx.get_help())
             click.echo("")
@@ -261,6 +280,7 @@ def get_product_contain_component(
             ctx.params["search_latest"] = True
 
         params = copy.deepcopy(ctx.params)
+        params.pop("verbose")
         params.pop("sfm2_flaw_id")
         params.pop("flaw_mode")
         params.pop("affect_mode")
@@ -421,6 +441,13 @@ def get_product_contain_component(
     default=False,
     help="Strict search, exact match of component name.",
 )
+@click.option(
+    "-v",
+    "verbose",
+    count=True,
+    default=get_config_option("default", "verbosity", 0),
+    help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
+)  # noqa
 @click.pass_context
 @progress_bar
 def get_component_contain_component(
@@ -432,8 +459,11 @@ def get_component_contain_component(
     component_arch,
     namespace,
     strict_name_search,
+    verbose,
 ):
     """List components that contain component."""
+    if verbose:
+        ctx.obj["VERBOSE"] = verbose
     if not component_name and not purl:
         click.echo(ctx.get_help())
         exit(0)
@@ -492,9 +522,19 @@ def get_product_manifest_query(ctx, product_stream_name, ofuri, spdx_json_format
         "include_fields": {"type": click.Choice(CorgiService.get_fields(Component))},
     },
 )
+@click.option(
+    "-v",
+    "verbose",
+    count=True,
+    default=get_config_option("default", "verbosity", 0),
+    help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
+)  # noqa
 @click.pass_context
-def get_product_latest_components_query(ctx, product_stream_name, ofuri, **params):
+def get_product_latest_components_query(ctx, product_stream_name, ofuri, verbose, **params):
     """List components of a specific product version."""
+    if verbose:
+        ctx.obj["VERBOSE"] = verbose
+        ctx.params.pop("verbose")
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
         exit(0)
