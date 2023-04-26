@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - allow -v at the end of CLI invoke
+- prefer nvr for component name in text output
 ### Added
 - added entities component-registry components tree which displays dependency tree
 

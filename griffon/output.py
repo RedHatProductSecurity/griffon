@@ -243,16 +243,20 @@ def text_output_products_contain_component(
                     for name in names:
                         if not any([match in name for match in exclude_components]):
                             sources = []
+                            nvr = ""
                             for item in ps_components:
                                 if item["name"] == name and "sources" in item:
                                     sources.extend(item["sources"])
+                                if item["nvr"]:
+                                    nvr = item["nvr"]
 
                             root_component = "root component"
                             if sources:
                                 source_purl = PackageURL.from_string(sources[0]["purl"])
                                 root_component = source_purl.name
-                            dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
-                            dep = f"[white]({dep_name})[/white]"
+
+                            dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
+                            dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
                             console.print(
                                 Text(ps, style="magenta b u"),
                                 root_component,
@@ -275,9 +279,12 @@ def text_output_products_contain_component(
                     for name in names:
                         if not any([match in name for match in exclude_components]):
                             sources = []
+                            nvr = ""
                             for item in ps_components:
                                 if item["name"] == name and "sources" in item:
                                     sources.extend(item["sources"])
+                                if item["nvr"]:
+                                    nvr = item["nvr"]
 
                             root_component = "root component"
                             if sources:
@@ -286,7 +293,7 @@ def text_output_products_contain_component(
                                     f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
                                 )
 
-                            dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
+                            dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
                             dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
                             console.print(
                                 Text(ps, style="magenta b u"),
