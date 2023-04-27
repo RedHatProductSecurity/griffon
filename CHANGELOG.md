@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.28] - 2023-04-27
+### Changed
+- bump osidb-bindings == 3.1.0 to enable accessing latest osidb
+
 ## [0.1.27] - 2023-04-26
 ### Changed
 - allow -v at the end of CLI invoke
