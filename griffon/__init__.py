@@ -175,7 +175,7 @@ class OSIDBService:
         # is changed and released we can change it back to normal
         #
         # return osidb_bindings.bindings.python_client.models.FlawResolutionEnum
-        return osidb_bindings.bindings.python_client.models.Resolution01FEnum
+        return osidb_bindings.bindings.python_client.models.ResolutionEnum
 
     @staticmethod
     def get_flaw_impacts():
@@ -197,7 +197,7 @@ class OSIDBService:
         # is changed and released we can change it back to normal
         #
         # return osidb_bindings.bindings.python_client.models.AffectResolutionEnum
-        return osidb_bindings.bindings.python_client.models.Resolution3AcEnum
+        return osidb_bindings.bindings.python_client.models.ResolutionEnum
 
     @staticmethod
     def get_affect_impact():
