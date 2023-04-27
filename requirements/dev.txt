@@ -691,9 +691,9 @@ mypy-extensions==1.0.0 \
     # via
     #   -r requirements/test.txt
     #   mypy
-osidb-bindings==3.0.2 \
-    --hash=sha256:15e843c3d48218f549d4f786e96c91c3fd571cf0be6d4634878095d0431e34b3 \
-    --hash=sha256:d988e9b2e3a5476343b835254fa6f323d59f697b278a03e8fcc6271159b79f76
+osidb-bindings==3.1.0 \
+    --hash=sha256:38e62d3210ba2ede9da82af0d713e19602f41b2e212641d04f17e71941394e99 \
+    --hash=sha256:6b222623bfdf2a90f75dcf621ec0d1c949c7b109e6ff572eb6431184b9c5154d
     # via
     #   -r requirements/base.txt
     #   -r requirements/test.txt
