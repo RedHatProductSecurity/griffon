@@ -12,6 +12,7 @@ exclude_components = -container-source
     -static
     -common-debuginfo
     -doc
+    -devel
 
 # profile sections (use with --profile {profile} flag)
 [cloud]

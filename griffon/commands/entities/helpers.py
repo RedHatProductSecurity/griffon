@@ -81,7 +81,7 @@ def get_editor():
 
 
 def query_params_options(
-    entity: str, endpoint_module: ModuleType, options_overrides: Optional[dict[dict]] = None
+    entity: str, endpoint_module: ModuleType, options_overrides: Optional[dict[dict]] = None  # type: ignore # noqa
 ) -> Callable:
     """
     Decorator which obtains all query parameters from the given endpoint module and adds
