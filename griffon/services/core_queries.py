@@ -132,7 +132,8 @@ class products_versions_affected_by_specific_cve_query:
                     executor.submit(
                         self.corgi_session.components.retrieve_list,
                         name=affect.ps_component,
-                        view="latest",
+                        latest_components_by_streams=True,
+                        include_fields="product_streams.name,product_versions.name"
                     )
                 )
             for future in concurrent.futures.as_completed(futures):
@@ -144,8 +145,10 @@ class products_versions_affected_by_specific_cve_query:
                     exit(0)
 
             for c in results:
-                product_streams.add(c["product_stream"])
-                product_versions.add(c["product_version"])
+                for ps in c["product_streams"]:
+                    product_streams.add(ps["name"])
+                for pv in c["product_versions"]:
+                    product_versions.add(ps["name"])
         return {
             "link": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
             "cve_id": flaw.cve_id,
@@ -176,6 +179,7 @@ class products_containing_specific_component_query:
         "search_community",
         "search_upstreams",
         "filter_rh_naming",
+        "search_redhat",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -669,7 +673,7 @@ class components_affected_by_specific_cve_query:
                     executor.submit(
                         self.corgi_session.components.retrieve_list,
                         name=affect.ps_component,
-                        view="latest",
+                        latest_components_by_streams=True,
                     )
                 )
             for future in concurrent.futures.as_completed(futures):
@@ -778,8 +782,8 @@ class cves_for_specific_component_query:
                             {
                                 "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect['uuid']}",  # noqa
                                 "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw['cve_id']}",  # noqa
-                                "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect['ps_component']}&view=latest",  # noqa
-                                "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect['ps_component']}&view=latest",  # noqa
+                                "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect['ps_component']}&latest_components_by_streams=True",  # noqa
+                                "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect['ps_component']}&latest_components_by_streams=True",  # noqa
                                 "flaw_cve_id": flaw["cve_id"],
                                 "title": flaw["title"],
                                 "flaw_state": flaw["state"],
@@ -891,8 +895,8 @@ class cves_for_specific_product_query:
                             {
                                 "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect['uuid']}",  # noqa
                                 "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw['cve_id']}",  # noqa
-                                "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect['ps_component']}&view=latest",  # noqa
-                                "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect['ps_component']}&view=latest",  # noqa
+                                "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect['ps_component']}&latest_components_by_streams=True",  # noqa
+                                "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect['ps_component']}&latest_components_by_streams=True",  # noqa
                                 "flaw_cve_id": flaw["cve_id"],
                                 "title": flaw["title"],
                                 "flaw_state": flaw["state"],

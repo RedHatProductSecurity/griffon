@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - bump component-registry-bindings == 1.3.4 to enable accessing latest corgi
+- fix various incompatibilities with latest component registry prod
 
 ## [0.1.28] - 2023-04-27
 ### Changed
