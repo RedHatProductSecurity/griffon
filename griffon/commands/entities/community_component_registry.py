@@ -235,19 +235,19 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
     cond = {
         "include_fields": "name,purl,version,type,tags,arch,release,product_streams",  # noqa
         "name": component_name,
-        "view": "latest",
+        "latest_components_by_streams": True,
     }
-    latest_components = session.components.retrieve_list(**cond, limit=10000)
+    # latest_components = session.components.retrieve_list(**cond, limit=10000)
 
     latest = []
 
-    for latest_component in latest_components.results:
-        latest.append(
-            {
-                "product_stream": latest_component["product_stream"],
-                "purl": latest_component.purl,
-            }
-        )
+    # for latest_component in latest_components.results:
+    #     latest.append(
+    #         {
+    #             "product_stream": latest_component["product_stream"],
+    #             "purl": latest_component.purl,
+    #         }
+    #     )
     data = {
         "link": f"{CORGI_API_URL}/api/v1/components?name={component_name}",
         "type": component_type,

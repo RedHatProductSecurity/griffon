@@ -253,7 +253,7 @@ def text_output_products_contain_component(
                             root_component = "root component"
                             if sources:
                                 source_purl = PackageURL.from_string(sources[0]["purl"])
-                                root_component = source_purl.name
+                                root_component = sources[0]["name"]
 
                             dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
                             dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
@@ -289,9 +289,7 @@ def text_output_products_contain_component(
                             root_component = "root component"
                             if sources:
                                 source_purl = PackageURL.from_string(sources[0]["purl"])
-                                root_component = (
-                                    f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
-                                )
+                                root_component = f"{sources[0]['purl']}-{output_version(ctx,source_purl.version)}"  # noqa
 
                             dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
                             dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
@@ -332,9 +330,7 @@ def text_output_products_contain_component(
                             root_component = "root component"
                             if sources:
                                 source_purl = PackageURL.from_string(sources[0]["purl"])
-                                root_component = (
-                                    f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
-                                )
+                                root_component = f"{sources[0]['purl']}-{output_version(ctx,source_purl.version)}"  # noqa
                             dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
                             dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
                             related_url = related_url.replace(
@@ -377,9 +373,7 @@ def text_output_products_contain_component(
                             root_component = "root component"
                             if sources:
                                 source_purl = PackageURL.from_string(sources[0]["purl"])
-                                root_component = (
-                                    f"{source_purl.name}-{output_version(ctx,source_purl.version)}"
-                                )
+                                root_component = f"{sources[0]['purl']}-{output_version(ctx,source_purl.version)}"  # noqa
                             upstream = ""
                             if item["upstream_purl"]:
                                 upstream = f"[cyan]{item['upstream_purl']}[/cyan]"
@@ -500,23 +494,24 @@ def text_output_components_affected_by_cve(ctx, output, format):
             if purl.namespace:
                 ns = purl.namespace.upper()
             affected_component = f"([bold cyan]{ns}[/bold cyan] {purl.name}-{purl.version},{purl.type.upper()})"  # noqa
+            versions = [pv["name"] for pv in component["product_versions"]]
             if ctx.obj["VERBOSE"] == 0:
                 console.print(
-                    Text(component["product_version"], style="bold magenta u"),
+                    Text(str(versions), style="bold magenta u"),
                     ns,
-                    affected_component1,
+                    affected_component,
                     no_wrap=False,
                 )
             if ctx.obj["VERBOSE"] == 1:
                 console.print(
-                    Text(component["product_stream"], style="bold magenta u"),
+                    Text(component["product_streams"], style="bold magenta u"),
                     ns,
                     affected_component1,
                     no_wrap=False,
                 )
             if ctx.obj["VERBOSE"] > 1:
                 console.print(
-                    Text(component["product_stream"], style="bold magenta u"),
+                    Text(component["product_streams"], style="bold magenta u"),
                     ns,
                     affected_component1,
                     Text(component["build_source_url"], style="i"),

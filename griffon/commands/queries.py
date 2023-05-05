@@ -543,8 +543,11 @@ def get_product_latest_components_query(ctx, product_stream_name, ofuri, verbose
     if product_stream_name:
         # lookup ofuri
         session = CorgiService.create_session()
-        ps = session.product_streams.retrieve_list(name=product_stream_name)
+        ps = session.product_streams.retrieve_list(
+            name=product_stream_name, include_fields="name,ofuri"
+        )
         params["ofuri"] = ps["ofuri"]
+        params["include_fields"] = "name,nvr,related_url,purl,version,release,type,software_build"
     ctx.invoke(list_components, **params)
 
 
