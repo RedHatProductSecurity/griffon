@@ -237,7 +237,7 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
         "name": component_name,
         "latest_components_by_streams": True,
     }
-    latest_components = session.components.retrieve_list(**cond, limit=10000)
+    # latest_components = session.components.retrieve_list(**cond, limit=10000)
 
     latest = []
 

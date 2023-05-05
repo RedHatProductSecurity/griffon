@@ -55,6 +55,7 @@ class product_stream_summary:
             limit=400,
             include_fields="link,ofuri,name,products,product_versions,brew_tags,manifest",
         )
+
         results = []
         if product_streams.results:
             for ps in product_streams.results:
@@ -63,7 +64,7 @@ class product_stream_summary:
                     "ofuri": ps.ofuri,
                     "name": ps.name,
                     "product": ps.products[0]["name"],
-                    "product_version": ps.product_versions[0]["name"],
+                    "product_version": str([pv["name"] for pv in ps.product_versions]),
                     "brew_tags": [brew_tag for brew_tag in ps.brew_tags.to_dict().keys()],
                     # "build_count": ps.build_count,
                     "manifest_link": ps.manifest,
@@ -133,7 +134,7 @@ class products_versions_affected_by_specific_cve_query:
                         self.corgi_session.components.retrieve_list,
                         name=affect.ps_component,
                         latest_components_by_streams=True,
-                        include_fields="product_streams.name,product_versions.name"
+                        include_fields="product_streams.name,product_versions.name",
                     )
                 )
             for future in concurrent.futures.as_completed(futures):
@@ -674,6 +675,7 @@ class components_affected_by_specific_cve_query:
                         self.corgi_session.components.retrieve_list,
                         name=affect.ps_component,
                         latest_components_by_streams=True,
+                        include_fields="purl,product_streams,product_versions,software_build",
                     )
                 )
             for future in concurrent.futures.as_completed(futures):
