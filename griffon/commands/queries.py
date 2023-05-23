@@ -208,7 +208,14 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "search_all",
     is_flag=True,
     default=False,
-    help="Search all root Components and dependencies.",
+    help="Search all Components and dependencies.",
+)
+@click.option(
+    "--search-all-roots",
+    "search_all_roots",
+    is_flag=True,
+    default=False,
+    help="Search all ROOT Components and dependencies.",
 )
 @click.option(
     "--search-redhat",
@@ -230,6 +237,13 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     is_flag=True,
     default=False,
     help="Search for Components by upstream.",
+)
+@click.option(
+    "--no-community",
+    "no_community",
+    is_flag=True,
+    default=False,
+    help="Do not search community.",
 )
 @click.option(
     "-v",
@@ -254,9 +268,11 @@ def get_product_contain_component(
     search_related_url,
     filter_rh_naming,
     search_all,
+    search_all_roots,
     search_redhat,
     search_community,
     search_upstreams,
+    no_community,
     verbose,
 ):
     with console.status("griffoning", spinner="line") as operation_status:
@@ -272,6 +288,7 @@ def get_product_contain_component(
         if (
             not search_latest
             and not search_all
+            and not search_all_roots
             and not search_related_url
             and not search_community
             and not search_upstreams

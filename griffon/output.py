@@ -1,6 +1,7 @@
 import enum
 import json
 import logging
+import re
 
 import click
 from packageurl import PackageURL
@@ -154,10 +155,8 @@ def text_output_product_summary(ctx, output, format, exclude_products):
     ctx.exit()
 
 
-def text_output_products_contain_component(
-    ctx, output, format, exclude_products, exclude_components
-):
-    component_name = ctx.params["component_name"]
+def text_output_products_contain_component(ctx, output, exclude_products, exclude_components):
+    search_component_name = ctx.params["component_name"]
 
     # handle single component
     if ctx.params["purl"]:
@@ -171,14 +170,73 @@ def text_output_products_contain_component(
 
     # handle multiple components
     if "results" in output and output["count"] > 0:
-        ordered_results = sorted(output["results"], key=lambda d: d["product_stream"])
+        console.highlighter = None
 
-        if exclude_products:
-            exclude_products_results = []
-            for result in ordered_results:
-                if result["product_version"] not in exclude_products:
-                    exclude_products_results.append(result)
-            ordered_results = exclude_products_results
+        # order at the end
+        # ordered_results = sorted(output["results"], key=lambda d: d["product_stream"])
+
+        # first flatten the tree
+        normalised_results = list()
+        if "results" in output:
+            for item in output["results"]:
+                for ps in item["product_streams"]:
+                    if ps["product_versions"][0]["name"] not in exclude_products:
+                        if not any([match in item["name"] for match in exclude_components]):
+                            c = {
+                                "product_version": ps["product_versions"][0]["name"],
+                                "product_stream": ps.get("name"),
+                                "namespace": item.get("namespace"),
+                                "name": item.get("name"),
+                                "nvr": item.get("nvr"),
+                                "type": item.get("type"),
+                                "arch": item.get("arch"),
+                                "related_url": item.get("related_url"),
+                                "purl": item.get("purl"),
+                                "sources": item.get("sources"),
+                            }
+                            if "software_build" in item:
+                                c["build_source_url"] = item["software_build"].get("source")
+                            normalised_results.append(c)
+        product_versions = sorted(
+            list(set([item["product_version"] for item in normalised_results]))
+        )
+        result_tree = {}
+        for pv in product_versions:
+            result_tree[pv] = {}
+            product_streams = sorted(
+                list(
+                    set(
+                        [
+                            item["product_stream"]
+                            for item in normalised_results
+                            if item["product_version"] == pv
+                        ]
+                    )
+                )
+            )
+            for ps in product_streams:
+                result_tree[pv][ps] = {}
+                component_names = sorted(
+                    list(
+                        set(
+                            [
+                                item["name"]
+                                for item in normalised_results
+                                if item["product_stream"] == ps
+                            ]
+                        )
+                    )
+                )
+                for cn in component_names:
+                    result_tree[pv][ps][cn] = {}
+                    nvrs = [
+                        item
+                        for item in normalised_results
+                        if item["product_stream"] == ps and item["name"] == cn
+                    ]
+
+                    for nvr in nvrs:
+                        result_tree[pv][ps][cn][nvr["nvr"]] = nvr
 
         # TODO - MAVEN component type will require special handling
         if ctx.params["affect_mode"]:
@@ -191,206 +249,195 @@ def text_output_products_contain_component(
                 flaw_operation = "new"
             if flaw_mode == "update":
                 flaw_operation = "update"
-            product_versions = sorted(
-                list(set([item["product_version"] for item in ordered_results]))
-            )
-            for pv in product_versions:
-                names = [item["name"] for item in ordered_results if pv == item["product_version"]]
-                names = list(set(names))
-                if component_name in names and f"{component_name}-container" in names:
-                    names.remove(f"{component_name}-container")
-                for name in names:
-                    if not any([match in name for match in exclude_components]):
-                        dep_name = name
+
+            for pv in result_tree.keys():
+                component_names = set()
+                for ps in result_tree[pv].keys():
+                    component_names.update(result_tree[pv][ps].keys())
+                # we should only show component name if both {component name} and {component name-container} exists # noqa
+                if (
+                    search_component_name in component_names
+                    and f"{search_component_name}-container" in component_names
+                ):
+                    component_names.remove(f"{search_component_name}-container")
+                for cn in component_names:
+                    # ensure {component name} is not in profile exclude components enum
+                    if not any([match in cn for match in exclude_components]):
                         console.print(
-                            f"{pv}/{name}={flaw_operation}",
+                            f"{pv}/{cn}={flaw_operation}",
                             no_wrap=False,
                         )
         else:
-            if ctx.obj["VERBOSE"] == 0:  # product_version X source component
-                product_versions = sorted(
-                    list(set([item["product_version"] for item in ordered_results]))
-                )
-                for pv in product_versions:
-                    names = [
-                        item["name"] for item in ordered_results if pv == item["product_version"]
-                    ]
-                    names = list(set(names))
-                    if component_name in names and f"{component_name}-container" in names:
-                        names.remove(f"{component_name}-container")
-                    for name in names:
-                        if not any([match in name for match in exclude_components]):
-                            dep_name = name.replace(component_name, f"[b]{component_name}[/b]")
-                            dep = f"[white]({dep_name})[/white]"
+
+            if ctx.obj["VERBOSE"] == 0:  # product_version X component_name
+                for pv in result_tree.keys():
+                    component_names = set()
+                    for ps in result_tree[pv].keys():
+                        component_names.update(result_tree[pv][ps].keys())
+                    # we should only show component name if both {component name} and {component name-container} exists # noqa
+                    if (
+                        search_component_name in component_names
+                        and f"{search_component_name}-container" in component_names
+                    ):
+                        component_names.remove(f"{search_component_name}-container")
+                    for cn in component_names:
+                        # ensure {component name} is not in profile exclude components enum
+                        if not any([match in cn for match in exclude_components]):
+                            # highlight search term
+                            dep_name = re.sub(
+                                search_component_name, f"[b]{search_component_name}[/b]", cn
+                            )
+                            dep = f"[grey93]{dep_name}[/grey93]"
                             console.print(
                                 Text(pv, style="magenta b u"),
                                 dep,
                                 no_wrap=False,
                             )
-
-            if ctx.obj["VERBOSE"] == 1:  # product_stream X source component
-                product_streams = sorted(
-                    list(set([item["product_stream"] for item in ordered_results]))
-                )
-                for ps in product_streams:
-                    ps_components = [
-                        item for item in ordered_results if item["product_stream"] == ps
-                    ]
-                    names = sorted(list(set([item["name"] for item in ps_components])))
-                    if component_name in names and f"{component_name}-container" in names:
-                        names.remove(f"{component_name}-container")
-
-                    for name in names:
-                        if not any([match in name for match in exclude_components]):
-                            sources = []
-                            nvr = ""
-                            for item in ps_components:
-                                if item["name"] == name and "sources" in item:
-                                    sources.extend(item["sources"])
-                                if item["nvr"]:
-                                    nvr = item["nvr"]
-
-                            root_component = "root component"
-                            if sources:
-                                source_purl = PackageURL.from_string(sources[0]["purl"])
-                                root_component = sources[0]["name"]
-
-                            dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
-                            dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
-                            console.print(
-                                Text(ps, style="magenta b u"),
-                                root_component,
-                                dep,
-                                no_wrap=False,
-                            )
-
-            if ctx.obj["VERBOSE"] == 2:  # product_stream X nvr
-                product_streams = sorted(
-                    list(set([item["product_stream"] for item in ordered_results]))
-                )
-                for ps in product_streams:
-                    ps_components = [
-                        item for item in ordered_results if item["product_stream"] == ps
-                    ]
-                    names = sorted(list(set([item["name"] for item in ps_components])))
-                    if component_name in names and f"{component_name}-container" in names:
-                        names.remove(f"{component_name}-container")
-
-                    for name in names:
-                        if not any([match in name for match in exclude_components]):
-                            sources = []
-                            nvr = ""
-                            for item in ps_components:
-                                if item["name"] == name and "sources" in item:
-                                    sources.extend(item["sources"])
-                                if item["nvr"]:
-                                    nvr = item["nvr"]
-
-                            root_component = "root component"
-                            if sources:
-                                source_purl = PackageURL.from_string(sources[0]["purl"])
-                                root_component = f"{sources[0]['purl']}-{output_version(ctx,source_purl.version)}"  # noqa
-
-                            dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
-                            dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
-                            console.print(
-                                Text(ps, style="magenta b u"),
-                                root_component,
-                                dep,
-                                no_wrap=False,
-                            )
-
-            if ctx.obj["VERBOSE"] == 3:  # source url, upstream
-                product_streams = sorted(
-                    list(set([item["product_stream"] for item in ordered_results]))
-                )
-                for ps in product_streams:
-                    ps_components = [
-                        item for item in ordered_results if item["product_stream"] == ps
-                    ]
-                    names = sorted(list(set([item["name"] for item in ps_components])))
-                    if component_name in names and f"{component_name}-container" in names:
-                        names.remove(f"{component_name}-container")
-                    for name in names:
-                        if not any([match in name for match in exclude_components]):
-                            sources = []
-                            related_url = ""
-                            build_source_url = ""
-                            nvr = ""
-                            for item in ps_components:
-                                if item["name"] == name:
-                                    if item["nvr"]:
-                                        nvr = item["nvr"]
-                                    if "sources" in item:
-                                        sources.extend(item["sources"])
-                                    if item["related_url"]:
-                                        related_url = item["related_url"]
-                                    if item["build_source_url"]:
-                                        build_source_url = item["build_source_url"]
-                            root_component = "root component"
-                            if sources:
-                                source_purl = PackageURL.from_string(sources[0]["purl"])
-                                root_component = f"{sources[0]['purl']}-{output_version(ctx,source_purl.version)}"  # noqa
-                            dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
-                            dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
-                            related_url = related_url.replace(
-                                component_name, f"[b]{component_name}[/b]"
-                            )
-                            console.print(
-                                Text(ps, style="magenta b u"),
-                                root_component,
-                                dep,
-                                related_url,
-                                no_wrap=False,
-                            )
-            if ctx.obj["VERBOSE"] > 3:  # source url, upstream
-                product_streams = sorted(
-                    list(set([item["product_stream"] for item in ordered_results]))
-                )
-                for ps in product_streams:
-                    ps_components = [
-                        item for item in ordered_results if item["product_stream"] == ps
-                    ]
-                    names = sorted(list(set([item["name"] for item in ps_components])))
-                    if component_name in names and f"{component_name}-container" in names:
-                        names.remove(f"{component_name}-container")
-                    for name in names:
-                        if not any([match in name for match in exclude_components]):
-                            sources = []
-                            related_url = ""
-                            build_source_url = ""
-                            nvr = ""
-                            for item in ps_components:
-                                if item["name"] == name:
-                                    if item["nvr"]:
-                                        nvr = item["nvr"]
-                                    if "sources" in item:
-                                        sources.extend(item["sources"])
-                                    if item["related_url"]:
-                                        related_url = item["related_url"]
-                                    if item["build_source_url"]:
-                                        build_source_url = item["build_source_url"]
-                            root_component = "root component"
-                            if sources:
-                                source_purl = PackageURL.from_string(sources[0]["purl"])
-                                root_component = f"{sources[0]['purl']}-{output_version(ctx,source_purl.version)}"  # noqa
-                            upstream = ""
-                            if item["upstream_purl"]:
-                                upstream = f"[cyan]{item['upstream_purl']}[/cyan]"
-                            dep_name = nvr.replace(component_name, f"[b]{component_name}[/b]")
-                            dep = f"[white]({dep_name}, {item['type'].lower()})[/white]"
-                            related_url = related_url.replace(
-                                component_name, f"[b]{component_name}[/b]"
-                            )
-                            console.print(
-                                Text(ps, style="magenta b u"),
-                                root_component,
-                                dep,
-                                related_url,
-                                build_source_url,
-                                upstream,
-                                no_wrap=False,
-                            )
+            if ctx.obj["VERBOSE"] == 1:  # product_stream X nvr x related_url
+                for pv in result_tree.keys():
+                    for ps in result_tree[pv].keys():
+                        for cn in result_tree[pv][ps].keys():
+                            # ensure {component name} is not in profile exclude components enum
+                            if not any([match in cn for match in exclude_components]):
+                                for nvr in result_tree[pv][ps][cn].keys():
+                                    # highlight search term
+                                    dep_name = re.sub(
+                                        search_component_name,
+                                        f"[b]{search_component_name}[/b]",
+                                        nvr,
+                                    )
+                                    dep = f"[grey93]{dep_name}[/grey93]"
+                                    related_url = ""
+                                    if result_tree[pv][ps][cn][nvr]["related_url"]:
+                                        related_url = re.sub(
+                                            search_component_name,
+                                            f"[b]{search_component_name}[/b]",
+                                            result_tree[pv][ps][cn][nvr]["related_url"],
+                                        )
+                                    if result_tree[pv][ps][cn][nvr]["sources"]:
+                                        source_component_names = list(
+                                            set(
+                                                [
+                                                    source["name"]
+                                                    for source in result_tree[pv][ps][cn][nvr][
+                                                        "sources"
+                                                    ]
+                                                ]
+                                            )
+                                        )
+                                        for source_name in source_component_names:
+                                            console.print(
+                                                Text(ps, style="magenta b u"),
+                                                source_name,
+                                                dep,
+                                                f"([grey]{related_url}[/grey])",
+                                                no_wrap=False,
+                                            )
+                                    else:
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            dep,
+                                            f"([grey]{related_url}[/grey])",
+                                            no_wrap=False,
+                                        )
+            if ctx.obj["VERBOSE"] == 2:  # product_stream X nvr x related_url x build_source_url
+                for pv in result_tree.keys():
+                    for ps in result_tree[pv].keys():
+                        for cn in result_tree[pv][ps].keys():
+                            if not any([match in cn for match in exclude_components]):
+                                for nvr in result_tree[pv][ps][cn].keys():
+                                    dep_name = re.sub(
+                                        search_component_name,
+                                        f"[b]{search_component_name}[/b]",
+                                        nvr,
+                                    )
+                                    dep = f"[grey93]{dep_name}[/grey93]"
+                                    related_url = ""
+                                    if result_tree[pv][ps][cn][nvr]["related_url"]:
+                                        related_url = re.sub(
+                                            search_component_name,
+                                            f"[b]{search_component_name}[/b]",
+                                            result_tree[pv][ps][cn][nvr]["related_url"],
+                                        )
+                                    build_source_url = ""
+                                    if result_tree[pv][ps][cn][nvr]["build_source_url"]:
+                                        build_source_url = result_tree[pv][ps][cn][nvr][
+                                            "build_source_url"
+                                        ]
+                                    if result_tree[pv][ps][cn][nvr]["sources"]:
+                                        source_component_names = list(
+                                            set(
+                                                [
+                                                    source["name"]
+                                                    for source in result_tree[pv][ps][cn][nvr][
+                                                        "sources"
+                                                    ]
+                                                ]
+                                            )
+                                        )
+                                        for source_name in source_component_names:
+                                            console.print(
+                                                Text(ps, style="magenta b u"),
+                                                source_name,
+                                                dep,
+                                                f"([grey]{related_url}[/grey])",
+                                                no_wrap=False,
+                                            )
+                                    else:
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            dep,
+                                            f"([grey]{related_url}[/grey])",
+                                            f"([grey]{build_source_url}[/grey])",
+                                            no_wrap=False,
+                                        )
+            if ctx.obj["VERBOSE"] > 2:  # product_stream X purl x related_url x build_source_url
+                for pv in result_tree.keys():
+                    for ps in result_tree[pv].keys():
+                        for cn in result_tree[pv][ps].keys():
+                            if not any([match in cn for match in exclude_components]):
+                                for nvr in result_tree[pv][ps][cn].keys():
+                                    purl = result_tree[pv][ps][cn][nvr]["purl"]
+                                    dep = f"[grey93]{purl}[/grey93]"
+                                    related_url = ""
+                                    if result_tree[pv][ps][cn][nvr]["related_url"]:
+                                        related_url = re.sub(
+                                            search_component_name,
+                                            f"[b]{search_component_name}[/b]",
+                                            result_tree[pv][ps][cn][nvr]["related_url"],
+                                        )
+                                    build_source_url = ""
+                                    if result_tree[pv][ps][cn][nvr]["build_source_url"]:
+                                        build_source_url = result_tree[pv][ps][cn][nvr][
+                                            "build_source_url"
+                                        ]
+                                    if result_tree[pv][ps][cn][nvr]["sources"]:
+                                        source_component_names = list(
+                                            set(
+                                                [
+                                                    source["name"]
+                                                    for source in result_tree[pv][ps][cn][nvr][
+                                                        "sources"
+                                                    ]
+                                                ]
+                                            )
+                                        )
+                                        for source_name in source_component_names:
+                                            console.print(
+                                                Text(ps, style="magenta b u"),
+                                                source_name,
+                                                dep,
+                                                f"([grey]{related_url}[/grey])",
+                                                no_wrap=False,
+                                            )
+                                    else:
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            f"[white]{purl}[/white]",
+                                            f"([grey]{related_url}[/grey])",
+                                            f"([grey]{build_source_url}[/grey])",
+                                            no_wrap=False,
+                                        )
 
         ctx.exit()
 
@@ -830,7 +877,7 @@ def cprint(
             text_output_product_summary(ctx, output, format, exclude_products)
         if ctx.info_name == "products-contain-component":
             text_output_products_contain_component(
-                ctx, output, format, exclude_products, exclude_components
+                ctx, output, exclude_products, exclude_components
             )
         if ctx.info_name == "components-contain-component":
             text_output_components_contain_component(ctx, output, format, exclude_components)
