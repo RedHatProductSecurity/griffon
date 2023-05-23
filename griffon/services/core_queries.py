@@ -199,7 +199,7 @@ def output_component(pv, ps, c):
     is_root = False
     if (c.arch == "src" and c.type == "RPM") or (c.arch == "noarch" and c.type == "OCI"):
         is_root = True
-    sources = [{"purl": source["purl"]} for source in c.sources]
+    sources = [source for source in c.sources]
     component = {
         "is_root": is_root,
         "product_version": pv["name"],
@@ -216,11 +216,11 @@ def output_component(pv, ps, c):
         "version": c.version,
         "sources": sources,
         "nvr": c.nvr,
-        "build_id": None,
-        "build_type": None,
-        "build_source_url": None,
-        "related_url": None,
-        "upstream_purl": None,
+        # "build_id": None,
+        # "build_type": None,
+        # "build_source_url": None,
+        # "related_url": None,
+        # "upstream_purl": None,
     }
     if c.software_build:
         component["build_id"] = str(c.software_build.build_id)
@@ -240,7 +240,7 @@ def async_retrieve_components(corgi_session, params, components_initial, compone
         components.extend(components_initial.results)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
-            for batch in range(120, component_cnt, 120):
+            for batch in range(120, 600, 120):
                 futures.append(
                     executor.submit(
                         corgi_session.components.retrieve_list,
@@ -271,37 +271,41 @@ class products_containing_component_query:
         "strict_name_search",
         "search_latest",
         "search_all",
+        "search_all_roots",
         "search_related_url",
         "search_redhat",
         "search_community",
         "search_upstreams",
         "filter_rh_naming",
+        "no_community",
     ]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
         self.params = params
-        self.component_name = self.params.get("component_name")
-        self.component_type = self.params.get("component_type")
+        self.component_name = self.params.get("component_name", "")
+        self.component_type = self.params.get("component_type", "")
         self.strict_name_search = self.params.get("strict_name_search")
         self.search_deps = self.params.get("search_deps")
         self.ns = self.params.get("namespace")
         self.search_latest = self.params.get("search_latest")
         self.search_all = self.params.get("search_all")
+        self.search_all_roots = self.params.get("search_all_roots")
         self.search_related_url = self.params.get("search_related_url")
         self.search_redhat = self.params.get("search_redhat")
         self.search_community = self.params.get("search_community")
         self.search_upstreams = self.params.get("search_upstreams")
         self.filter_rh_naming = self.params.get("filter_rh_naming")
+        self.no_community = self.params.get("no_community")
 
     def execute(self) -> List[Dict[str, Any]]:
         results = []
+        params = {
+            "include_fields": "link,purl,type,name,related_url,namespace,software_build,nvr,sources.purl,sources.name,upstreams.purl,upstreams.name,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri",  # noqa
+        }
 
         if self.search_latest:
-            params = {
-                "latest_components_by_streams": True,
-                "include_fields": "link,purl,type,name,related_url,namespace,software_build,nvr,upstreams.purl,upstreams.name,release,version,arch,sources.name,sources.purl,sources.name,product_versions.name,product_versions.ofuri,product_streams.name,product_streams.ofuri",  # noqa
-            }
+            params["latest_components_by_streams"] = "True"
             if not self.strict_name_search:
                 params["re_name"] = self.component_name
             else:
@@ -313,21 +317,11 @@ class products_containing_component_query:
             latest_components: list = async_retrieve_components(
                 self.corgi_session, params, component_initial, component_initial.count
             )
-            for c in latest_components:
-                if self.strict_name_search:
-                    if c.name != self.component_name:
-                        continue
-                for pv in c.product_versions:
-                    for ps in c.product_streams:
-                        component = output_component(pv, ps, c)
-                        results.append(component)
+            results.extend(latest_components)
 
         if self.search_related_url:
             # Note: related_url filter has no concept of strict
-            params = {
-                "include_fields": "link,purl,type,name,related_url,namespace,software_build,nvr,upstreams.purl,upstreams.name,release,version,arch,sources.name,sources.purl,sources.name,product_versions.name,product_versions.ofuri,product_streams.name,product_streams.ofuri",  # noqa
-                "related_url": self.component_name,
-            }
+            params["related_url"] = self.component_name
             params["namespace"] = "REDHAT"
             if self.component_type:
                 params["type"] = self.component_type
@@ -336,27 +330,33 @@ class products_containing_component_query:
             related_url_components: list = async_retrieve_components(
                 self.corgi_session, params, component_initial, component_initial.count
             )
-            for c in related_url_components:
-                if self.strict_name_search:
-                    if c.name != self.component_name:
-                        continue
-                for pv in c.product_versions:
-                    for ps in c.product_streams:
-                        results.append(output_component(pv, ps, c))
+            results.extend(related_url_components)
 
         if self.search_all:
-            params = {
-                "type": "RPM",
-                "arch": "src",
-                "include_fields": "link,purl,type,name,related_url,namespace,software_build,nvr,upstreams.purl,upstreams.name,release,version,arch,sources.name,sources.purl,sources.name,product_versions.name,product_versions.ofuri,product_streams.name,product_streams.ofuri",  # noqa
-            }
+            # params["type"] ="RPM"
             if not self.strict_name_search:
                 params["re_name"] = self.component_name
             else:
                 params["name"] = self.component_name
-
             if self.component_type:
                 params["type"] = self.component_type
+
+            all_component_initial = self.corgi_session.components.retrieve_list(limit=120, **params)
+            all_components: list = async_retrieve_components(
+                self.corgi_session,
+                params,
+                all_component_initial,
+                all_component_initial.count,
+            )
+            results.extend(all_components)
+
+        if self.search_all_roots:
+            params["type"] = "RPM"
+            params["arch"] = "src"
+            if not self.strict_name_search:
+                params["re_name"] = self.component_name
+            else:
+                params["name"] = self.component_name
 
             all_src_component_initial = self.corgi_session.components.retrieve_list(
                 limit=120, **params
@@ -378,24 +378,13 @@ class products_containing_component_query:
                 all_noarch_component_initial,
                 all_noarch_component_initial.count,
             )
-            all_components = all_src_components + all_noarch_components
-
-            for c in all_components:
-                if self.strict_name_search:
-                    if c.name != self.component_name:
-                        continue
-                for pv in c.product_versions:
-                    for ps in c.product_streams:
-                        results.append(output_component(pv, ps, c))
+            all_root_components = all_src_components + all_noarch_components
+            results.extend(all_root_components)
 
         if self.search_upstreams:
             # Note: upstreams only takes a purl ... so we must use re_upstreams for
             # both strict and not strict search
-            params = params = {
-                "include_fields": "link,purl,type,name,namespace,software_build,nvr,related_url,upstreams.purl,upstreams.name,release,version,arch,sources.name,sources.purl,sources.name,product_versions.name,product_versions.ofuri,product_streams.name,product_streams.ofuri",  # noqa
-                "namespace": "UPSTREAM",
-            }
-
+            params["namespace"] = "UPSTREAM"
             if not self.strict_name_search:
                 params["re_name"] = self.component_name
             else:
@@ -407,13 +396,7 @@ class products_containing_component_query:
             upstream_components: list = async_retrieve_components(
                 self.corgi_session, params, component_initial, component_initial.count
             )
-            for c in upstream_components:
-                if self.strict_name_search:
-                    if c.name != self.component_name:
-                        continue
-                for pv in c.product_versions:
-                    for ps in c.product_streams:
-                        results.append(output_component(pv, ps, c))
+            results.extend(upstream_components)
 
         if self.filter_rh_naming:
             flags = re.IGNORECASE
@@ -454,14 +437,12 @@ class products_containing_component_query:
 
             results = filtered_results
 
-        if self.search_community or self.search_all:
+        if not self.no_community and (
+            self.search_community or self.search_all or self.search_all_roots
+        ):
             self.community_session = CommunityComponentService.create_session()
-
-            params = {
-                "include_fields": "link,purl,type,name,namespace,software_build,nvr,upstreams.purl,upstreams.name,release,version,arch,sources.name,sources.purl,sources.name,product_versions.name,product_versions.ofuri,product_streams.name,product_streams.ofuri",  # noqa
-                "type": "RPM",
-                "arch": "src",
-            }
+            params["type"] = "RPM"
+            params["arch"] = "src"
             if not self.strict_name_search:
                 params["re_name"] = self.component_name
             else:
@@ -486,13 +467,7 @@ class products_containing_component_query:
                 component_initial_noarch.count,
             )
             community_components = commmunity_src_components + commmunity_noarch_components
-            for c in community_components:
-                if self.strict_name_search:
-                    if c.name != self.component_name:
-                        continue
-                for pv in c.product_versions:
-                    for ps in c.product_streams:
-                        results.append(output_component(pv, ps, c))
+            results.extend(community_components)
 
         return results
 
