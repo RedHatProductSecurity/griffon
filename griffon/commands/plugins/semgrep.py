@@ -23,7 +23,7 @@ try:
     # ensure semgrep is installed
     import semgrep  # noqa
 
-    @plugins.command(help="Run this first, installs semgrep")
+    @plugins.command(help="semgrep scan")
     @click.argument("scan_dir", required=False, type=click.Path(exists=True))
     @click.pass_context
     def scan(ctx, scan_dir):
