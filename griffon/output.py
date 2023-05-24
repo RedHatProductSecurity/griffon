@@ -193,6 +193,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                 "related_url": item.get("related_url"),
                                 "purl": item.get("purl"),
                                 "sources": item.get("sources"),
+                                "upstreams": item.get("upstreams"),
                             }
                             if "software_build" in item:
                                 c["build_source_url"] = item["software_build"].get("source")
@@ -314,26 +315,46 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             f"[b]{search_component_name}[/b]",
                                             result_tree[pv][ps][cn][nvr]["related_url"],
                                         )
-                                    if result_tree[pv][ps][cn][nvr]["sources"]:
-                                        source_component_names = list(
-                                            set(
-                                                [
-                                                    source["name"]
-                                                    for source in result_tree[pv][ps][cn][nvr][
-                                                        "sources"
-                                                    ]
+                                    upstream_component_names = list(
+                                        set(
+                                            [
+                                                source["name"]
+                                                for source in result_tree[pv][ps][cn][nvr][
+                                                    "upstreams"
                                                 ]
-                                            )
+                                            ]
                                         )
-                                        for source_name in source_component_names:
-                                            console.print(
-                                                Text(ps, style="magenta b u"),
-                                                source_name,
-                                                dep,
-                                                f"([grey]{related_url}[/grey])",
-                                                no_wrap=False,
-                                            )
-                                    else:
+                                    )
+                                    if upstream_component_names:
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            f"[cyan]{upstream_component_names[0]} (and {len(upstream_component_names)} more)[/cyan]",  # noqa
+                                            dep,
+                                            f"([grey]{related_url}[/grey])",
+                                            no_wrap=False,
+                                        )
+                                    source_component_names = list(
+                                        set(
+                                            [
+                                                source["name"]
+                                                for source in result_tree[pv][ps][cn][nvr][
+                                                    "sources"
+                                                ]
+                                            ]
+                                        )
+                                    )
+                                    if source_component_names:
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            f"[light_blue]{source_component_names[0]} (and {len(source_component_names)} more)[/light_blue]",  # noqa
+                                            dep,
+                                            f"([grey]{related_url}[/grey])",
+                                            no_wrap=False,
+                                        )
+                                    if (
+                                        not result_tree[pv][ps][cn][nvr]["upstreams"]
+                                        and not result_tree[pv][ps][cn][nvr]["sources"]
+                                    ):
                                         console.print(
                                             Text(ps, style="magenta b u"),
                                             dep,
@@ -364,26 +385,46 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                         build_source_url = result_tree[pv][ps][cn][nvr][
                                             "build_source_url"
                                         ]
-                                    if result_tree[pv][ps][cn][nvr]["sources"]:
-                                        source_component_names = list(
-                                            set(
-                                                [
-                                                    source["name"]
-                                                    for source in result_tree[pv][ps][cn][nvr][
-                                                        "sources"
-                                                    ]
+                                    upstream_component_names = list(
+                                        set(
+                                            [
+                                                source["name"]
+                                                for source in result_tree[pv][ps][cn][nvr][
+                                                    "upstreams"
                                                 ]
-                                            )
+                                            ]
                                         )
-                                        for source_name in source_component_names:
-                                            console.print(
-                                                Text(ps, style="magenta b u"),
-                                                source_name,
-                                                dep,
-                                                f"([grey]{related_url}[/grey])",
-                                                no_wrap=False,
-                                            )
-                                    else:
+                                    )
+                                    if upstream_component_names:
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            f"[cyan]{upstream_component_names[0]} (and {len(upstream_component_names)} more)[/cyan]",  # noqa
+                                            dep,
+                                            f"([grey]{related_url}[/grey])",
+                                            no_wrap=False,
+                                        )
+                                    source_component_names = list(
+                                        set(
+                                            [
+                                                source["name"]
+                                                for source in result_tree[pv][ps][cn][nvr][
+                                                    "sources"
+                                                ]
+                                            ]
+                                        )
+                                    )
+                                    if source_component_names:
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            f"[light_blue]{source_component_names[0]} (and {len(source_component_names)} more)[/light_blue]",  # noqa
+                                            dep,
+                                            f"([grey]{related_url}[/grey])",
+                                            no_wrap=False,
+                                        )
+                                    if (
+                                        not result_tree[pv][ps][cn][nvr]["upstreams"]
+                                        and not result_tree[pv][ps][cn][nvr]["sources"]
+                                    ):
                                         console.print(
                                             Text(ps, style="magenta b u"),
                                             dep,
@@ -391,14 +432,20 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             f"([grey]{build_source_url}[/grey])",
                                             no_wrap=False,
                                         )
-            if ctx.obj["VERBOSE"] > 2:  # product_stream X purl x related_url x build_source_url
+            if (
+                ctx.obj["VERBOSE"] > 2
+            ):  # product_stream X nvr (full source/upstreams) x related_url x build_source_url
                 for pv in result_tree.keys():
                     for ps in result_tree[pv].keys():
                         for cn in result_tree[pv][ps].keys():
                             if not any([match in cn for match in exclude_components]):
                                 for nvr in result_tree[pv][ps][cn].keys():
-                                    purl = result_tree[pv][ps][cn][nvr]["purl"]
-                                    dep = f"[grey93]{purl}[/grey93]"
+                                    dep_name = re.sub(
+                                        search_component_name,
+                                        f"[b]{search_component_name}[/b]",
+                                        nvr,
+                                    )
+                                    dep = f"[grey93]{dep_name}[/grey93]"
                                     related_url = ""
                                     if result_tree[pv][ps][cn][nvr]["related_url"]:
                                         related_url = re.sub(
@@ -411,29 +458,51 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                         build_source_url = result_tree[pv][ps][cn][nvr][
                                             "build_source_url"
                                         ]
-                                    if result_tree[pv][ps][cn][nvr]["sources"]:
-                                        source_component_names = list(
-                                            set(
-                                                [
-                                                    source["name"]
-                                                    for source in result_tree[pv][ps][cn][nvr][
-                                                        "sources"
-                                                    ]
+                                    upstream_component_names = list(
+                                        set(
+                                            [
+                                                source["name"]
+                                                for source in result_tree[pv][ps][cn][nvr][
+                                                    "upstreams"
                                                 ]
-                                            )
+                                            ]
                                         )
-                                        for source_name in source_component_names:
-                                            console.print(
-                                                Text(ps, style="magenta b u"),
-                                                source_name,
-                                                dep,
-                                                f"([grey]{related_url}[/grey])",
-                                                no_wrap=False,
-                                            )
-                                    else:
+                                    )
+                                    for upstream_name in upstream_component_names:
                                         console.print(
                                             Text(ps, style="magenta b u"),
-                                            f"[white]{purl}[/white]",
+                                            f"[cyan]{upstream_name}[/cyan]",
+                                            dep,
+                                            f"([grey]{related_url}[/grey])",
+                                            f"([grey]{build_source_url}[/grey])",
+                                            no_wrap=False,
+                                        )
+                                    source_component_names = list(
+                                        set(
+                                            [
+                                                source["name"]
+                                                for source in result_tree[pv][ps][cn][nvr][
+                                                    "sources"
+                                                ]
+                                            ]
+                                        )
+                                    )
+                                    for source_name in source_component_names:
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            f"[light_blue]{source_name}[/light_blue]",
+                                            dep,
+                                            f"([grey]{related_url}[/grey])",
+                                            f"([grey]{build_source_url}[/grey])",
+                                            no_wrap=False,
+                                        )
+                                    if (
+                                        not result_tree[pv][ps][cn][nvr]["upstreams"]
+                                        and not result_tree[pv][ps][cn][nvr]["sources"]
+                                    ):
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            dep,
                                             f"([grey]{related_url}[/grey])",
                                             f"([grey]{build_source_url}[/grey])",
                                             no_wrap=False,
@@ -618,7 +687,7 @@ def text_output_component_flaws(ctx, output, format):
     for item in ordered_components:
         component_name = item["name"]
         # sorting should work when there is no title or cve-id key
-        ordered_affects = sorted(item["affects"], key=lambda d: (d["title"] is None, d["title"]))
+        ordered_affects = sorted(item["affects"], key=lambda d: d["flaw_cve_id"])
         for affect in ordered_affects:
             flaw_cve_id = "Vulnerability"
             if affect["flaw_cve_id"]:
