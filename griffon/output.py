@@ -325,10 +325,15 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             ]
                                         )
                                     )
-                                    if upstream_component_names:
+                                    if len(upstream_component_names) > 0:
+                                        upstream_component_name = (
+                                            f"[cyan]{upstream_component_names[0]}[/cyan]"
+                                        )
+                                        if len(upstream_component_names) > 1:
+                                            upstream_component_name = f"[cyan]{upstream_component_names[0]} and {len(upstream_component_names) - 1} more[/cyan]"  # noqa
                                         console.print(
                                             Text(ps, style="magenta b u"),
-                                            f"[cyan]{upstream_component_names[0]} (and {len(upstream_component_names)} more)[/cyan]",  # noqa
+                                            upstream_component_name,
                                             dep,
                                             f"([grey]{related_url}[/grey])",
                                             no_wrap=False,
@@ -343,17 +348,22 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             ]
                                         )
                                     )
-                                    if source_component_names:
+                                    if len(source_component_names) > 0:
+                                        source_component_name = (
+                                            f"[red]{source_component_names[0]}[/red]"
+                                        )
+                                        if len(source_component_names) > 1:
+                                            source_component_name = f"[red]{source_component_names[0]} and {len(source_component_names) - 1} more[/red]"  # noqa
                                         console.print(
                                             Text(ps, style="magenta b u"),
-                                            f"[light_blue]{source_component_names[0]} (and {len(source_component_names)} more)[/light_blue]",  # noqa
+                                            source_component_name,
                                             dep,
                                             f"([grey]{related_url}[/grey])",
                                             no_wrap=False,
                                         )
                                     if (
-                                        not result_tree[pv][ps][cn][nvr]["upstreams"]
-                                        and not result_tree[pv][ps][cn][nvr]["sources"]
+                                        len(result_tree[pv][ps][cn][nvr]["upstreams"]) == 0
+                                        and len(result_tree[pv][ps][cn][nvr]["sources"]) == 0
                                     ):
                                         console.print(
                                             Text(ps, style="magenta b u"),
@@ -395,12 +405,18 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             ]
                                         )
                                     )
-                                    if upstream_component_names:
+                                    if len(upstream_component_names) > 0:
+                                        upstream_component_name = (
+                                            f"[cyan]{upstream_component_names[0]}[/cyan]"
+                                        )
+                                        if len(upstream_component_names) > 1:
+                                            upstream_component_name = f"[cyan]{upstream_component_names[0]} and {len(upstream_component_names) - 1} more[/cyan]"  # noqa
                                         console.print(
                                             Text(ps, style="magenta b u"),
-                                            f"[cyan]{upstream_component_names[0]} (and {len(upstream_component_names)} more)[/cyan]",  # noqa
+                                            upstream_component_name,
                                             dep,
                                             f"([grey]{related_url}[/grey])",
+                                            f"([grey]{build_source_url}[/grey])",
                                             no_wrap=False,
                                         )
                                     source_component_names = list(
@@ -413,27 +429,32 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             ]
                                         )
                                     )
-                                    if source_component_names:
-                                        console.print(
-                                            Text(ps, style="magenta b u"),
-                                            f"[light_blue]{source_component_names[0]} (and {len(source_component_names)} more)[/light_blue]",  # noqa
-                                            dep,
-                                            f"([grey]{related_url}[/grey])",
-                                            no_wrap=False,
+                                    if len(source_component_names) > 0:
+                                        source_component_name = (
+                                            f"[red]{source_component_names[0]}[/red]"
                                         )
-                                    if (
-                                        not result_tree[pv][ps][cn][nvr]["upstreams"]
-                                        and not result_tree[pv][ps][cn][nvr]["sources"]
-                                    ):
+                                        if len(source_component_names) > 1:
+                                            source_component_name = f"[red]{source_component_names[0]} and {len(source_component_names) - 1} more[/red]"  # noqa
                                         console.print(
                                             Text(ps, style="magenta b u"),
+                                            source_component_name,
                                             dep,
                                             f"([grey]{related_url}[/grey])",
                                             f"([grey]{build_source_url}[/grey])",
                                             no_wrap=False,
                                         )
+                                    if (
+                                        len(result_tree[pv][ps][cn][nvr]["upstreams"]) == 0
+                                        and len(result_tree[pv][ps][cn][nvr]["sources"]) == 0
+                                    ):
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            dep,
+                                            f"([grey]{related_url}[/grey])",
+                                            no_wrap=False,
+                                        )
             if (
-                ctx.obj["VERBOSE"] > 2
+                ctx.obj["VERBOSE"] == 3
             ):  # product_stream X nvr (full source/upstreams) x related_url x build_source_url
                 for pv in result_tree.keys():
                     for ps in result_tree[pv].keys():
@@ -481,6 +502,81 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                         set(
                                             [
                                                 source["name"]
+                                                for source in result_tree[pv][ps][cn][nvr][
+                                                    "sources"
+                                                ]
+                                            ]
+                                        )
+                                    )
+                                    for source_name in source_component_names:
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            f"[light_blue]{source_name}[/light_blue]",
+                                            dep,
+                                            f"([grey]{related_url}[/grey])",
+                                            f"([grey]{build_source_url}[/grey])",
+                                            no_wrap=False,
+                                        )
+                                    if (
+                                        not result_tree[pv][ps][cn][nvr]["upstreams"]
+                                        and not result_tree[pv][ps][cn][nvr]["sources"]
+                                    ):
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            dep,
+                                            f"([grey]{related_url}[/grey])",
+                                            f"([grey]{build_source_url}[/grey])",
+                                            no_wrap=False,
+                                        )
+            if (
+                ctx.obj["VERBOSE"] > 3
+            ):  # product_stream X nvr (full source/upstreams) x related_url x build_source_url
+                for pv in result_tree.keys():
+                    for ps in result_tree[pv].keys():
+                        for cn in result_tree[pv][ps].keys():
+                            if not any([match in cn for match in exclude_components]):
+                                for nvr in result_tree[pv][ps][cn].keys():
+                                    dep_name = re.sub(
+                                        search_component_name,
+                                        f"[b]{search_component_name}[/b]",
+                                        nvr,
+                                    )
+                                    dep = f"[grey93]{dep_name}[/grey93]"
+                                    related_url = ""
+                                    if result_tree[pv][ps][cn][nvr]["related_url"]:
+                                        related_url = re.sub(
+                                            search_component_name,
+                                            f"[b]{search_component_name}[/b]",
+                                            result_tree[pv][ps][cn][nvr]["related_url"],
+                                        )
+                                    build_source_url = ""
+                                    if result_tree[pv][ps][cn][nvr]["build_source_url"]:
+                                        build_source_url = result_tree[pv][ps][cn][nvr][
+                                            "build_source_url"
+                                        ]
+                                    upstream_component_names = list(
+                                        set(
+                                            [
+                                                source["nvr"]
+                                                for source in result_tree[pv][ps][cn][nvr][
+                                                    "upstreams"
+                                                ]
+                                            ]
+                                        )
+                                    )
+                                    for upstream_name in upstream_component_names:
+                                        console.print(
+                                            Text(ps, style="magenta b u"),
+                                            f"[cyan]{upstream_name}[/cyan]",
+                                            dep,
+                                            f"([grey]{related_url}[/grey])",
+                                            f"([grey]{build_source_url}[/grey])",
+                                            no_wrap=False,
+                                        )
+                                    source_component_names = list(
+                                        set(
+                                            [
+                                                source["nvr"]
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "sources"
                                                 ]
