@@ -240,7 +240,7 @@ def async_retrieve_components(corgi_session, params, components_initial, compone
         components.extend(components_initial.results)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
-            for batch in range(120, 600, 120):
+            for batch in range(120, 1200, 120):
                 futures.append(
                     executor.submit(
                         corgi_session.components.retrieve_list,
@@ -322,7 +322,8 @@ class products_containing_component_query:
         if self.search_related_url:
             # Note: related_url filter has no concept of strict
             params["related_url"] = self.component_name
-            params["namespace"] = "REDHAT"
+            if self.ns:
+                params["namespace"] = self.ns
             if self.component_type:
                 params["type"] = self.component_type
 
@@ -333,13 +334,14 @@ class products_containing_component_query:
             results.extend(related_url_components)
 
         if self.search_all:
-            # params["type"] ="RPM"
             if not self.strict_name_search:
                 params["re_name"] = self.component_name
             else:
                 params["name"] = self.component_name
             if self.component_type:
                 params["type"] = self.component_type
+            if self.ns:
+                params["namespace"] = self.ns
 
             all_component_initial = self.corgi_session.components.retrieve_list(limit=120, **params)
             all_components: list = async_retrieve_components(
@@ -357,6 +359,8 @@ class products_containing_component_query:
                 params["re_name"] = self.component_name
             else:
                 params["name"] = self.component_name
+            if self.ns:
+                params["namespace"] = self.ns
 
             all_src_component_initial = self.corgi_session.components.retrieve_list(
                 limit=120, **params
@@ -447,6 +451,10 @@ class products_containing_component_query:
                 params["re_name"] = self.component_name
             else:
                 params["name"] = self.component_name
+            if self.search_upstreams:
+                params["namespace"] = "UPSTREAM"
+            if self.ns:
+                params["namespace"] = self.ns
 
             if self.component_type:
                 params["type"] = self.component_type

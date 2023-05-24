@@ -13,6 +13,11 @@ def docs_grp(ctx):
     pass
 
 
+@docs_grp.command(name="public-manifests", help="published SPDX sbom (BETA)")
+def public_manifests():
+    click.launch("https://access.redhat.com/security/data/sbom/beta/spdx/")
+
+
 @docs_grp.group(name="service", help="Links to coarse grained data services.")
 @click.pass_context
 def service_grp(ctx):
