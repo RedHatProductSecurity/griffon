@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add --no-wrap flag
 ### Changed
 - enhanced error handling when retrieving product streams and manifests
+- fixed regex display 
 
 ## [0.2.3] - 2023-05-24
 ### Changed

@@ -287,9 +287,7 @@ def text_output_products_contain_component(
                         # ensure {component name} is not in profile exclude components enum
                         if not any([match in cn for match in exclude_components]):
                             # highlight search term
-                            dep_name = re.sub(
-                                search_component_name, f"[b]{search_component_name}[/b]", cn
-                            )
+                            dep_name = re.sub(cn, f"[b]{cn}[/b]", cn)
                             dep = f"[grey93]{dep_name}[/grey93]"
                             console.print(
                                 Text(pv, style="magenta b u"),
