@@ -3,6 +3,7 @@ format = text
 history_log = ~/.griffon/history.log
 profile = default
 verbosity = 0
+no_wrap = True
 sfm2_api_url = http://localhost:5600
 custom_plugin_dir = ~/.griffon/plugins/
 editor = vi
