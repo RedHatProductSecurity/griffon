@@ -109,6 +109,7 @@ def plugins_grp(ctx):
 )  # noqa
 @click.option("--no-progress-bar", is_flag=True, help="Disable progress bar.")
 @click.option("--no-color", is_flag=True, help="Disable output of color ansi esc sequences.")
+@click.option("--no-wrap", is_flag=True, help="Disable wrapping of text output.")
 @click.option(
     "--profile",
     "profile",
@@ -121,7 +122,7 @@ def plugins_grp(ctx):
 )
 @click.option("--editor/--no-editor", default=True, help="Allow text editor prompt.")
 @click.pass_context
-def cli(ctx, debug, format, verbose, no_progress_bar, no_color, profile, editor):
+def cli(ctx, debug, format, verbose, no_progress_bar, no_color, no_wrap, profile, editor):
     """Red Hat product security CLI"""
 
     if ctx.invoked_subcommand is None:
@@ -141,6 +142,9 @@ def cli(ctx, debug, format, verbose, no_progress_bar, no_color, profile, editor)
     ctx.obj["VERBOSE"] = verbose
     ctx.obj["NO_PROGRESS_BAR"] = no_progress_bar
     ctx.obj["NO_COLOR"] = no_color
+    ctx.obj["NO_WRAP"] = get_config_option("default", "no_wrap", False)
+    if no_wrap:
+        ctx.obj["NO_WRAP"] = no_wrap
     ctx.obj["PROFILE"] = profile
     ctx.obj["SHORT_VERSION_VALUES"] = True
     ctx.obj["EDITOR"] = editor

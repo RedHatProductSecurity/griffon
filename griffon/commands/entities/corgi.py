@@ -536,7 +536,11 @@ def get_product_stream_manifest(ctx, product_stream_name, ofuri, spdx_json_forma
     if product_stream_name:
         ps = session.product_streams.retrieve_list(name=product_stream_name).additional_properties
     if not ps:
-        logger.warning("could not find active product stream.")
+        logger.error("could not find active product stream.")
+        ctx.exit()
+    if not ps["manifest"]:
+        logger.error(f"could not find manifest for {product_stream_name}.")
+        ctx.exit()
     data = requests.get(ps["manifest"])
     cprint(data.json(), ctx=ctx)
 

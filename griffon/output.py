@@ -103,7 +103,7 @@ def walk_component_tree(obj, key, tree, show_purl=False):
     return tree
 
 
-def text_output_tree(ctx, output):
+def text_output_tree(ctx, output, no_wrap=False):
     tree = Tree(
         "component dependency tree",
         guide_style="bold magenta",
@@ -112,7 +112,7 @@ def text_output_tree(ctx, output):
     ctx.exit()
 
 
-def text_output_product_summary(ctx, output, format, exclude_products):
+def text_output_product_summary(ctx, output, format, exclude_products, no_wrap=False):
     ordered_results = sorted(output["results"], key=lambda d: d["name"])
 
     if exclude_products:
@@ -129,7 +129,7 @@ def text_output_product_summary(ctx, output, format, exclude_products):
                 Text(item["product_version"], style="magenta"),
                 Text(item["name"], style="white"),
                 f"{item['brew_tags']}",
-                no_wrap=False,
+                no_wrap=no_wrap,
             )
     if ctx.obj["VERBOSE"] == 1:
         for item in ordered_results:
@@ -139,7 +139,7 @@ def text_output_product_summary(ctx, output, format, exclude_products):
                 Text(item["name"], style="white"),
                 item["brew_tags"],
                 item["ofuri"],
-                no_wrap=False,
+                no_wrap=no_wrap,
             )
     if ctx.obj["VERBOSE"] > 1:
         for item in ordered_results:
@@ -150,12 +150,14 @@ def text_output_product_summary(ctx, output, format, exclude_products):
                 item["brew_tags"],
                 item["ofuri"],
                 item["manifest_link"],
-                no_wrap=False,
+                no_wrap=no_wrap,
             )
     ctx.exit()
 
 
-def text_output_products_contain_component(ctx, output, exclude_products, exclude_components):
+def text_output_products_contain_component(
+    ctx, output, exclude_products, exclude_components, no_wrap=False
+):
     search_component_name = ctx.params["component_name"]
 
     # handle single component
@@ -164,7 +166,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
         for item in ordered_results:
             console.print(
                 Text(item["ofuri"], style="bold magenta u"),
-                no_wrap=False,
+                no_wrap=no_wrap,
             )
         ctx.exit()
 
@@ -266,7 +268,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                     if not any([match in cn for match in exclude_components]):
                         console.print(
                             f"{pv}/{cn}={flaw_operation}",
-                            no_wrap=False,
+                            no_wrap=no_wrap,
                         )
         else:
 
@@ -285,14 +287,12 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                         # ensure {component name} is not in profile exclude components enum
                         if not any([match in cn for match in exclude_components]):
                             # highlight search term
-                            dep_name = re.sub(
-                                search_component_name, f"[b]{search_component_name}[/b]", cn
-                            )
+                            dep_name = re.sub(cn, f"[b]{cn}[/b]", cn)
                             dep = f"[grey93]{dep_name}[/grey93]"
                             console.print(
                                 Text(pv, style="magenta b u"),
                                 dep,
-                                no_wrap=False,
+                                no_wrap=no_wrap,
                             )
             if ctx.obj["VERBOSE"] == 1:  # product_stream X nvr x related_url
                 for pv in result_tree.keys():
@@ -336,7 +336,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             upstream_component_name,
                                             dep,
                                             f"([grey]{related_url}[/grey])",
-                                            no_wrap=False,
+                                            no_wrap=no_wrap,
                                         )
                                     source_component_names = list(
                                         set(
@@ -359,7 +359,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             source_component_name,
                                             dep,
                                             f"([grey]{related_url}[/grey])",
-                                            no_wrap=False,
+                                            no_wrap=no_wrap,
                                         )
                                     if (
                                         len(result_tree[pv][ps][cn][nvr]["upstreams"]) == 0
@@ -369,7 +369,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             Text(ps, style="magenta b u"),
                                             dep,
                                             f"([grey]{related_url}[/grey])",
-                                            no_wrap=False,
+                                            no_wrap=no_wrap,
                                         )
             if ctx.obj["VERBOSE"] == 2:  # product_stream X nvr x related_url x build_source_url
                 for pv in result_tree.keys():
@@ -417,7 +417,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             dep,
                                             f"([grey]{related_url}[/grey])",
                                             f"([grey]{build_source_url}[/grey])",
-                                            no_wrap=False,
+                                            no_wrap=no_wrap,
                                         )
                                     source_component_names = list(
                                         set(
@@ -441,7 +441,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             dep,
                                             f"([grey]{related_url}[/grey])",
                                             f"([grey]{build_source_url}[/grey])",
-                                            no_wrap=False,
+                                            no_wrap=no_wrap,
                                         )
                                     if (
                                         len(result_tree[pv][ps][cn][nvr]["upstreams"]) == 0
@@ -451,7 +451,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             Text(ps, style="magenta b u"),
                                             dep,
                                             f"([grey]{related_url}[/grey])",
-                                            no_wrap=False,
+                                            no_wrap=no_wrap,
                                         )
             if (
                 ctx.obj["VERBOSE"] == 3
@@ -496,7 +496,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             dep,
                                             f"([grey]{related_url}[/grey])",
                                             f"([grey]{build_source_url}[/grey])",
-                                            no_wrap=False,
+                                            no_wrap=no_wrap,
                                         )
                                     source_component_names = list(
                                         set(
@@ -515,7 +515,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             dep,
                                             f"([grey]{related_url}[/grey])",
                                             f"([grey]{build_source_url}[/grey])",
-                                            no_wrap=False,
+                                            no_wrap=no_wrap,
                                         )
                                     if (
                                         not result_tree[pv][ps][cn][nvr]["upstreams"]
@@ -526,7 +526,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             dep,
                                             f"([grey]{related_url}[/grey])",
                                             f"([grey]{build_source_url}[/grey])",
-                                            no_wrap=False,
+                                            no_wrap=no_wrap,
                                         )
             if (
                 ctx.obj["VERBOSE"] > 3
@@ -571,7 +571,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             dep,
                                             f"([grey]{related_url}[/grey])",
                                             f"([grey]{build_source_url}[/grey])",
-                                            no_wrap=False,
+                                            no_wrap=no_wrap,
                                         )
                                     source_component_names = list(
                                         set(
@@ -590,7 +590,7 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             dep,
                                             f"([grey]{related_url}[/grey])",
                                             f"([grey]{build_source_url}[/grey])",
-                                            no_wrap=False,
+                                            no_wrap=no_wrap,
                                         )
                                     if (
                                         not result_tree[pv][ps][cn][nvr]["upstreams"]
@@ -601,13 +601,15 @@ def text_output_products_contain_component(ctx, output, exclude_products, exclud
                                             dep,
                                             f"([grey]{related_url}[/grey])",
                                             f"([grey]{build_source_url}[/grey])",
-                                            no_wrap=False,
+                                            no_wrap=no_wrap,
                                         )
 
         ctx.exit()
 
 
-def text_output_components_contain_component(ctx, output, format, exclude_components):
+def text_output_components_contain_component(
+    ctx, output, format, exclude_components, no_wrap=False
+):
     if "results" in output:
         for item in output["results"]:
             component_name = item["name"]
@@ -638,7 +640,7 @@ def text_output_components_contain_component(ctx, output, format, exclude_compon
                                 source_purl.type.upper(),
                                 root_component,
                                 Text(component_name, style="bold white"),
-                                no_wrap=False,
+                                no_wrap=no_wrap,
                             )
                 if ctx.obj["VERBOSE"] == 1:
                     ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
@@ -662,7 +664,7 @@ def text_output_components_contain_component(ctx, output, format, exclude_compon
                                 root_component,
                                 Text(component_nvr, style="bold white"),
                                 arch,
-                                no_wrap=False,
+                                no_wrap=no_wrap,
                             )
                 if ctx.obj["VERBOSE"] > 1:
                     ordered_sources = sorted(item["sources"], key=lambda d: d["purl"])
@@ -688,12 +690,12 @@ def text_output_components_contain_component(ctx, output, format, exclude_compon
                                 arch,
                                 related_url,
                                 download_url,
-                                no_wrap=False,
+                                no_wrap=no_wrap,
                             )
     ctx.exit()
 
 
-def text_output_components_affected_by_cve(ctx, output, format):
+def text_output_components_affected_by_cve(ctx, output, format, no_wrap=False):
     console.print("Flaw Title:", output["title"])
     console.print(
         "affects:",
@@ -712,14 +714,14 @@ def text_output_components_affected_by_cve(ctx, output, format):
                     Text(str(versions), style="bold magenta u"),
                     ns,
                     affected_component,
-                    no_wrap=False,
+                    no_wrap=no_wrap,
                 )
             if ctx.obj["VERBOSE"] == 1:
                 console.print(
                     Text(component["product_streams"], style="bold magenta u"),
                     ns,
                     affected_component1,
-                    no_wrap=False,
+                    no_wrap=no_wrap,
                 )
             if ctx.obj["VERBOSE"] > 1:
                 console.print(
@@ -729,12 +731,12 @@ def text_output_components_affected_by_cve(ctx, output, format):
                     Text(component["build_source_url"], style="i"),
                     Text(component["related_url"], style="i"),
                     Text(component["download_url"], style="i"),
-                    no_wrap=False,
+                    no_wrap=no_wrap,
                 )
     ctx.exit()
 
 
-def text_output_products_affected_by_cve(ctx, output, format, exclude_products):
+def text_output_products_affected_by_cve(ctx, output, format, exclude_products, no_wrap=False):
     console.print("[white]link:[/white]", output["link"])
     console.print("[white]cve_id:[/white]", output["cve_id"])
     console.print("[white]title:[/white]", output["title"])
@@ -744,7 +746,7 @@ def text_output_products_affected_by_cve(ctx, output, format, exclude_products):
         )
         ordered_product_versions = sorted(output["product_versions"])
         for product_version in ordered_product_versions:
-            console.print(Text(product_version, style="bold magenta u"), no_wrap=True)
+            console.print(Text(product_version, style="bold magenta u"), no_wrap=no_wrap)
     if ctx.obj["VERBOSE"] > 0:
         console.print(
             "[white]product_streams:[/white]",
@@ -755,7 +757,7 @@ def text_output_products_affected_by_cve(ctx, output, format, exclude_products):
     ctx.exit()
 
 
-def text_output_get_manifest(ctx, output, format):
+def text_output_get_manifest(ctx, output, format, no_wrap=False):
     if not ctx.obj["SHOW_PURL"]:
         for component in output["packages"]:
             if "pkg:" in component["externalRefs"][0]["referenceLocator"]:
@@ -769,16 +771,16 @@ def text_output_get_manifest(ctx, output, format):
                     if purl.namespace:
                         ns = f"[white]{purl.namespace.upper()}[/white]"
                     component = f"([white]{purl.name}-{purl.version}[/white],{component_type_style(purl.type.upper())})"  # noqa
-                console.print(ns, component, no_wrap=False)  # noqa
+                console.print(ns, component, no_wrap=no_wrap)  # noqa
     else:
         for component in output["packages"]:
             purl = component["externalRefs"][0]["referenceLocator"]
-            console.print(purl, no_wrap=False)  # noqa
+            console.print(purl, no_wrap=no_wrap)  # noqa
 
     ctx.exit()
 
 
-def text_output_component_flaws(ctx, output, format):
+def text_output_component_flaws(ctx, output, format, no_wrap=False):
     ordered_components = sorted(output["results"], key=lambda d: d["name"])
     for item in ordered_components:
         component_name = item["name"]
@@ -796,7 +798,7 @@ def text_output_component_flaws(ctx, output, format):
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
-                    no_wrap=True,
+                    no_wrap=no_wrap,
                 )
             if ctx.obj["VERBOSE"] == 1:
                 console.print(
@@ -807,7 +809,7 @@ def text_output_component_flaws(ctx, output, format):
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
-                    no_wrap=True,
+                    no_wrap=no_wrap,
                 )
             if ctx.obj["VERBOSE"] > 1:
                 console.print(Text(affect["title"], style="white"))
@@ -823,7 +825,7 @@ def text_output_component_flaws(ctx, output, format):
     ctx.exit()
 
 
-def text_output_product_flaws(ctx, output, format):
+def text_output_product_flaws(ctx, output, format, no_wrap=False):
     for item in output["results"]:
         component_name = item["name"]
         for affect in item["affects"]:
@@ -838,7 +840,7 @@ def text_output_product_flaws(ctx, output, format):
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
-                    no_wrap=True,
+                    no_wrap=no_wrap,
                 )
             if ctx.obj["VERBOSE"] == 1:
                 console.print(
@@ -849,7 +851,7 @@ def text_output_product_flaws(ctx, output, format):
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
-                    no_wrap=True,
+                    no_wrap=no_wrap,
                 )
             if ctx.obj["VERBOSE"] > 1:
                 console.print(affect["title"])
@@ -861,12 +863,12 @@ def text_output_product_flaws(ctx, output, format):
                     affect["affect_affectedness"],
                     affect["affect_impact"],
                     affect["affect_resolution"],
-                    no_wrap=True,
+                    no_wrap=no_wrap,
                 )
     ctx.exit()
 
 
-def text_output_list(ctx, output, format, exclude_components):
+def text_output_list(ctx, output, format, exclude_components, no_wrap=False):
     if "results" in output and output["count"] > 0:
         # handle component
         if "purl" in output["results"][0]:
@@ -925,7 +927,7 @@ def text_output_list(ctx, output, format, exclude_components):
                     row["state"],
                     row["impact"],
                     row["resolution"],
-                    no_wrap=True,
+                    no_wrap=no_wrap,
                 )
 
         # handle trackers
@@ -935,7 +937,7 @@ def text_output_list(ctx, output, format, exclude_components):
                     row["external_system_id"],
                     row["type"],
                     row["status"],
-                    no_wrap=True,
+                    no_wrap=no_wrap,
                 )
 
         # handle products
@@ -944,7 +946,7 @@ def text_output_list(ctx, output, format, exclude_components):
                 console.print(
                     Text(row["name"], style="magenta bold u"),
                     row["ofuri"],
-                    no_wrap=True,
+                    no_wrap=no_wrap,
                 )
         # handle channels
         if "relative_url" in output["results"][0]:
@@ -953,7 +955,7 @@ def text_output_list(ctx, output, format, exclude_components):
                     Text(row["name"], style="magenta bold u"),
                     row["type"],
                     row["description"],
-                    no_wrap=True,
+                    no_wrap=no_wrap,
                 )
         # handle builds
         if "build_id" in output["results"][0]:
@@ -964,13 +966,13 @@ def text_output_list(ctx, output, format, exclude_components):
                     Text(row["name"], style="white"),
                     row["created_at"],
                     Text(row["link"], style="i"),
-                    no_wrap=False,
+                    no_wrap=no_wrap,
                 )
 
     ctx.exit()
 
 
-def text_output_purls(ctx, output, format):
+def text_output_purls(ctx, output, format, no_wrap=False):
     if "results" in output and output["count"] > 0:
         # handle component
         if "purl" in output["results"][0]:
@@ -989,7 +991,7 @@ def text_output_purls(ctx, output, format):
                             Text(purl.name, style="bold white"),
                             purl.version,
                             purl.qualifiers.get("arch"),
-                            no_wrap=False,
+                            no_wrap=no_wrap,
                         )
                     if ctx.obj["VERBOSE"] > 0:
                         console.print(
@@ -999,16 +1001,16 @@ def text_output_purls(ctx, output, format):
                             purl.version,
                             purl.qualifiers.get("arch"),
                             row["link"],
-                            no_wrap=False,
+                            no_wrap=no_wrap,
                         )
         ctx.exit()
 
 
-def text_output_generic(ctx, output, format):
+def text_output_generic(ctx, output, format, no_wrap=False):
     for k, v in output.items():
         key_name = Text(k)
         key_name.stylize("bold magenta")
-        console.print(key_name, " : ", v, no_wrap=True)
+        console.print(key_name, " : ", v, no_wrap=no_wrap)
 
 
 def cprint(
@@ -1038,35 +1040,40 @@ def cprint(
     if ctx and "FORMAT" in ctx.obj:
         format = OUTPUT_FORMAT(ctx.obj["FORMAT"])
     if format is OUTPUT_FORMAT.TEXT:
+        no_wrap = ctx.obj["NO_WRAP"]
         if ctx.info_name == "product-summary":
-            text_output_product_summary(ctx, output, format, exclude_products)
+            text_output_product_summary(ctx, output, format, exclude_products, no_wrap=no_wrap)
         if ctx.info_name == "products-contain-component":
             text_output_products_contain_component(
-                ctx, output, exclude_products, exclude_components
+                ctx, output, exclude_products, exclude_components, no_wrap=no_wrap
             )
         if ctx.info_name == "components-contain-component":
-            text_output_components_contain_component(ctx, output, format, exclude_components)
+            text_output_components_contain_component(
+                ctx, output, format, exclude_components, no_wrap=no_wrap
+            )
         if ctx.info_name == "components-affected-by-flaw":
-            text_output_components_affected_by_cve(ctx, output, format)
+            text_output_components_affected_by_cve(ctx, output, format, no_wrap=no_wrap)
         if ctx.info_name == "products-affected-by-flaw":
-            text_output_products_affected_by_cve(ctx, output, format, exclude_products)
+            text_output_products_affected_by_cve(
+                ctx, output, format, exclude_products, no_wrap=no_wrap
+            )
         if ctx.info_name == "get-manifest":
-            text_output_get_manifest(ctx, output, format)
+            text_output_get_manifest(ctx, output, format, no_wrap=no_wrap)
         if ctx.info_name == "list":
-            text_output_list(ctx, output, format, exclude_components)
+            text_output_list(ctx, output, format, exclude_components, no_wrap=no_wrap)
         if ctx.info_name == "component-flaws":
-            text_output_component_flaws(ctx, output, format)
+            text_output_component_flaws(ctx, output, format, no_wrap=no_wrap)
         if ctx.info_name == "product-flaws":
-            text_output_product_flaws(ctx, output, format)
+            text_output_product_flaws(ctx, output, format, no_wrap=no_wrap)
         if ctx.info_name == "provides":
-            text_output_purls(ctx, output, format)
+            text_output_purls(ctx, output, format, no_wrap=no_wrap)
         if ctx.info_name == "sources":
-            text_output_purls(ctx, output, format)
+            text_output_purls(ctx, output, format, no_wrap=no_wrap)
         if ctx.info_name == "tree":
-            text_output_tree(ctx, output)
+            text_output_tree(ctx, output, no_wrap=no_wrap)
 
         # last chance text formatted output
-        text_output_generic(ctx, output, format)
+        text_output_generic(ctx, output, format, no_wrap=no_wrap)
 
     if format is OUTPUT_FORMAT.JSON:
         if dest is DEST.CONSOLE:

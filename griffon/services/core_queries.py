@@ -73,18 +73,21 @@ class product_stream_summary:
                 }
                 results.append(result)
         else:
-            result = {
-                "link": product_streams["link"],
-                "ofuri": product_streams["ofuri"],
-                "name": product_streams["name"],
-                "product": product_streams["products"][0]["name"],
-                "product_version": product_streams["product_versions"][0]["name"],
-                "brew_tags": "",
-                "manifest_link": product_streams["manifest"],
-                "latest_components_link": f"{CORGI_API_URL}/api/v1/components?ofuri={product_streams['ofuri']}&view=summary",  # noqa
-                "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={product_streams['ofuri']}&include_fields=link,name,purl",  # noqa
-            }
-            results.append(result)
+            if "ofuri" in product_streams:
+                result = {
+                    "link": product_streams["link"],
+                    "ofuri": product_streams["ofuri"],
+                    "name": product_streams["name"],
+                    "product": product_streams["products"][0]["name"],
+                    "product_version": product_streams["product_versions"][0]["name"],
+                    "brew_tags": "",
+                    "manifest_link": product_streams["manifest"],
+                    "latest_components_link": f"{CORGI_API_URL}/api/v1/components?ofuri={product_streams['ofuri']}&view=summary",  # noqa
+                    "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={product_streams['ofuri']}&include_fields=link,name,purl",  # noqa
+                }
+                results.append(result)
+            else:
+                logger.warning("No such product stream")
         return results
 
 
