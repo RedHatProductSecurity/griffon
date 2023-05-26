@@ -179,11 +179,14 @@ class products_containing_specific_component_query:
         "affect_mode",
         "search_latest",
         "search_all",
+        "search_all_roots",
         "search_related_url",
         "search_community",
         "search_upstreams",
         "filter_rh_naming",
         "search_redhat",
+        "no_community",
+        "no_middleware",
     ]
 
     def __init__(self, params: dict) -> None:
