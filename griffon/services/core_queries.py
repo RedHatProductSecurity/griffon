@@ -198,43 +198,6 @@ class products_containing_specific_component_query:
         return c["product_streams"]
 
 
-def output_component(pv, ps, c):
-    is_root = False
-    if (c.arch == "src" and c.type == "RPM") or (c.arch == "noarch" and c.type == "OCI"):
-        is_root = True
-    sources = [source for source in c.sources]
-    component = {
-        "is_root": is_root,
-        "product_version": pv["name"],
-        "product_version_ofuri": pv["ofuri"],
-        "product_stream": ps["name"],
-        "product_stream_ofuri": ps["ofuri"],
-        "product_active": True,
-        "purl": c.purl,
-        "type": str(c.type),
-        "namespace": str(c.namespace),
-        "name": c.name,
-        "arch": c.arch,
-        "release": c.release,
-        "version": c.version,
-        "sources": sources,
-        "nvr": c.nvr,
-        # "build_id": None,
-        # "build_type": None,
-        # "build_source_url": None,
-        # "related_url": None,
-        # "upstream_purl": None,
-    }
-    if c.software_build:
-        component["build_id"] = str(c.software_build.build_id)
-        component["build_type"] = str(c.software_build.build_type)
-        component["build_name"] = str(c.software_build.name)
-        component["build_source_url"] = str(c.software_build.source)
-    if c.upstreams:
-        component["upstream_purl"] = str(c.upstreams[0]["purl"])
-    return component
-
-
 def async_retrieve_components(corgi_session, params, components_initial, component_cnt):
     components = list()
     if component_cnt < 120:
@@ -281,6 +244,7 @@ class products_containing_component_query:
         "search_upstreams",
         "filter_rh_naming",
         "no_community",
+        "no_middleware",
     ]
 
     def __init__(self, params: dict) -> None:
