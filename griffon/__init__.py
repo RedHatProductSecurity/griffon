@@ -32,6 +32,9 @@ COMMUNITY_COMPONENTS_API_URL = os.getenv(
     "COMMUNITY_COMPONENTS_API_URL", "https://component-registry.fedoraproject.org"
 )
 
+# TODO: temporary hack required to enable searching of middleware
+MIDDLEWARE_CLI = os.getenv("GRIFFON_MIDDLEWARE_CLI")
+
 GRIFFON_CONFIG_DIR = os.getenv("GRIFFON_API_URL", "~/.griffon")
 GRIFFON_RC_FILE = "~/.griffonrc"
 GRIFFON_DEFAULT_LOG_FILE = os.getenv("GRIFFON_DEFAULT_LOG_FILE", "~/.griffon/history.log")

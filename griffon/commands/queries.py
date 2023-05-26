@@ -3,12 +3,20 @@
 """
 import copy
 import logging
+import subprocess
+from json import loads
 
 import click
 from component_registry_bindings.bindings.python_client.api.v1 import v1_components_list
 from component_registry_bindings.bindings.python_client.models import Component
 
-from griffon import CorgiService, OSIDBService, get_config_option, progress_bar
+from griffon import (
+    MIDDLEWARE_CLI,
+    CorgiService,
+    OSIDBService,
+    get_config_option,
+    progress_bar,
+)
 from griffon.autocomplete import (
     get_component_names,
     get_cve_ids,
@@ -246,6 +254,13 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     help="Do not search community.",
 )
 @click.option(
+    "--no-middleware",
+    "no_middleware",
+    is_flag=True,
+    default=False,
+    help="Do not search middleware.",
+)
+@click.option(
     "-v",
     "verbose",
     count=True,
@@ -273,6 +288,7 @@ def get_product_contain_component(
     search_community,
     search_upstreams,
     no_community,
+    no_middleware,
     verbose,
 ):
     with console.status("griffoning", spinner="line") as operation_status:
@@ -308,7 +324,57 @@ def get_product_contain_component(
                 core_queries.products_containing_specific_component_query, params
             )
 
-        # TODO - in the short term affect handling will be mediated via sfm2 here in the operation itself # noqa
+        # TODO: interim hack for middleware
+        if component_name and MIDDLEWARE_CLI and not no_middleware:
+            mw_command = [MIDDLEWARE_CLI, component_name, "-e", "maven", "--json"]
+            if strict_name_search:
+                mw_command.append("-s")
+            proc = subprocess.run(
+                mw_command,
+                capture_output=True,
+                text=True,
+            )
+            mw_json = loads(proc.stdout)
+            mw_components = mw_json["deps"]
+            # TODO: need to determine if we use "build" or "deps"
+            # if search_all:
+            #     mw_components.extend(mw_json["deps"])
+            for build in mw_components:
+                if build["build_type"] == "maven":
+                    component = {
+                        "product_versions": [{"name": build["ps_module"]}],
+                        "product_streams": [
+                            {
+                                "name": build["ps_update_stream"],
+                                "product_versions": [{"name": build["ps_module"]}],
+                            }
+                        ],
+                        "product_active": True,
+                        "type": build["build_type"],
+                        "name": build["build_name"],
+                        "nvr": build["build_nvr"],
+                        "upstreams": [],
+                        "sources": [],
+                        "software_build": {
+                            "build_id": build["build_id"],
+                            "source": build["build_repo"],
+                        },
+                    }
+                    if "sources" in build:
+                        for deps in build["sources"]:
+                            for dep in deps["dependencies"]:
+                                components = []
+                                components.append(
+                                    {
+                                        "name": dep.get("name"),
+                                        "nvr": dep.get("nvr"),
+                                        "type": dep.get("type"),
+                                    }
+                                )
+                                component["sources"] = components
+                    q.append(component)
+
+        # TODO: in the short term affect handling will be mediated via sfm2 here in the operation itself # noqa
         if ctx.params["sfm2_flaw_id"]:
             console.no_color = True
             console.highlighter = None
