@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.2.5] - 2023-05-26
+### Added
+- minimal middleware support to products-contains-component, requires Requires GRIFFON_MIDDLEWARE_CLI to be set.
+ 
+### Changed
+- bumped python requests module to address vuln
+- fixed products-contains-component when used with --purl
+
 ## [0.2.4] - 2023-05-25
 ### Added
 - add --no-wrap flag
