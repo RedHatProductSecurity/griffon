@@ -111,6 +111,12 @@ def plugins_grp(ctx):
 @click.option("--no-color", is_flag=True, help="Disable output of color ansi esc sequences.")
 @click.option("--no-wrap", is_flag=True, help="Disable wrapping of text output.")
 @click.option(
+    "--width",
+    "terminal_width",
+    default=get_config_option("default", "terminal_width", 1000),
+    help="Terminal width (default is 1000).",
+)
+@click.option(
     "--profile",
     "profile",
     type=click.Choice(list_config_sections()),
@@ -122,7 +128,9 @@ def plugins_grp(ctx):
 )
 @click.option("--editor/--no-editor", default=True, help="Allow text editor prompt.")
 @click.pass_context
-def cli(ctx, debug, format, verbose, no_progress_bar, no_color, no_wrap, profile, editor):
+def cli(
+    ctx, debug, format, verbose, no_progress_bar, no_color, no_wrap, terminal_width, profile, editor
+):
     """Red Hat product security CLI"""
 
     if ctx.invoked_subcommand is None:
@@ -145,6 +153,9 @@ def cli(ctx, debug, format, verbose, no_progress_bar, no_color, no_wrap, profile
     ctx.obj["NO_WRAP"] = get_config_option("default", "no_wrap", False)
     if no_wrap:
         ctx.obj["NO_WRAP"] = no_wrap
+    ctx.obj["TERMINAL_WIDTH"] = get_config_option("default", "width", 1000)
+    if terminal_width:
+        ctx.obj["TERMINAL_WIDTH"] = terminal_width
     ctx.obj["PROFILE"] = profile
     ctx.obj["SHORT_VERSION_VALUES"] = True
     ctx.obj["EDITOR"] = editor
