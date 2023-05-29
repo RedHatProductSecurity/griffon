@@ -1041,6 +1041,8 @@ def cprint(
         format = OUTPUT_FORMAT(ctx.obj["FORMAT"])
     if format is OUTPUT_FORMAT.TEXT:
         no_wrap = ctx.obj["NO_WRAP"]
+        terminal_width = ctx.obj["TERMINAL_WIDTH"]
+        console.width = int(terminal_width)
         if ctx.info_name == "product-summary":
             text_output_product_summary(ctx, output, format, exclude_products, no_wrap=no_wrap)
         if ctx.info_name == "products-contain-component":
