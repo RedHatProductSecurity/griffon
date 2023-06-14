@@ -16,7 +16,7 @@ You will need the following dependencies installed, for example for fedora 35:
 * python39
 * gcc (to build gssapi wheel)
 * python-39-devel (to build gssapi wheel)
-* krb5-workstation (provides access to OSIDB) with valid /etc/krb5.config
+* krb5-config, krb5-workstation (provides access to OSIDB) with valid /etc/krb5.config
 * virtualenv (if you do not want to install python deps into your system)
 
 or more generally
@@ -24,7 +24,7 @@ or more generally
 * python
 * gcc (to build gssapi wheel)
 * python-devel (to build gssapi wheel)
-* krb5-workstation (provides access to OSIDB) with valid /etc/krb5.config
+* krb5-config, krb5-workstation (provides access to OSIDB) with valid /etc/krb5.config
 * virtualenv (if you do not want to install python deps into your system)
 
 Setup virtualenv
