@@ -15,6 +15,9 @@ exclude_components = -container-source
     -common-debuginfo
     -doc
     -devel
+    -javadoc 
+    -testlib 
+    -repolib
 
 # profile sections (use with --profile {profile} flag)
 [cloud]
