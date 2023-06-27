@@ -5,7 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-
+### Added
+- CRUD operations for OSIDB entities Flaw Comment (create, retreive, list),
+  Flaw Reference (create, retrieve, list, update, delete)
 ## [0.2.7] - 2023-06-14
 ### Changed
 - ensure we choose latest version of component using products-contains-component
