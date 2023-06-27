@@ -272,7 +272,6 @@ def text_output_products_contain_component(
                             no_wrap=no_wrap,
                         )
         else:
-
             if ctx.obj["VERBOSE"] == 0:  # product_version X component_name
                 for pv in result_tree.keys():
                     component_names = set()
@@ -920,7 +919,7 @@ def text_output_list(ctx, output, format, exclude_components, no_wrap=False):
                 )
 
         # handle trackers
-        if "external_system_id" in output["results"][0]:
+        if all(key in output["results"][0] for key in ("external_system_id", "status")):
             for row in output["results"]:
                 console.print(
                     row["external_system_id"],
