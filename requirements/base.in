@@ -1,4 +1,4 @@
-osidb-bindings==3.1.0
+osidb-bindings==3.3.0
 component-registry-bindings==1.3.4
 click
 click-completion
