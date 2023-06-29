@@ -155,6 +155,115 @@ def text_output_product_summary(ctx, output, format, exclude_products, no_wrap=F
     ctx.exit()
 
 
+def generate_normalised_results(output, exclude_products, exclude_components):
+    normalised_results = list()
+    if "results" in output:
+        for item in output["results"]:
+            for ps in item["product_streams"]:
+                if ps["product_versions"][0]["name"] not in exclude_products:
+                    if not any([match in item["name"] for match in exclude_components]):
+                        c = {
+                            "product_version": ps["product_versions"][0]["name"],
+                            "product_stream": ps.get("name"),
+                            "namespace": item.get("namespace"),
+                            "name": item.get("name"),
+                            "nvr": item.get("nvr"),
+                            "type": item.get("type"),
+                            "arch": item.get("arch"),
+                            "version": item.get("version"),
+                            "related_url": item.get("related_url"),
+                            "purl": item.get("purl"),
+                            "sources": item.get("sources"),
+                            "upstreams": item.get("upstreams"),
+                        }
+                        if "software_build" in item:
+                            c["build_source_url"] = item["software_build"].get("source")
+                        normalised_results.append(c)
+    return normalised_results
+
+
+def generate_result_tree(normalised_results):
+    product_versions = sorted(list(set([item["product_version"] for item in normalised_results])))
+    result_tree = {}
+    for pv in product_versions:
+        result_tree[pv] = {}
+        product_streams = sorted(
+            list(
+                set(
+                    [
+                        item["product_stream"]
+                        for item in normalised_results
+                        if item["product_version"] == pv
+                    ]
+                )
+            )
+        )
+        for ps in product_streams:
+            result_tree[pv][ps] = {}
+            component_names = sorted(
+                list(
+                    set(
+                        [
+                            item["name"]
+                            for item in normalised_results
+                            if item["product_stream"] == ps
+                        ]
+                    )
+                )
+            )
+            for cn in component_names:
+                result_tree[pv][ps][cn] = {}
+                nvrs = [
+                    item
+                    for item in normalised_results
+                    if item["product_stream"] == ps and item["name"] == cn
+                ]
+
+                for nvr in nvrs:
+                    result_tree[pv][ps][cn][nvr["nvr"]] = nvr
+    return result_tree
+
+
+def generate_affects(
+    ctx, result_tree, exclude_components, flaw_operation, format="text", no_wrap=False
+):
+    search_component_name = ctx.params["component_name"]
+    for pv in result_tree.keys():
+        component_names = set()
+        for ps in result_tree[pv].keys():
+            for component_name in result_tree[pv][ps].keys():
+                for nvr in result_tree[pv][ps][component_name].keys():
+                    source_names = [
+                        source["name"]
+                        for source in result_tree[pv][ps][component_name][nvr]["sources"]
+                        if source["namespace"] == "REDHAT"
+                    ]
+                component_names.update(source_names)
+        # we should only show component name if both {component name} and {component name-container} exists # noqa
+        if (
+            search_component_name in component_names
+            and f"{search_component_name}-container" in component_names
+        ):
+            component_names.remove(f"{search_component_name}-container")
+        if format == "text":
+            for cn in component_names:
+                # ensure {component name} is not in profile exclude components enum
+                if not any([match in cn for match in exclude_components]):
+                    console.print(
+                        f"{pv}/{cn}={flaw_operation}",
+                        no_wrap=no_wrap,
+                    )
+        else:
+            affects = []
+            for cn in component_names:
+                # ensure {component name} is not in profile exclude components enum
+                if not any([match in cn for match in exclude_components]):
+                    affects.append(
+                        {"product_version": pv, "component_name": cn, "operation": flaw_operation}
+                    )
+            return affects
+
+
 def text_output_products_contain_component(
     ctx, output, exclude_products, exclude_components, no_wrap=False
 ):
@@ -178,69 +287,10 @@ def text_output_products_contain_component(
         # ordered_results = sorted(output["results"], key=lambda d: d["product_stream"])
 
         # first flatten the tree
-        normalised_results = list()
-        if "results" in output:
-            for item in output["results"]:
-                for ps in item["product_streams"]:
-                    if ps["product_versions"][0]["name"] not in exclude_products:
-                        if not any([match in item["name"] for match in exclude_components]):
-                            c = {
-                                "product_version": ps["product_versions"][0]["name"],
-                                "product_stream": ps.get("name"),
-                                "namespace": item.get("namespace"),
-                                "name": item.get("name"),
-                                "nvr": item.get("nvr"),
-                                "type": item.get("type"),
-                                "arch": item.get("arch"),
-                                "version": item.get("version"),
-                                "related_url": item.get("related_url"),
-                                "purl": item.get("purl"),
-                                "sources": item.get("sources"),
-                                "upstreams": item.get("upstreams"),
-                            }
-                            if "software_build" in item:
-                                c["build_source_url"] = item["software_build"].get("source")
-                            normalised_results.append(c)
-        product_versions = sorted(
-            list(set([item["product_version"] for item in normalised_results]))
+        normalised_results = generate_normalised_results(
+            output, exclude_products, exclude_components
         )
-        result_tree = {}
-        for pv in product_versions:
-            result_tree[pv] = {}
-            product_streams = sorted(
-                list(
-                    set(
-                        [
-                            item["product_stream"]
-                            for item in normalised_results
-                            if item["product_version"] == pv
-                        ]
-                    )
-                )
-            )
-            for ps in product_streams:
-                result_tree[pv][ps] = {}
-                component_names = sorted(
-                    list(
-                        set(
-                            [
-                                item["name"]
-                                for item in normalised_results
-                                if item["product_stream"] == ps
-                            ]
-                        )
-                    )
-                )
-                for cn in component_names:
-                    result_tree[pv][ps][cn] = {}
-                    nvrs = [
-                        item
-                        for item in normalised_results
-                        if item["product_stream"] == ps and item["name"] == cn
-                    ]
-
-                    for nvr in nvrs:
-                        result_tree[pv][ps][cn][nvr["nvr"]] = nvr
+        result_tree = generate_result_tree(normalised_results)
 
         # TODO - MAVEN component type will require special handling
         if ctx.params["affect_mode"]:
@@ -254,23 +304,8 @@ def text_output_products_contain_component(
             if flaw_mode == "update":
                 flaw_operation = "update"
 
-            for pv in result_tree.keys():
-                component_names = set()
-                for ps in result_tree[pv].keys():
-                    component_names.update(result_tree[pv][ps].keys())
-                # we should only show component name if both {component name} and {component name-container} exists # noqa
-                if (
-                    search_component_name in component_names
-                    and f"{search_component_name}-container" in component_names
-                ):
-                    component_names.remove(f"{search_component_name}-container")
-                for cn in component_names:
-                    # ensure {component name} is not in profile exclude components enum
-                    if not any([match in cn for match in exclude_components]):
-                        console.print(
-                            f"{pv}/{cn}={flaw_operation}",
-                            no_wrap=no_wrap,
-                        )
+            generate_affects(ctx, result_tree, exclude_components, flaw_operation, no_wrap=False)
+
         else:
             if ctx.obj["VERBOSE"] == 0:  # product_version X component_name
                 for pv in result_tree.keys():

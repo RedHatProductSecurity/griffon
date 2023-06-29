@@ -484,9 +484,9 @@ mypy-extensions==1.0.0 \
     --hash=sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d \
     --hash=sha256:75dbf8955dc00442a438fc4d0666508a9a97b6bd41aa2f0ffe9d2f2725af0782
     # via mypy
-osidb-bindings==3.1.0 \
-    --hash=sha256:38e62d3210ba2ede9da82af0d713e19602f41b2e212641d04f17e71941394e99 \
-    --hash=sha256:6b222623bfdf2a90f75dcf621ec0d1c949c7b109e6ff572eb6431184b9c5154d
+osidb-bindings==3.3.0 \
+    --hash=sha256:19e8660dd68c06f21fcaf0b092b0565d887dcd9ea05bd98342e88de4bd949727 \
+    --hash=sha256:e6bfee4a66d9805d2d45de07f3b707eac72c753317c1c79bc599265a34d79f43
     # via -r requirements/base.txt
 packageurl-python==0.10.4 \
     --hash=sha256:5c91334f942cd55d45eb0c67dd339a535ef90e25f05b9ec016ad188ed0ef9048 \
@@ -496,8 +496,9 @@ packaging==23.0 \
     --hash=sha256:714ac14496c3e68c99c29b00845f7a2b85f3bb6f1078fd9f72fd20f0570002b2 \
     --hash=sha256:b6ad297f8907de0fa2fe1ccbd26fdaf387f5f47c7275fedf8cce89f99446cf97
     # via pytest
-parse==1.19.0 \
-    --hash=sha256:9ff82852bcb65d139813e2a5197627a94966245c897796760a3a2a8eb66f020b
+parse==1.19.1 \
+    --hash=sha256:371ed3800dc63983832159cc9373156613947707bc448b5215473a219dbd4362 \
+    --hash=sha256:cc3a47236ff05da377617ddefa867b7ba983819c664e1afe46249e5b469be464
     # via
     #   behave
     #   parse-type

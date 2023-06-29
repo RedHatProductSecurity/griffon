@@ -36,7 +36,14 @@ from griffon.commands.reports import (
     generate_entity_report,
     generate_license_report,
 )
-from griffon.output import console, cprint, raw_json_transform
+from griffon.output import (
+    console,
+    cprint,
+    generate_affects,
+    generate_normalised_results,
+    generate_result_tree,
+    raw_json_transform,
+)
 from griffon.services import QueryService, core_queries  # , exp
 
 logger = logging.getLogger("griffon")
@@ -382,18 +389,20 @@ def get_product_contain_component(
 
             # generate affects
             output = raw_json_transform(q, True)
-            ordered_results = sorted(output["results"], key=lambda d: d["product_stream"])
-            affects = []
-            product_versions = sorted(
-                list(set([item["product_version"] for item in ordered_results]))
+
+            exclude_products = []
+            if get_config_option(ctx.obj["PROFILE"], "exclude"):
+                exclude_products = get_config_option(ctx.obj["PROFILE"], "exclude").split("\n")
+            exclude_components = []
+            if get_config_option(ctx.obj["PROFILE"], "exclude_components"):
+                exclude_components = get_config_option(
+                    ctx.obj["PROFILE"], "exclude_components"
+                ).split("\n")
+            normalised_results = generate_normalised_results(
+                output, exclude_products, exclude_components
             )
-            for pv in product_versions:
-                names = [item["name"] for item in ordered_results if pv == item["product_version"]]
-                names = list(set(names))
-                for name in names:
-                    affects.append(
-                        {"product_version": pv, "component_name": name, "operation": "add"}
-                    )
+            result_tree = generate_result_tree(normalised_results)
+            affects = generate_affects(ctx, result_tree, exclude_components, "add", format="json")
 
             # attempt to import sfm2client module
             try:
