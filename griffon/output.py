@@ -257,7 +257,14 @@ def text_output_products_contain_component(
             for pv in result_tree.keys():
                 component_names = set()
                 for ps in result_tree[pv].keys():
-                    component_names.update(result_tree[pv][ps].keys())
+                    for component_name in result_tree[pv][ps].keys():
+                        for nvr in result_tree[pv][ps][component_name].keys():
+                            source_names = [
+                                source["name"]
+                                for source in result_tree[pv][ps][component_name][nvr]["sources"]
+                                if source["namespace"] == "REDHAT"
+                            ]
+                        component_names.update(source_names)
                 # we should only show component name if both {component name} and {component name-container} exists # noqa
                 if (
                     search_component_name in component_names
