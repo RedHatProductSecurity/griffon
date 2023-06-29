@@ -233,12 +233,17 @@ def generate_affects(
         for ps in result_tree[pv].keys():
             for component_name in result_tree[pv][ps].keys():
                 for nvr in result_tree[pv][ps][component_name].keys():
-                    source_names = [
-                        source["name"]
-                        for source in result_tree[pv][ps][component_name][nvr]["sources"]
-                        if source["namespace"] == "REDHAT"
-                    ]
-                component_names.update(source_names)
+                    if len(result_tree[pv][ps][component_name][nvr]["sources"]) > 0:
+                        source_names = [
+                            source["name"]
+                            for source in result_tree[pv][ps][component_name][nvr]["sources"]
+                            if source["namespace"] == "REDHAT"
+                        ]
+                        component_names.update(source_names)
+                    else:
+                        if result_tree[pv][ps][component_name][nvr]["namespace"] == "REDHAT":
+                            component_names.add(component_name)
+
         # we should only show component name if both {component name} and {component name-container} exists # noqa
         if (
             search_component_name in component_names
