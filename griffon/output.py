@@ -434,19 +434,27 @@ def text_output_products_contain_component(
                             if not any([match in cn for match in exclude_components]):
                                 # select the latest nvr (from sorted list)
                                 nvr = list(result_tree[pv][ps][cn].keys())[-1]
-                                dep_name = re.sub(
-                                    search_component_name,
-                                    f"[b]{search_component_name}[/b]",
-                                    nvr,
-                                )
-                                dep = f"[grey93]{dep_name}[/grey93]"
-                                related_url = ""
-                                if result_tree[pv][ps][cn][nvr]["related_url"]:
-                                    related_url = re.sub(
+                                # highlight search term
+                                dep_name = nvr
+                                try:
+                                    dep_name = re.sub(
                                         search_component_name,
                                         f"[b]{search_component_name}[/b]",
-                                        result_tree[pv][ps][cn][nvr]["related_url"],
+                                        nvr,
                                     )
+                                except re.error:
+                                    pass
+                                dep = f"[grey93]{dep_name}[/grey93]"
+                                related_url = result_tree[pv][ps][cn][nvr].get("related_url")
+                                try:
+                                    if result_tree[pv][ps][cn][nvr]["related_url"]:
+                                        related_url = re.sub(
+                                            search_component_name,
+                                            f"[b]{search_component_name}[/b]",
+                                            result_tree[pv][ps][cn][nvr]["related_url"],
+                                        )
+                                except re.error:
+                                    pass
                                 build_source_url = ""
                                 if result_tree[pv][ps][cn][nvr]["build_source_url"]:
                                     build_source_url = result_tree[pv][ps][cn][nvr][
@@ -515,19 +523,27 @@ def text_output_products_contain_component(
                             if not any([match in cn for match in exclude_components]):
                                 # select the latest nvr (from sorted list)
                                 nvr = list(result_tree[pv][ps][cn].keys())[-1]
-                                dep_name = re.sub(
-                                    search_component_name,
-                                    f"[b]{search_component_name}[/b]",
-                                    nvr,
-                                )
-                                dep = f"[grey93]{dep_name}[/grey93]"
-                                related_url = ""
-                                if result_tree[pv][ps][cn][nvr]["related_url"]:
-                                    related_url = re.sub(
+                                # highlight search term
+                                dep_name = nvr
+                                try:
+                                    dep_name = re.sub(
                                         search_component_name,
                                         f"[b]{search_component_name}[/b]",
-                                        result_tree[pv][ps][cn][nvr]["related_url"],
+                                        nvr,
                                     )
+                                except re.error:
+                                    pass
+                                dep = f"[grey93]{dep_name}[/grey93]"
+                                related_url = result_tree[pv][ps][cn][nvr].get("related_url")
+                                try:
+                                    if result_tree[pv][ps][cn][nvr]["related_url"]:
+                                        related_url = re.sub(
+                                            search_component_name,
+                                            f"[b]{search_component_name}[/b]",
+                                            result_tree[pv][ps][cn][nvr]["related_url"],
+                                        )
+                                except re.error:
+                                    pass
                                 build_source_url = ""
                                 if result_tree[pv][ps][cn][nvr]["build_source_url"]:
                                     build_source_url = result_tree[pv][ps][cn][nvr][
@@ -587,19 +603,27 @@ def text_output_products_contain_component(
                             if not any([match in cn for match in exclude_components]):
                                 # select the latest nvr (from sorted list)
                                 nvr = list(result_tree[pv][ps][cn].keys())[-1]
-                                dep_name = re.sub(
-                                    search_component_name,
-                                    f"[b]{search_component_name}[/b]",
-                                    nvr,
-                                )
-                                dep = f"[grey93]{dep_name}[/grey93]"
-                                related_url = ""
-                                if result_tree[pv][ps][cn][nvr]["related_url"]:
-                                    related_url = re.sub(
+                                # highlight search term
+                                dep_name = nvr
+                                try:
+                                    dep_name = re.sub(
                                         search_component_name,
                                         f"[b]{search_component_name}[/b]",
-                                        result_tree[pv][ps][cn][nvr]["related_url"],
+                                        nvr,
                                     )
+                                except re.error:
+                                    pass
+                                dep = f"[grey93]{dep_name}[/grey93]"
+                                related_url = result_tree[pv][ps][cn][nvr].get("related_url")
+                                try:
+                                    if result_tree[pv][ps][cn][nvr]["related_url"]:
+                                        related_url = re.sub(
+                                            search_component_name,
+                                            f"[b]{search_component_name}[/b]",
+                                            result_tree[pv][ps][cn][nvr]["related_url"],
+                                        )
+                                except re.error:
+                                    pass
                                 build_source_url = ""
                                 if result_tree[pv][ps][cn][nvr]["build_source_url"]:
                                     build_source_url = result_tree[pv][ps][cn][nvr][
