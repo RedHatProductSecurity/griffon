@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+* ensured use of regexes with verbose settings do not interact everywhere!
+
 ## [0.2.11] - 2023-06-30
 ### Changed
 * fixed -v output with components-affected-by-flaw
