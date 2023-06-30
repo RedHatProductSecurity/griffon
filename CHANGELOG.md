@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.2.13] - 2023-06-30
 ### Changed
 * ensure affects respect active product stream configuration
 
