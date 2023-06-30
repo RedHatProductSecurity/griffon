@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 * fixed -v output with components-affected-by-flaw
+* ensured use of regexes with verbose settings do not interact
 
 ## [0.2.10] - 2023-06-30
 ### Changed
