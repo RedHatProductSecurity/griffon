@@ -155,30 +155,35 @@ def text_output_product_summary(ctx, output, format, exclude_products, no_wrap=F
     ctx.exit()
 
 
-def generate_normalised_results(output, exclude_products, exclude_components):
+def generate_normalised_results(
+    output, exclude_products, exclude_components, include_inactive_product_streams
+):
     normalised_results = list()
     if "results" in output:
         for item in output["results"]:
             for ps in item["product_streams"]:
-                if ps["product_versions"][0]["name"] not in exclude_products:
-                    if not any([match in item["name"] for match in exclude_components]):
-                        c = {
-                            "product_version": ps["product_versions"][0]["name"],
-                            "product_stream": ps.get("name"),
-                            "namespace": item.get("namespace"),
-                            "name": item.get("name"),
-                            "nvr": item.get("nvr"),
-                            "type": item.get("type"),
-                            "arch": item.get("arch"),
-                            "version": item.get("version"),
-                            "related_url": item.get("related_url"),
-                            "purl": item.get("purl"),
-                            "sources": item.get("sources"),
-                            "upstreams": item.get("upstreams"),
-                        }
-                        if "software_build" in item:
-                            c["build_source_url"] = item["software_build"].get("source")
-                        normalised_results.append(c)
+                # only include component from active product stream
+                if ps.get("active") or include_inactive_product_streams:
+                    if ps["product_versions"][0]["name"] not in exclude_products:
+                        if not any([match in item["name"] for match in exclude_components]):
+                            c = {
+                                "product_version": ps["product_versions"][0]["name"],
+                                "product_stream": ps.get("name"),
+                                "product_stream_active": ps.get("active"),
+                                "namespace": item.get("namespace"),
+                                "name": item.get("name"),
+                                "nvr": item.get("nvr"),
+                                "type": item.get("type"),
+                                "arch": item.get("arch"),
+                                "version": item.get("version"),
+                                "related_url": item.get("related_url"),
+                                "purl": item.get("purl"),
+                                "sources": item.get("sources"),
+                                "upstreams": item.get("upstreams"),
+                            }
+                            if "software_build" in item:
+                                c["build_source_url"] = item["software_build"].get("source")
+                            normalised_results.append(c)
     return normalised_results
 
 
@@ -270,7 +275,11 @@ def generate_affects(
 
 
 def text_output_products_contain_component(
-    ctx, output, exclude_products, exclude_components, no_wrap=False
+    ctx,
+    output,
+    exclude_products,
+    exclude_components,
+    no_wrap=False,
 ):
     search_component_name = ctx.params["component_name"]
 
@@ -293,7 +302,10 @@ def text_output_products_contain_component(
 
         # first flatten the tree
         normalised_results = generate_normalised_results(
-            output, exclude_products, exclude_components
+            output,
+            exclude_products,
+            exclude_components,
+            ctx.params["include_inactive_product_streams"],
         )
         result_tree = generate_result_tree(normalised_results)
 
@@ -1075,7 +1087,11 @@ def cprint(
             text_output_product_summary(ctx, output, format, exclude_products, no_wrap=no_wrap)
         if ctx.info_name == "products-contain-component":
             text_output_products_contain_component(
-                ctx, output, exclude_products, exclude_components, no_wrap=no_wrap
+                ctx,
+                output,
+                exclude_products,
+                exclude_components,
+                no_wrap=no_wrap,
             )
         if ctx.info_name == "components-contain-component":
             text_output_components_contain_component(

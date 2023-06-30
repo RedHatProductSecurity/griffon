@@ -248,6 +248,7 @@ class products_containing_component_query:
         "filter_rh_naming",
         "no_community",
         "no_middleware",
+        "include_inactive_product_streams",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -271,7 +272,7 @@ class products_containing_component_query:
     def execute(self) -> List[Dict[str, Any]]:
         results = []
         params = {
-            "include_fields": "link,purl,type,name,related_url,namespace,software_build,nvr,sources.nvr,sources.purl,sources.name,sources.namespace,sources.download_url,sources.related_url,upstreams.nvr,upstreams.purl,upstreams.name,upstreams.download_url,upstreams.related_url,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri",  # noqa
+            "include_fields": "link,purl,type,name,related_url,namespace,software_build,nvr,sources.nvr,sources.purl,sources.name,sources.namespace,sources.download_url,sources.related_url,upstreams.nvr,upstreams.purl,upstreams.name,upstreams.download_url,upstreams.related_url,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active",  # noqa
         }
 
         if self.search_latest:

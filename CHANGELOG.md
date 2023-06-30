@@ -5,8 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-
+### Changed
+* return components in active product streams for products-contains-component operation
+### Added
+* --include-inactive-product-streams option for products-contains-component operation
+* 
 ## [0.2.9] - 2023-06-29
+### Changed
 * pin osidb-bindings 3.3.0
 * update crypto python module
 * fix generation of affects 
