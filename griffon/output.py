@@ -355,19 +355,26 @@ def text_output_products_contain_component(
                                 # select the latest nvr (from sorted list)
                                 nvr = list(result_tree[pv][ps][cn].keys())[-1]
                                 # highlight search term
-                                dep_name = re.sub(
-                                    search_component_name,
-                                    f"[b]{search_component_name}[/b]",
-                                    nvr,
-                                )
-                                dep = f"[grey93]{dep_name}[/grey93]"
-                                related_url = ""
-                                if result_tree[pv][ps][cn][nvr]["related_url"]:
-                                    related_url = re.sub(
+                                dep_name = nvr
+                                try:
+                                    dep_name = re.sub(
                                         search_component_name,
                                         f"[b]{search_component_name}[/b]",
-                                        result_tree[pv][ps][cn][nvr]["related_url"],
+                                        nvr,
                                     )
+                                except re.error:
+                                    pass
+                                dep = f"[grey93]{dep_name}[/grey93]"
+                                related_url = result_tree[pv][ps][cn][nvr].get("related_url")
+                                try:
+                                    if result_tree[pv][ps][cn][nvr]["related_url"]:
+                                        related_url = re.sub(
+                                            search_component_name,
+                                            f"[b]{search_component_name}[/b]",
+                                            result_tree[pv][ps][cn][nvr]["related_url"],
+                                        )
+                                except re.error:
+                                    pass
                                 upstream_component_names = list(
                                     set(
                                         [
