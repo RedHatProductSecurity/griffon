@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+* ensure affects respect active product stream configuration
+
 ## [0.2.12] - 2023-06-30
 ### Changed
 * ensured use of regexes with verbose settings do not interact **everywhere**!

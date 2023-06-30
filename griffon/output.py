@@ -242,7 +242,7 @@ def generate_affects(
                         source_names = [
                             source["name"]
                             for source in result_tree[pv][ps][component_name][nvr]["sources"]
-                            if source["namespace"] == "REDHAT"
+                            if source.get("namespace") == "REDHAT"
                         ]
                         component_names.update(source_names)
                     else:
