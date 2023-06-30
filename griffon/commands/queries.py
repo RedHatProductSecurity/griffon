@@ -268,6 +268,13 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     help="Do not search middleware.",
 )
 @click.option(
+    "--include-inactive-product-streams",
+    "include_inactive_product_streams",
+    is_flag=True,
+    default=get_config_option("default", "include_inactive_product_streams", False),
+    help="Include components from inactive product streams.",
+)
+@click.option(
     "-v",
     "verbose",
     count=True,
@@ -296,6 +303,7 @@ def get_product_contain_component(
     search_upstreams,
     no_community,
     no_middleware,
+    include_inactive_product_streams,
     verbose,
 ):
     with console.status("griffoning", spinner="line") as operation_status:
@@ -399,7 +407,7 @@ def get_product_contain_component(
                     ctx.obj["PROFILE"], "exclude_components"
                 ).split("\n")
             normalised_results = generate_normalised_results(
-                output, exclude_products, exclude_components
+                output, exclude_products, exclude_components, include_inactive_product_streams
             )
             result_tree = generate_result_tree(normalised_results)
             affects = generate_affects(ctx, result_tree, exclude_components, "add", format="json")

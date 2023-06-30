@@ -3,6 +3,7 @@ format = text
 history_log = ~/.griffon/history.log
 profile = default
 verbosity = 0
+include_inactive_product_streams = False
 no_wrap = False
 terminal_width = 1000
 sfm2_api_url = http://localhost:5600
