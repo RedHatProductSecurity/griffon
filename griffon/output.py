@@ -757,22 +757,24 @@ def text_output_components_affected_by_cve(ctx, output, format, no_wrap=False):
                     no_wrap=no_wrap,
                 )
             if ctx.obj["VERBOSE"] == 1:
-                console.print(
-                    Text(component["product_streams"], style="bold magenta u"),
-                    ns,
-                    affected_component1,
-                    no_wrap=no_wrap,
-                )
+                for ps in component["product_streams"]:
+                    console.print(
+                        Text(ps.get("name"), style="bold magenta u"),
+                        ns,
+                        affected_component1,
+                        no_wrap=no_wrap,
+                    )
             if ctx.obj["VERBOSE"] > 1:
-                console.print(
-                    Text(component["product_streams"], style="bold magenta u"),
-                    ns,
-                    affected_component1,
-                    Text(component["build_source_url"], style="i"),
-                    Text(component["related_url"], style="i"),
-                    Text(component["download_url"], style="i"),
-                    no_wrap=no_wrap,
-                )
+                for ps in component["product_streams"]:
+                    console.print(
+                        Text(ps.get("name"), style="bold magenta u"),
+                        ns,
+                        affected_component1,
+                        Text(component.get("build_source_url", ""), style="i"),
+                        Text(component.get("related_url", ""), style="i"),
+                        Text(component.get("download_url", ""), style="i"),
+                        no_wrap=no_wrap,
+                    )
     ctx.exit()
 
 
