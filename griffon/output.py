@@ -156,7 +156,11 @@ def text_output_product_summary(ctx, output, format, exclude_products, no_wrap=F
 
 
 def generate_normalised_results(
-    output, exclude_products, exclude_components, include_inactive_product_streams
+    output,
+    exclude_products,
+    exclude_components,
+    include_inactive_product_streams,
+    include_product_stream_excluded_components,
 ):
     normalised_results = list()
     if "results" in output:
@@ -165,25 +169,31 @@ def generate_normalised_results(
                 # only include component from active product stream
                 if ps.get("active") or include_inactive_product_streams:
                     if ps["product_versions"][0]["name"] not in exclude_products:
-                        if not any([match in item["name"] for match in exclude_components]):
-                            c = {
-                                "product_version": ps["product_versions"][0]["name"],
-                                "product_stream": ps.get("name"),
-                                "product_stream_active": ps.get("active"),
-                                "namespace": item.get("namespace"),
-                                "name": item.get("name"),
-                                "nvr": item.get("nvr"),
-                                "type": item.get("type"),
-                                "arch": item.get("arch"),
-                                "version": item.get("version"),
-                                "related_url": item.get("related_url"),
-                                "purl": item.get("purl"),
-                                "sources": item.get("sources"),
-                                "upstreams": item.get("upstreams"),
-                            }
-                            if "software_build" in item:
-                                c["build_source_url"] = item["software_build"].get("source")
-                            normalised_results.append(c)
+                        if (
+                            not any(
+                                [match in item["name"] for match in ps.get("exclude_components")]
+                            )
+                            or include_product_stream_excluded_components
+                        ):
+                            if not any([match in item["name"] for match in exclude_components]):
+                                c = {
+                                    "product_version": ps["product_versions"][0]["name"],
+                                    "product_stream": ps.get("name"),
+                                    "product_stream_active": ps.get("active"),
+                                    "namespace": item.get("namespace"),
+                                    "name": item.get("name"),
+                                    "nvr": item.get("nvr"),
+                                    "type": item.get("type"),
+                                    "arch": item.get("arch"),
+                                    "version": item.get("version"),
+                                    "related_url": item.get("related_url"),
+                                    "purl": item.get("purl"),
+                                    "sources": item.get("sources"),
+                                    "upstreams": item.get("upstreams"),
+                                }
+                                if "software_build" in item:
+                                    c["build_source_url"] = item["software_build"].get("source")
+                                normalised_results.append(c)
     return normalised_results
 
 
@@ -306,6 +316,7 @@ def text_output_products_contain_component(
             exclude_products,
             exclude_components,
             ctx.params["include_inactive_product_streams"],
+            ctx.params["include_product_stream_excluded_components"],
         )
         result_tree = generate_result_tree(normalised_results)
 

@@ -9,6 +9,7 @@ terminal_width = 1000
 sfm2_api_url = http://localhost:5600
 custom_plugin_dir = ~/.griffon/plugins/
 editor = vi
+include_product_stream_excluded_components = False
 exclude_components = -container-source
     -debuginfo
     -debugsource
