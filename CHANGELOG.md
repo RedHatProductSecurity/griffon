@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+* griffon will now use product stream exclude_components by default
+* added --include-product-stream-exclude-components flag to disable exclude_components
 
 ## [0.2.13] - 2023-06-30
 ### Changed
