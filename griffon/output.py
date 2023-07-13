@@ -171,7 +171,10 @@ def generate_normalised_results(
                     if ps["product_versions"][0]["name"] not in exclude_products:
                         if (
                             not any(
-                                [match in item["name"] for match in ps.get("exclude_components")]
+                                [
+                                    match in item["name"]
+                                    for match in ps.get("exclude_components", [])
+                                ]
                             )
                             or include_product_stream_excluded_components
                         ):
