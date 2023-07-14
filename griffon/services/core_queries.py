@@ -187,6 +187,8 @@ class products_containing_specific_component_query:
         "search_redhat",
         "no_community",
         "no_middleware",
+        "include_inactive_product_streams",
+        "include_product_stream_excluded_components",
     ]
 
     def __init__(self, params: dict) -> None:
