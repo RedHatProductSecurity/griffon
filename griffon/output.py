@@ -159,6 +159,7 @@ def generate_normalised_results(
     output,
     exclude_products,
     exclude_components,
+    output_type_filter,
     include_inactive_product_streams,
     include_product_stream_excluded_components,
 ):
@@ -168,7 +169,9 @@ def generate_normalised_results(
             for ps in item["product_streams"]:
                 # only include component from active product stream
                 if ps.get("active") or include_inactive_product_streams:
+                    # .griffonrc defined exclude product streams
                     if ps["product_versions"][0]["name"] not in exclude_products:
+                        # product stream defined exclude components
                         if (
                             not any(
                                 [
@@ -178,6 +181,7 @@ def generate_normalised_results(
                             )
                             or include_product_stream_excluded_components
                         ):
+                            # .griffonrc defined exclude components
                             if not any([match in item["name"] for match in exclude_components]):
                                 c = {
                                     "product_version": ps["product_versions"][0]["name"],
@@ -196,7 +200,11 @@ def generate_normalised_results(
                                 }
                                 if "software_build" in item:
                                     c["build_source_url"] = item["software_build"].get("source")
-                                normalised_results.append(c)
+                                # output type filter
+                                if output_type_filter is None:
+                                    normalised_results.append(c)
+                                if item.get("type") == output_type_filter:
+                                    normalised_results.append(c)
     return normalised_results
 
 
@@ -318,6 +326,7 @@ def text_output_products_contain_component(
             output,
             exclude_products,
             exclude_components,
+            ctx.params["output_type_filter"],
             ctx.params["include_inactive_product_streams"],
             ctx.params["include_product_stream_excluded_components"],
         )
@@ -378,7 +387,7 @@ def text_output_products_contain_component(
                                     )
                                 except re.error:
                                     pass
-                                dep = f"[grey93]{dep_name}[/grey93]"
+                                dep = f"[grey93]{dep_name} ({result_tree[pv][ps][cn][nvr]['type']})[/grey93]"  # noqa
                                 related_url = result_tree[pv][ps][cn][nvr].get("related_url")
                                 try:
                                     if result_tree[pv][ps][cn][nvr]["related_url"]:
@@ -458,7 +467,7 @@ def text_output_products_contain_component(
                                     )
                                 except re.error:
                                     pass
-                                dep = f"[grey93]{dep_name}[/grey93]"
+                                dep = f"[grey93]{dep_name} ({result_tree[pv][ps][cn][nvr]['type']})[/grey93]"  # noqa
                                 related_url = result_tree[pv][ps][cn][nvr].get("related_url")
                                 try:
                                     if result_tree[pv][ps][cn][nvr]["related_url"]:
@@ -547,7 +556,7 @@ def text_output_products_contain_component(
                                     )
                                 except re.error:
                                     pass
-                                dep = f"[grey93]{dep_name}[/grey93]"
+                                dep = f"[grey93]{dep_name} ({result_tree[pv][ps][cn][nvr]['type']})[/grey93]"  # noqa
                                 related_url = result_tree[pv][ps][cn][nvr].get("related_url")
                                 try:
                                     if result_tree[pv][ps][cn][nvr]["related_url"]:
@@ -627,7 +636,7 @@ def text_output_products_contain_component(
                                     )
                                 except re.error:
                                     pass
-                                dep = f"[grey93]{dep_name}[/grey93]"
+                                dep = f"[grey93]{dep_name} ({result_tree[pv][ps][cn][nvr]['type']})[/grey93]"  # noqa
                                 related_url = result_tree[pv][ps][cn][nvr].get("related_url")
                                 try:
                                     if result_tree[pv][ps][cn][nvr]["related_url"]:

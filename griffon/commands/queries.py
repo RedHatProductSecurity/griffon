@@ -282,6 +282,13 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     help="Include product stream excluded components.",
 )
 @click.option(
+    "--output-type-filter",
+    "output_type_filter",
+    type=click.Choice(CorgiService.get_component_types()),
+    default=None,
+    help="Filter component type.",
+)
+@click.option(
     "-v",
     "verbose",
     count=True,
@@ -312,6 +319,7 @@ def get_product_contain_component(
     no_middleware,
     include_inactive_product_streams,
     include_product_stream_excluded_components,
+    output_type_filter,
     verbose,
 ):
     with console.status("griffoning", spinner="line") as operation_status:
@@ -418,6 +426,7 @@ def get_product_contain_component(
                 output,
                 exclude_products,
                 exclude_components,
+                output_type_filter,
                 include_inactive_product_streams,
                 include_product_stream_excluded_components,
             )

@@ -189,6 +189,7 @@ class products_containing_specific_component_query:
         "no_middleware",
         "include_inactive_product_streams",
         "include_product_stream_excluded_components",
+        "output_type_filter",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -252,6 +253,7 @@ class products_containing_component_query:
         "no_middleware",
         "include_inactive_product_streams",
         "include_product_stream_excluded_components",
+        "output_type_filter",
     ]
 
     def __init__(self, params: dict) -> None:
