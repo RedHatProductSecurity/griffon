@@ -348,6 +348,7 @@ def get_product_contain_component(
         params.pop("sfm2_flaw_id")
         params.pop("flaw_mode")
         params.pop("affect_mode")
+        cprint([], ctx=ctx)
         if component_name:
             q = query_service.invoke(core_queries.products_containing_component_query, params)
         if purl:

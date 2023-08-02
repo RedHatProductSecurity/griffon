@@ -322,6 +322,11 @@ def text_output_products_contain_component(
         # ordered_results = sorted(output["results"], key=lambda d: d["product_stream"])
 
         # first flatten the tree
+        # import json
+
+        # with open("instance/protobuf.json", "w") as fp:
+        #     json.dump(output, fp, ensure_ascii=False, indent=4)
+
         normalised_results = generate_normalised_results(
             output,
             exclude_products,
@@ -1129,7 +1134,12 @@ def cprint(
         exclude_components = get_config_option(ctx.obj["PROFILE"], "exclude_components").split("\n")
     logger.debug(f"exclude_components = {exclude_components}")
 
-    output = raw_json_transform(data, show_count)
+    # output = raw_json_transform(data, show_count)
+    import json
+
+    with open("instance/protobuf.json") as fp:
+        output = json.load(fp)
+
     if ctx and ctx.obj["NO_COLOR"]:
         console.no_color = True
     format = OUTPUT_FORMAT.JSON
