@@ -1,26 +1,51 @@
-name: Run lint CI
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-
+name: Lint
+on: [push]
 jobs:
-  tox:
-    name: Run Tox
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install gcc python3.9 python3-dev libkrb5-dev krb5-user
-        sudo ln -s /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2 /usr/lib/libgssapi_krb5.so
-    - name: Run all envs
-      uses: fedora-python/tox-github-action@master
-      with:
-        tox_env: ${{ matrix.tox_env }}
-    strategy:
-      matrix:
-        tox_env: [black, isort, flake8] # TODO - some clash with mypy env
+  black:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install gcc libkrb5-dev krb5-user
+          sudo ln -s /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2 /usr/lib/libgssapi_krb5.so
+      - name: Install tox
+        run: pip install tox==3.24.5
+      - name: Check that code is formatted with black
+        run: tox -e black
+  isort:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install gcc libkrb5-dev krb5-user
+          sudo ln -s /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2 /usr/lib/libgssapi_krb5.so
+      - name: Install tox
+        run: pip install tox==3.24.5
+      - name: Check that imports are formatted with isort
+        run: tox -e isort
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install gcc libkrb5-dev krb5-user
+          sudo ln -s /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2 /usr/lib/libgssapi_krb5.so
+      - name: Install tox
+        run: pip install tox==3.24.5
+      - name: Check that imports are formatted with isort
+        run: tox -e flake8
