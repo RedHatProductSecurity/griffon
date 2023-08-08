@@ -108,7 +108,6 @@ queries_grp.add_command(generate_license_report)
 @progress_bar
 def get_product_summary(ctx, product_stream_name, strict_name_search, all, verbose):
     """get product stream."""
-    ctx.obj["VERBOSE"] = 0
     if verbose:
         ctx.obj["VERBOSE"] = verbose
     if not product_stream_name and not all and not strict_name_search:
@@ -325,7 +324,6 @@ def get_product_contain_component(
 ):
     with console.status("griffoning", spinner="line") as operation_status:
         """List products of a latest component."""
-        ctx.obj["VERBOSE"] = 0
         if verbose:
             ctx.obj["VERBOSE"] = verbose
         if not purl and not component_name:
@@ -585,7 +583,6 @@ def get_component_contain_component(
     verbose,
 ):
     """List components that contain component."""
-    ctx.obj["VERBOSE"] = 0
     if verbose:
         ctx.obj["VERBOSE"] = verbose
     if not component_name and not purl:
@@ -656,7 +653,6 @@ def get_product_manifest_query(ctx, product_stream_name, ofuri, spdx_json_format
 @click.pass_context
 def get_product_latest_components_query(ctx, product_stream_name, ofuri, verbose, **params):
     """List components of a specific product version."""
-    ctx.obj["VERBOSE"] = 0
     if verbose:
         ctx.obj["VERBOSE"] = verbose
         ctx.params.pop("verbose")
