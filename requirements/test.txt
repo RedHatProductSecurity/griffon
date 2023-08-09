@@ -123,9 +123,9 @@ click==8.1.3 \
 click-completion==0.5.2 \
     --hash=sha256:5bf816b81367e638a190b6e91b50779007d14301b3f9f3145d68e3cade7bce86
     # via -r requirements/base.txt
-component-registry-bindings==1.3.4 \
-    --hash=sha256:9ea5e1f83123ed6712e15c487caf50216b865677d5054a0932afc4ad73f6c5be \
-    --hash=sha256:d85d140b53a6a7ba7ff08d55a5990d9199ecead107e54013b5128d7e4e628ce8
+component-registry-bindings==1.3.5 \
+    --hash=sha256:c1663fb4dfe62f6182c4bcde5bf59c62f32861290276d43dec1d0132063faaf7 \
+    --hash=sha256:da6475f6c40c5d3390ad6529c86acf38720370682b88c63bd965b10086968e6c
     # via -r requirements/base.txt
 coverage[toml]==7.2.0 \
     --hash=sha256:049806ae2df69468c130f04f0fab4212c46b34ba5590296281423bb1ae379df2 \
@@ -484,9 +484,9 @@ mypy-extensions==1.0.0 \
     --hash=sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d \
     --hash=sha256:75dbf8955dc00442a438fc4d0666508a9a97b6bd41aa2f0ffe9d2f2725af0782
     # via mypy
-osidb-bindings==3.3.0 \
-    --hash=sha256:19e8660dd68c06f21fcaf0b092b0565d887dcd9ea05bd98342e88de4bd949727 \
-    --hash=sha256:e6bfee4a66d9805d2d45de07f3b707eac72c753317c1c79bc599265a34d79f43
+osidb-bindings==3.3.1 \
+    --hash=sha256:2a8a7c554c1b3db43838d7bf213b5ae6d190ddfe1e477c59884650bb8e8a5580 \
+    --hash=sha256:3bda015cc6abfa9f8b49b61fcaaedcac4c3d90388e1e44a0494221a9c795cb21
     # via -r requirements/base.txt
 packageurl-python==0.10.4 \
     --hash=sha256:5c91334f942cd55d45eb0c67dd339a535ef90e25f05b9ec016ad188ed0ef9048 \
