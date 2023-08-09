@@ -118,7 +118,7 @@ def text_output_product_summary(ctx, output, format, exclude_products, no_wrap=F
     if exclude_products:
         exclude_products_results = []
         for result in ordered_results:
-            if result["product_version"] not in exclude_products:
+            if not any([re.search(match, result["product_version"]) for match in exclude_products]):
                 exclude_products_results.append(result)
         ordered_results = exclude_products_results
 
@@ -170,7 +170,12 @@ def generate_normalised_results(
                 # only include component from active product stream
                 if ps.get("active") or include_inactive_product_streams:
                     # .griffonrc defined exclude product streams
-                    if ps["product_versions"][0]["name"] not in exclude_products:
+                    if not any(
+                        [
+                            re.search(match, ps["product_versions"][0]["name"])
+                            for match in exclude_products
+                        ]
+                    ):
                         # product stream defined exclude components
                         if (
                             not any(
