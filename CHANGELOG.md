@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+
+## [0.2.19] - 2023-08-10
+### Changed
+* ensure we handle upstreams with component name containing special chars (as in regex special chars)
+
 ## [0.2.18] - 2023-08-10
 ### Changed
 * enable searching community upstreams using --search-upstreams
