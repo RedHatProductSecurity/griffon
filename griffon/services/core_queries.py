@@ -273,6 +273,8 @@ class products_containing_component_query:
         self.search_upstreams = self.params.get("search_upstreams")
         self.filter_rh_naming = self.params.get("filter_rh_naming")
         self.no_community = self.params.get("no_community")
+        if not self.no_community:
+            self.community_session = CommunityComponentService.create_session()
 
     def execute(self) -> List[Dict[str, Any]]:
         results = []
@@ -377,6 +379,17 @@ class products_containing_component_query:
                 self.corgi_session, params, component_initial, component_initial.count
             )
             results.extend(upstream_components)
+            if not self.no_community:
+                component_community_initial = self.community_session.components.retrieve_list(
+                    limit=120, **params
+                )
+                commmunity_upstream_components: list = async_retrieve_components(
+                    self.community_session,
+                    params,
+                    component_community_initial,
+                    component_community_initial.count,
+                )
+                results.extend(commmunity_upstream_components)
 
         if self.filter_rh_naming:
             flags = re.IGNORECASE
@@ -420,7 +433,6 @@ class products_containing_component_query:
         if not self.no_community and (
             self.search_community or self.search_all or self.search_all_roots
         ):
-            self.community_session = CommunityComponentService.create_session()
             params["type"] = "RPM"
             params["arch"] = "src"
             if not self.strict_name_search:
