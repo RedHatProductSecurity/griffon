@@ -367,7 +367,7 @@ def text_output_products_contain_component(
                         component_names.remove(f"{search_component_name}-container")
                     for cn in component_names:
                         # highlight search term
-                        dep_name = re.sub(cn, f"[b]{cn}[/b]", cn)
+                        dep_name = re.sub(re.escape(cn), f"[b]{cn}[/b]", cn)
                         dep = f"[grey93]{dep_name}[/grey93]"
                         console.print(
                             Text(pv, style="magenta b u"),
@@ -384,7 +384,7 @@ def text_output_products_contain_component(
                             dep_name = nvr
                             try:
                                 dep_name = re.sub(
-                                    search_component_name,
+                                    re.escape(search_component_name),
                                     f"[b]{search_component_name}[/b]",
                                     nvr,
                                 )
@@ -395,7 +395,7 @@ def text_output_products_contain_component(
                             try:
                                 if result_tree[pv][ps][cn][nvr]["related_url"]:
                                     related_url = re.sub(
-                                        search_component_name,
+                                        re.escape(search_component_name),
                                         f"[b]{search_component_name}[/b]",
                                         result_tree[pv][ps][cn][nvr]["related_url"],
                                     )
@@ -460,7 +460,7 @@ def text_output_products_contain_component(
                             dep_name = nvr
                             try:
                                 dep_name = re.sub(
-                                    search_component_name,
+                                    re.escape(search_component_name),
                                     f"[b]{search_component_name}[/b]",
                                     nvr,
                                 )
@@ -471,7 +471,7 @@ def text_output_products_contain_component(
                             try:
                                 if result_tree[pv][ps][cn][nvr]["related_url"]:
                                     related_url = re.sub(
-                                        search_component_name,
+                                        re.escape(search_component_name),
                                         f"[b]{search_component_name}[/b]",
                                         result_tree[pv][ps][cn][nvr]["related_url"],
                                     )
@@ -544,7 +544,7 @@ def text_output_products_contain_component(
                             dep_name = nvr
                             try:
                                 dep_name = re.sub(
-                                    search_component_name,
+                                    re.escape(search_component_name),
                                     f"[b]{search_component_name}[/b]",
                                     nvr,
                                 )
@@ -555,7 +555,7 @@ def text_output_products_contain_component(
                             try:
                                 if result_tree[pv][ps][cn][nvr]["related_url"]:
                                     related_url = re.sub(
-                                        search_component_name,
+                                        re.escape(search_component_name),
                                         f"[b]{search_component_name}[/b]",
                                         result_tree[pv][ps][cn][nvr]["related_url"],
                                     )
@@ -621,7 +621,7 @@ def text_output_products_contain_component(
                             dep_name = nvr
                             try:
                                 dep_name = re.sub(
-                                    search_component_name,
+                                    re.escape(search_component_name),
                                     f"[b]{search_component_name}[/b]",
                                     nvr,
                                 )
@@ -632,7 +632,7 @@ def text_output_products_contain_component(
                             try:
                                 if result_tree[pv][ps][cn][nvr]["related_url"]:
                                     related_url = re.sub(
-                                        search_component_name,
+                                        re.escape(search_component_name),
                                         f"[b]{search_component_name}[/b]",
                                         result_tree[pv][ps][cn][nvr]["related_url"],
                                     )
