@@ -223,7 +223,7 @@ def generate_normalised_results(
                     else:
                         logger.debug(f'.griffonrc product streams blocked component {item["name"]}')
                 else:
-                    logger.debug(f'product stream not active {ps}')
+                    logger.debug(f"product stream not active {ps}")
     return normalised_results
 
 
@@ -286,7 +286,10 @@ def generate_affects(
                         ]
                         component_names.update(source_names)
                     else:
-                        if result_tree[pv][ps][component_name][nvr]["namespace"] == "REDHAT":
+                        if ctx.params["no_upstream_affects"]:
+                            if result_tree[pv][ps][component_name][nvr]["namespace"] == "REDHAT":
+                                component_names.add(component_name)
+                        else:
                             component_names.add(component_name)
 
         # we should only show component name if both {component name} and {component name-container} exists # noqa

@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 * make 'new' default for -a (when generating affects)
 
+### Added
+* --no-upstream-affects which will exclude upstream components when generating affects
+
 ## [0.2.19] - 2023-08-10
 ### Changed
 * ensure we handle upstreams with component name containing special chars (as in regex special chars)
