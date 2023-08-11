@@ -1,7 +1,8 @@
 """
     read only cli commands
 
-    Note - the command op hierarchy is verbose by design as we will want to reuse these operations beyond cli
+    Note - the command op hierarchy is verbose by design as we will want to reuse
+    these operations beyond cli
 
 """
 import copy
@@ -197,7 +198,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
 @click.option(
     "--flaw-mode",
     "flaw_mode",
-    default="dry_run",
+    default="add",
     type=click.Choice(["add", "replace", "dry_run"]),
     help="Add or update when generating affects.",
 )
