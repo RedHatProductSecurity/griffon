@@ -1,4 +1,7 @@
 """
+    read only cli commands
+
+    Note - the command op hierarchy is verbose by design as we will want to reuse these operations beyond cli
 
 """
 import copy

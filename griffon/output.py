@@ -1,3 +1,7 @@
+"""
+    Gather up all of the messy 'presentation' logic into one place
+
+"""
 import enum
 import json
 import logging

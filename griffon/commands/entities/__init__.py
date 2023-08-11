@@ -1,3 +1,7 @@
+"""
+    entity cli commands
+
+"""
 import logging
 
 import click

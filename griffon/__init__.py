@@ -1,3 +1,7 @@
+"""
+    griffon cli
+
+"""
 import configparser
 import logging
 import os
