@@ -216,14 +216,6 @@ def generate_normalised_results(
                                     normalised_results.append(c)
                                 if item.get("type") == output_type_filter:
                                     normalised_results.append(c)
-                            else:
-                                logger.debug(f'.griffon blocked component {item["name"]}')
-                        else:
-                            logger.debug(f'prod def blocked component {item["name"]}')
-                    else:
-                        logger.debug(f'.griffonrc product streams blocked component {item["name"]}')
-                else:
-                    logger.debug(f"product stream not active {ps}")
     return normalised_results
 
 

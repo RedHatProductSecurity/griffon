@@ -1,13 +1,15 @@
 """
+    Trap exceptions generically
 
-
+    TODO: eventually we will want to gracefully handle all errors
+    though useful during development to 'see' everything.
 """
+
 from functools import partial, wraps
 
 import click
 
 
-# TODO - unsure if this is the right idiom
 def catch_exception(func=None, *, handle):
     """catch exception decorator"""
     if not func:
