@@ -1,3 +1,7 @@
+"""
+    service library designed for reuse
+
+"""
 # define interface for query which is asserted by mypy as well as runtime checking
 import logging
 import typing

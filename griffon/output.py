@@ -1,3 +1,7 @@
+"""
+    Gather up all of the messy 'presentation' logic into one place
+
+"""
 import enum
 import json
 import logging
@@ -274,7 +278,10 @@ def generate_affects(
                         ]
                         component_names.update(source_names)
                     else:
-                        if result_tree[pv][ps][component_name][nvr]["namespace"] == "REDHAT":
+                        if ctx.params["no_upstream_affects"]:
+                            if result_tree[pv][ps][component_name][nvr]["namespace"] == "REDHAT":
+                                component_names.add(component_name)
+                        else:
                             component_names.add(component_name)
 
         # we should only show component name if both {component name} and {component name-container} exists # noqa
@@ -325,9 +332,6 @@ def text_output_products_contain_component(
     if "results" in output and output["count"] > 0:
         console.highlighter = None
 
-        # order at the end
-        # ordered_results = sorted(output["results"], key=lambda d: d["product_stream"])
-
         # first flatten the tree
         normalised_results = generate_normalised_results(
             output,
@@ -345,11 +349,13 @@ def text_output_products_contain_component(
             console.highlighter = None
 
             flaw_mode = ctx.params["flaw_mode"]
-            flaw_operation = "dry_run"
+            flaw_operation = "new"
             if flaw_mode == "add":
                 flaw_operation = "new"
             if flaw_mode == "update":
                 flaw_operation = "update"
+            if flaw_mode == "dry_run":
+                flaw_operation = "dry_run"
 
             generate_affects(ctx, result_tree, exclude_components, flaw_operation, no_wrap=False)
 

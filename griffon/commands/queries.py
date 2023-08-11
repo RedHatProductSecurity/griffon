@@ -1,4 +1,8 @@
 """
+    read only cli commands
+
+    Note - the command op hierarchy is verbose by design as we will want to reuse
+    these operations beyond cli
 
 """
 import copy
@@ -194,7 +198,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
 @click.option(
     "--flaw-mode",
     "flaw_mode",
-    default="dry_run",
+    default="add",
     type=click.Choice(["add", "replace", "dry_run"]),
     help="Add or update when generating affects.",
 )
@@ -268,6 +272,13 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     help="Do not search middleware.",
 )
 @click.option(
+    "--no-upstream-affects",
+    "no_upstream_affects",
+    is_flag=True,
+    default=False,
+    help="Do not generate upstream affects.",
+)
+@click.option(
     "--include-inactive-product-streams",
     "include_inactive_product_streams",
     is_flag=True,
@@ -317,6 +328,7 @@ def get_product_contain_component(
     search_upstreams,
     no_community,
     no_middleware,
+    no_upstream_affects,
     include_inactive_product_streams,
     include_product_stream_excluded_components,
     output_type_filter,
