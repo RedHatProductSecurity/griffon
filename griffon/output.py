@@ -371,7 +371,7 @@ def text_output_products_contain_component(
                         and f"{search_component_name}-container" in component_names
                     ):
                         component_names.remove(f"{search_component_name}-container")
-                    for cn in component_names:
+                    for cn in sorted(component_names):
                         # highlight search term
                         dep_name = re.sub(re.escape(cn), f"[b]{cn}[/b]", cn)
                         dep = f"[grey93]{dep_name}[/grey93]"
@@ -383,7 +383,7 @@ def text_output_products_contain_component(
             if ctx.obj["VERBOSE"] == 1:  # product_stream X nvr x related_url
                 for pv in result_tree.keys():
                     for ps in result_tree[pv].keys():
-                        for cn in result_tree[pv][ps].keys():
+                        for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
                             nvr = list(result_tree[pv][ps][cn].keys())[-1]
                             # highlight search term
@@ -407,12 +407,14 @@ def text_output_products_contain_component(
                                     )
                             except re.error:
                                 pass
-                            upstream_component_names = list(
-                                set(
-                                    [
-                                        source["name"]
-                                        for source in result_tree[pv][ps][cn][nvr]["upstreams"]
-                                    ]
+                            upstream_component_names = sorted(
+                                list(
+                                    set(
+                                        [
+                                            source["name"]
+                                            for source in result_tree[pv][ps][cn][nvr]["upstreams"]
+                                        ]
+                                    )
                                 )
                             )
                             if len(upstream_component_names) > 0:
@@ -428,12 +430,14 @@ def text_output_products_contain_component(
                                     f"([grey]{related_url}[/grey])",
                                     no_wrap=no_wrap,
                                 )
-                            source_component_names = list(
-                                set(
-                                    [
-                                        source["name"]
-                                        for source in result_tree[pv][ps][cn][nvr]["sources"]
-                                    ]
+                            source_component_names = sorted(
+                                list(
+                                    set(
+                                        [
+                                            source["name"]
+                                            for source in result_tree[pv][ps][cn][nvr]["sources"]
+                                        ]
+                                    )
                                 )
                             )
                             if len(source_component_names) > 0:
@@ -460,7 +464,7 @@ def text_output_products_contain_component(
             if ctx.obj["VERBOSE"] == 2:  # product_stream X nvr x related_url x build_source_url
                 for pv in result_tree.keys():
                     for ps in result_tree[pv].keys():
-                        for cn in result_tree[pv][ps].keys():
+                        for cn in sorted(result_tree[pv][ps].keys()):
                             nvr = list(result_tree[pv][ps][cn].keys())[-1]
                             # highlight search term
                             dep_name = nvr
@@ -486,12 +490,14 @@ def text_output_products_contain_component(
                             build_source_url = ""
                             if result_tree[pv][ps][cn][nvr]["build_source_url"]:
                                 build_source_url = result_tree[pv][ps][cn][nvr]["build_source_url"]
-                            upstream_component_names = list(
-                                set(
-                                    [
-                                        source["name"]
-                                        for source in result_tree[pv][ps][cn][nvr]["upstreams"]
-                                    ]
+                            upstream_component_names = sorted(
+                                list(
+                                    set(
+                                        [
+                                            source["name"]
+                                            for source in result_tree[pv][ps][cn][nvr]["upstreams"]
+                                        ]
+                                    )
                                 )
                             )
                             if len(upstream_component_names) > 0:
@@ -508,12 +514,14 @@ def text_output_products_contain_component(
                                     f"([grey]{build_source_url}[/grey])",
                                     no_wrap=no_wrap,
                                 )
-                            source_component_names = list(
-                                set(
-                                    [
-                                        source["name"]
-                                        for source in result_tree[pv][ps][cn][nvr]["sources"]
-                                    ]
+                            source_component_names = sorted(
+                                list(
+                                    set(
+                                        [
+                                            source["name"]
+                                            for source in result_tree[pv][ps][cn][nvr]["sources"]
+                                        ]
+                                    )
                                 )
                             )
                             if len(source_component_names) > 0:
@@ -543,7 +551,7 @@ def text_output_products_contain_component(
             ):  # product_stream X nvr (full source/upstreams) x related_url x build_source_url
                 for pv in result_tree.keys():
                     for ps in result_tree[pv].keys():
-                        for cn in result_tree[pv][ps].keys():
+                        for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
                             nvr = list(result_tree[pv][ps][cn].keys())[-1]
                             # highlight search term
@@ -570,12 +578,14 @@ def text_output_products_contain_component(
                             build_source_url = ""
                             if result_tree[pv][ps][cn][nvr]["build_source_url"]:
                                 build_source_url = result_tree[pv][ps][cn][nvr]["build_source_url"]
-                            upstream_component_names = list(
-                                set(
-                                    [
-                                        source["name"]
-                                        for source in result_tree[pv][ps][cn][nvr]["upstreams"]
-                                    ]
+                            upstream_component_names = sorted(
+                                list(
+                                    set(
+                                        [
+                                            source["name"]
+                                            for source in result_tree[pv][ps][cn][nvr]["upstreams"]
+                                        ]
+                                    )
                                 )
                             )
                             for upstream_name in upstream_component_names:
@@ -587,12 +597,14 @@ def text_output_products_contain_component(
                                     f"([grey]{build_source_url}[/grey])",
                                     no_wrap=no_wrap,
                                 )
-                            source_component_names = list(
-                                set(
-                                    [
-                                        source["name"]
-                                        for source in result_tree[pv][ps][cn][nvr]["sources"]
-                                    ]
+                            source_component_names = sorted(
+                                list(
+                                    set(
+                                        [
+                                            source["name"]
+                                            for source in result_tree[pv][ps][cn][nvr]["sources"]
+                                        ]
+                                    )
                                 )
                             )
                             for source_name in source_component_names:
@@ -620,7 +632,7 @@ def text_output_products_contain_component(
             ):  # product_stream X nvr (full source/upstreams) x related_url x build_source_url
                 for pv in result_tree.keys():
                     for ps in result_tree[pv].keys():
-                        for cn in result_tree[pv][ps].keys():
+                        for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
                             nvr = list(result_tree[pv][ps][cn].keys())[-1]
                             # highlight search term
@@ -647,12 +659,14 @@ def text_output_products_contain_component(
                             build_source_url = ""
                             if result_tree[pv][ps][cn][nvr]["build_source_url"]:
                                 build_source_url = result_tree[pv][ps][cn][nvr]["build_source_url"]
-                            upstream_component_names = list(
-                                set(
-                                    [
-                                        source["nvr"]
-                                        for source in result_tree[pv][ps][cn][nvr]["upstreams"]
-                                    ]
+                            upstream_component_names = sorted(
+                                list(
+                                    set(
+                                        [
+                                            source["nvr"]
+                                            for source in result_tree[pv][ps][cn][nvr]["upstreams"]
+                                        ]
+                                    )
                                 )
                             )
                             for upstream_name in upstream_component_names:
@@ -664,12 +678,14 @@ def text_output_products_contain_component(
                                     f"([grey]{build_source_url}[/grey])",
                                     no_wrap=no_wrap,
                                 )
-                            source_component_names = list(
-                                set(
-                                    [
-                                        source["nvr"]
-                                        for source in result_tree[pv][ps][cn][nvr]["sources"]
-                                    ]
+                            source_component_names = sorted(
+                                list(
+                                    set(
+                                        [
+                                            source["nvr"]
+                                            for source in result_tree[pv][ps][cn][nvr]["sources"]
+                                        ]
+                                    )
                                 )
                             )
                             for source_name in source_component_names:
