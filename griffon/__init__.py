@@ -49,13 +49,19 @@ RELATED_MODELS_MAPPING = {Flaw: {"affects": Affect}, Affect: {"trackers": Tracke
 
 
 def config_logging(level="INFO"):
+    # if set to 'DEBUG' then we want all the http conversation
+    if level == "DEBUG":
+        try:
+            import http.client as http_client
+        except ImportError:
+            # Python 2
+            import httplib as http_client
+        http_client.HTTPConnection.debuglevel = 1
+
     message_format = "%(asctime)s %(name)s %(levelname)s %(message)s"
     logging.basicConfig(
         level=level, format=message_format, datefmt="[%X]", handlers=[RichHandler()]
     )
-    # file_handler = logging.FileHandler(os.path.expanduser(GRIFFON_DEFAULT_LOG_FILE))
-    # file_handler.setFormatter(formatter)
-    # logger.addHandler(file_handler)
 
 
 def get_config():
