@@ -37,7 +37,7 @@ class product_stream_summary:
         self.strict_name_search = self.params.get("strict_name_search", None)
         self.all = self.params.get("all", None)
 
-    def execute(self) -> List[Dict[str, Any]]:
+    def execute(self, status=None) -> List[Dict[str, Any]]:
         cond = {}
 
         if self.ofuri:
@@ -109,7 +109,7 @@ class products_versions_affected_by_specific_cve_query:
         self.component_type = self.params.get("component_type")
         self.namespace = self.params.get("namespace")
 
-    def execute(self) -> dict:
+    def execute(self, status=None) -> dict:
         cond = {}
         if self.affectedness:
             cond["affectedness"] = self.affectedness
@@ -198,7 +198,7 @@ class products_containing_specific_component_query:
         self.params = params
         self.purl = self.params.get("purl")
 
-    def execute(self) -> dict:
+    def execute(self, status=None) -> dict:
         c = self.corgi_session.components.retrieve_list(
             purl=self.purl,
         )
@@ -556,7 +556,7 @@ class components_containing_specific_component_query:
         self.params = params
         self.purl = self.params.get("purl")
 
-    def execute(self) -> dict:
+    def execute(self, status=None) -> dict:
         if self.purl:
             c = self.corgi_session.components.retrieve_list(
                 purl=self.purl,
@@ -601,7 +601,7 @@ class components_containing_component_query:
         self.namespace = self.params.get("namespace")
         self.strict_name_search = self.params.get("strict_name_search")
 
-    def execute(self) -> List[Dict[str, Any]]:
+    def execute(self, status=None) -> List[Dict[str, Any]]:
         cond = {}
         if not self.strict_name_search:
             cond["re_name"] = self.component_name
@@ -686,7 +686,7 @@ class components_affected_by_specific_cve_query:
         self.component_type = self.params.get("component_type")
         self.namespace = self.params.get("namespace")
 
-    def execute(self) -> dict:
+    def execute(self, status=None) -> dict:
         cond = {}
         if self.affectedness:
             cond["affectedness"] = self.affectedness
@@ -763,7 +763,7 @@ class cves_for_specific_component_query:
         self.affect_resolution = self.params.get("affect_resolution")
         self.affect_impact = self.params.get("affect_impact")
 
-    def execute(self) -> List[Dict[str, Any]]:
+    def execute(self, status=None) -> List[Dict[str, Any]]:
         components = []
         if self.component_name:
             affects: list = []
@@ -876,7 +876,7 @@ class cves_for_specific_product_query:
         self.affect_resolution = self.params.get("affect_resolution")
         self.affect_impact = self.params.get("affect_impact")
 
-    def execute(self) -> List[Dict[str, Any]]:
+    def execute(self, status=None) -> List[Dict[str, Any]]:
         components = []
         if self.product_version_name:
             affects: list = []
