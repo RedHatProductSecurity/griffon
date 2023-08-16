@@ -361,14 +361,19 @@ def get_product_contain_component(
         params.pop("flaw_mode")
         params.pop("affect_mode")
         if component_name:
-            q = query_service.invoke(core_queries.products_containing_component_query, params)
+            q = query_service.invoke(
+                core_queries.products_containing_component_query, params, status=operation_status
+            )
         if purl:
             q = query_service.invoke(
-                core_queries.products_containing_specific_component_query, params
+                core_queries.products_containing_specific_component_query,
+                params,
+                status=operation_status,
             )
 
         # TODO: interim hack for middleware
         if component_name and MIDDLEWARE_CLI and not no_middleware:
+            operation_status.update("griffoning: searching deptopia.", spinner="line")
             mw_command = [MIDDLEWARE_CLI, component_name, "-e", "maven", "--json"]
             if strict_name_search:
                 mw_command.append("-s")
@@ -419,6 +424,8 @@ def get_product_contain_component(
 
         # TODO: in the short term affect handling will be mediated via sfm2 here in the operation itself # noqa
         if ctx.params["sfm2_flaw_id"]:
+            operation_status.update("griffoning: invoking sfm2.", spinner="line")
+
             console.no_color = True
             console.highlighter = None
             operation_status.stop()
