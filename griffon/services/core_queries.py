@@ -315,7 +315,7 @@ class products_containing_component_query:
                     limit=item_limit, **params
                 )
                 status.update(
-                    f"griffoning: found {community_component_initial.count} latest community component(s)." # noqa
+                    f"griffoning: found {community_component_initial.count} latest community component(s)."  # noqa
                 )
                 community_latest_components: list = async_retrieve_components(
                     self.community_session,
@@ -433,7 +433,7 @@ class products_containing_component_query:
                     limit=item_limit, **params
                 )
                 status.update(
-                    f"griffoning: found {component_community_initial.count} community upstream component(s)." # noqa
+                    f"griffoning: found {component_community_initial.count} community upstream component(s)."  # noqa
                 )
                 commmunity_upstream_components: list = async_retrieve_components(
                     self.community_session,
@@ -519,7 +519,7 @@ class products_containing_component_query:
                 limit=item_limit, **params
             )
             status.update(
-                f"griffoning: found {component_initial_noarch.count} community OCI noarch component(s)." # noqa
+                f"griffoning: found {component_initial_noarch.count} community OCI noarch component(s)."  # noqa
             )
             commmunity_noarch_components: list = async_retrieve_components(
                 self.community_session,
