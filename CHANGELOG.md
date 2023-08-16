@@ -5,10 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [0.2.21] - 2023-08-16
 ### Changed
-* enhanced http debug logging
+* enhanced http debug logging with --debug
 * enhanced status bar
-* ensure we search latest community components
+* ensure we search latest community components with --search-latest
 
 ## [0.2.20] - 2023-08-11
 ### Changed
