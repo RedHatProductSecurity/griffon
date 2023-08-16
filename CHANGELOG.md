@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 * enhanced http debug logging
+* enhanced status bar
+* ensure we search latest community components
 
 ## [0.2.20] - 2023-08-11
 ### Changed

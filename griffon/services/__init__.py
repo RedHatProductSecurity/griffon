@@ -69,18 +69,18 @@ def check_allowed_params(allowed_params, params):
 
 
 class QueryService:
-    def invoke(self, obj, params: dict):
+    def invoke(self, obj, params: dict, status=None):
         check_allowed_params(obj.allowed_params, params)
-        return obj(params).execute()
+        return obj(params).execute(status=status)
 
 
 class ReportService:
-    def invoke(self, obj, params: dict):
+    def invoke(self, obj, params: dict, status=None):
         check_allowed_params(obj.allowed_params, params)
         return obj(params).generate()
 
 
 class ProcessService:
-    def invoke(self, obj, params: dict):
+    def invoke(self, obj, params: dict, status=None):
         check_allowed_params(obj.allowed_params, params)
         return obj(params).process()
