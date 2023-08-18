@@ -63,5 +63,6 @@ griffon entities osidb admin health
 griffon plugins go_vuln get --cve-id CVE-2018-16873
 griffon plugins osv query-by-commit-hash --commit_hash 6879efc2c1596d11a6a6ad296f80063b558d5e0f
 
-
 griffon service products-contain-component 1to2 --search-upstreams --include-inactive-product-streams
+
+griffon service products-contain-component goutils --search-all -a
