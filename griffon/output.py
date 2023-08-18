@@ -270,7 +270,7 @@ def generate_affects(
         for ps in result_tree[pv].keys():
             for component_name in result_tree[pv][ps].keys():
                 for nvr in result_tree[pv][ps][component_name].keys():
-                    if len(result_tree[pv][ps][component_name][nvr]["sources"]) > 0:
+                    if result_tree[pv][ps][component_name][nvr]["sources"]:
                         source_names = [
                             source["name"]
                             for source in result_tree[pv][ps][component_name][nvr]["sources"]
