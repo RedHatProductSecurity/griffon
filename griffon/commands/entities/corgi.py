@@ -222,10 +222,10 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
         versions.append(component.version)
         releases.append(component.release)
         tags.extend(component.tags)
-        for upstream in component.upstreams:
-            upstreams.append(upstream["purl"])
-        for ps in component.product_streams:
-            product_streams.append(ps["name"])
+        # for upstream in component.upstreams:
+        #     upstreams.append(upstream["purl"])
+        # for ps in component.product_streams:
+        #     product_streams.append(ps["name"])
 
     cond = {
         "include_fields": "name,purl,version,type,tags,arch,release,product_streams",  # noqa
