@@ -47,7 +47,7 @@ griffon --format text entities component-registry components list curl
 
 # flaws
 griffon entities osidb flaws get --id CVE-2023-25166
-griffon entities osidb flaws list --state NEW --impact CRITICAL
+griffon entities osidb flaws list --impact CRITICAL
 
 # affects
 griffon entities osidb affects list --affectedness AFFECTED --impact CRITICAL
