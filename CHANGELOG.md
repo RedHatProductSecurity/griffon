@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.2.23] - 2023-08-22
+### Changed
+* minor text output fix to properly emit source component names
+
 ## [0.2.22] - 2023-08-21
 ### Changed
 * minor affects fix
