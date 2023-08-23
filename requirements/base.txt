@@ -456,9 +456,9 @@ multidict==6.0.4 \
     # via
     #   aiohttp
     #   yarl
-osidb-bindings==3.3.1 \
-    --hash=sha256:2a8a7c554c1b3db43838d7bf213b5ae6d190ddfe1e477c59884650bb8e8a5580 \
-    --hash=sha256:3bda015cc6abfa9f8b49b61fcaaedcac4c3d90388e1e44a0494221a9c795cb21
+osidb-bindings==3.4.1 \
+    --hash=sha256:12b4107aaabbddb9104db4c9dd6656e1b1e6cc84f341006a75549f1027b4cbc9 \
+    --hash=sha256:1fb7b8bd52a8cb672dfa563aef6bc5f279595299f49904d38e6b1df24718f99e
     # via -r requirements/base.in
 packageurl-python==0.10.4 \
     --hash=sha256:5c91334f942cd55d45eb0c67dd339a535ef90e25f05b9ec016ad188ed0ef9048 \
