@@ -66,3 +66,7 @@ griffon plugins osv query-by-commit-hash --commit_hash 6879efc2c1596d11a6a6ad296
 griffon service products-contain-component 1to2 --search-upstreams --include-inactive-product-streams
 
 griffon service products-contain-component goutils --search-all -a
+
+griffon service report-entities
+
+griffon service report-license gitops-1.6.z
