@@ -267,6 +267,7 @@ class products_containing_component_query:
             self.community_session = CommunityComponentService.create_session()
 
     def execute(self, status=None) -> List[Dict[str, Any]]:
+        max_results = 10000
         status.update("griffoning: searching component-registry.")
         results = []
         params = {
@@ -281,26 +282,25 @@ class products_containing_component_query:
             if self.ns:
                 params["namespace"] = self.ns
             latest_components = self.corgi_session.components.retrieve_list_iterator_async(
-                limit=50, **params
+                max_results=max_results, limit=50, **params
             )
-            # get count
-            component_initial = self.corgi_session.components.retrieve_list(limit=1, **params)
-            status.update(f"griffoning: found {component_initial.count} latest component(s).")
+            latest_components_cnt = self.corgi_session.components.count(**params)
+            status.update(
+                f"griffoning: found {latest_components_cnt} latest component(s), retrieving sources."
+            )
             for c in latest_components:
                 c.sources = async_retrieve_sources(self.corgi_session, c.purl)
                 results.append(c)
             if not self.no_community:
                 latest_community_components = (
                     self.community_session.components.retrieve_list_iterator_async(
-                        limit=50, **params
+                        max_results=max_results, limit=50, **params
                     )
                 )
                 # get count
-                community_component_initial = self.community_session.components.retrieve_list(
-                    limit=1, **params
-                )
+                community_component_cnt = self.community_session.components.count(**params)
                 status.update(
-                    f"griffoning: found {community_component_initial.count} latest community component(s)."  # noqa
+                    f"griffoning: found {community_component_cnt} latest community component(s)."  # noqa
                 )
                 for c in latest_community_components:
                     c.sources = async_retrieve_sources(self.community_session, c.purl)
@@ -315,26 +315,28 @@ class products_containing_component_query:
                 params["type"] = self.component_type
 
             related_url_components = self.corgi_session.components.retrieve_list_iterator_async(
-                limit=50, **params
+                max_results=max_results, limit=50, **params
             )
             # get count
-            component_initial = self.corgi_session.components.retrieve_list(limit=1, **params)
-            status.update(f"griffoning: found {component_initial.count} related url component(s).")
+            related_url_components_cnt = self.corgi_session.components.count(**params)
+            status.update(
+                f"griffoning: found {related_url_components_cnt} related url component(s), retrieving sources."
+            )
             for c in related_url_components:
                 c.sources = async_retrieve_sources(self.corgi_session, c.purl)
                 results.append(c)
             if not self.no_community:
                 latest_community_url_components_components = (
                     self.community_session.components.retrieve_list_iterator_async(
-                        limit=50, **params
+                        max_results=max_results, limit=50, **params
                     )
                 )
                 # get count
-                community_component_initial = self.community_session.components.retrieve_list(
-                    limit=1, **params
+                latest_community_url_components_components_cnt = (
+                    self.community_session.components.count(**params)
                 )
                 status.update(
-                    f"griffoning: found {community_component_initial.count} related url community component(s)."  # noqa
+                    f"griffoning: found {latest_community_url_components_components_cnt} related url community component(s)."  # noqa
                 )
                 for c in latest_community_url_components_components:
                     c.sources = async_retrieve_sources(self.corgi_session, c.purl)
@@ -351,23 +353,22 @@ class products_containing_component_query:
                 params["namespace"] = self.ns
 
             all_components = self.corgi_session.components.retrieve_list_iterator_async(
-                limit=50, **params
+                max_results=max_results, limit=50, **params
             )
-            # get count
-            all_component_initial = self.corgi_session.components.retrieve_list(limit=1, **params)
-            status.update(f"griffoning: found {all_component_initial.count} all component(s).")
+            all_components_cnt = self.corgi_session.components.count(**params)
+            status.update(f"griffoning: found {all_components_cnt} all component(s).")
             for c in all_components:
                 results.append(c)
             if not self.no_community:
                 all_community_components = (
-                    self.community_session.components.retrieve_list_iterator_async(**params)
+                    self.community_session.components.retrieve_list_iterator_async(
+                        max_results=max_results, **params
+                    )
                 )
                 # get count
-                component_community_initial = self.community_session.components.retrieve_list(
-                    limit=1, **params
-                )
+                all_community_components_cnt = self.community_session.components.count(**params)
                 status.update(
-                    f"griffoning: found {component_community_initial.count} community all component(s)."  # noqa
+                    f"griffoning: found {all_community_components_cnt} community all component(s)."  # noqa
                 )
                 for c in all_community_components:
                     results.append(c)
@@ -381,27 +382,21 @@ class products_containing_component_query:
             if self.ns:
                 params["namespace"] = self.ns
             all_src_components = self.corgi_session.components.retrieve_list_iterator_async(
-                limit=50, **params
+                max_results=max_results, limit=50, **params
             )
-            all_src_component_initial = self.corgi_session.components.retrieve_list(
-                limit=1, **params
-            )
-            status.update(
-                f"griffoning: found {all_src_component_initial.count} all root component(s)."
-            )
+            all_src_components_cnt = self.corgi_session.components.count(**params)
+            status.update(f"griffoning: found {all_src_components_cnt} all root component(s).")
             for c in all_src_components:
                 results.append(c)
             if not self.no_community:
                 all_src_community_components = (
                     self.community_session.components.retrieve_list_iterator_async(
-                        limit=50, **params
+                        max_results=max_results, limit=50, **params
                     )
                 )
-                component_community_initial = self.community_session.components.retrieve_list(
-                    limit=1, **params
-                )
+                all_src_community_components_cnt = self.community_session.components.count(**params)
                 status.update(
-                    f"griffoning: found {component_community_initial.count} community all root component(s)."  # noqa
+                    f"griffoning: found {all_src_community_components_cnt} community all root component(s)."  # noqa
                 )
                 for c in all_src_community_components:
                     results.append(c)
@@ -417,11 +412,12 @@ class products_containing_component_query:
             if self.component_type:
                 params["type"] = self.component_type
             upstream_components = self.corgi_session.components.retrieve_list_iterator_async(
-                limit=50, **params
+                max_results=max_results, limit=50, **params
             )
-            # get count
-            component_initial = self.corgi_session.components.retrieve_list(limit=1, **params)
-            status.update(f"griffoning: found {component_initial.count} upstream component(s).")
+            upstream_components_cnt = self.corgi_session.components.count(**params)
+            status.update(
+                f"griffoning: found {upstream_components_cnt} upstream component(s), retrieving sources."
+            )
             for c in upstream_components:
                 c.sources = async_retrieve_sources(self.corgi_session, c.purl)
                 results.append(c)
@@ -429,15 +425,14 @@ class products_containing_component_query:
             if not self.no_community:
                 commmunity_upstream_components = (
                     self.community_session.components.retrieve_list_iterator_async(
-                        limit=50, **params
+                        max_results=max_results, limit=50, **params
                     )
                 )
-                # get count
-                component_community_initial = self.community_session.components.retrieve_list(
-                    limit=1, **params
+                commmunity_upstream_components_cnt = self.community_session.components.count(
+                    **params
                 )
                 status.update(
-                    f"griffoning: found {component_community_initial.count} community upstream component(s)."  # noqa
+                    f"griffoning: found {commmunity_upstream_components_cnt} community upstream component(s)."  # noqa
                 )
                 for c in commmunity_upstream_components:
                     c.sources = async_retrieve_sources(self.community_session, c.purl)
@@ -490,14 +485,14 @@ class products_containing_component_query:
             if self.ns:
                 params["namespace"] = self.ns
             all_community_components = (
-                self.community_session.components.retrieve_list_iterator_async(**params)
+                self.community_session.components.retrieve_list_iterator_async(
+                    max_results=max_results, **params
+                )
             )
             # get count
-            component_community_initial = self.community_session.components.retrieve_list(
-                limit=1, **params
-            )
+            all_community_components_cnt = self.community_session.components.count(**params)
             status.update(
-                f"griffoning: found {component_community_initial.count} community all component(s)."  # noqa
+                f"griffoning: found {all_community_components_cnt} community all component(s)."  # noqa
             )
             for c in all_community_components:
                 results.append(c)

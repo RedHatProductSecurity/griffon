@@ -211,61 +211,63 @@ class entity_report:
         component_instances_count = self.corgi_session.components.retrieve_list(limit=1).count
 
         # get src RPM count
-        rpmcomponents = self.corgi_session.components.retrieve_list(
-            limit=1, root_components="True", type="RPM", include_fields="name"
+        rpmcomponents_cnt = self.corgi_session.components.count(
+            root_components="True",
+            type="RPM",
         )
         # get OCI noarch count
-        ocicomponents = self.corgi_session.components.retrieve_list(
-            limit=1, root_components="True", type="OCI", include_fields="name"
+        ocicomponents_cnt = self.corgi_session.components.count(
+            root_components="True",
+            type="OCI",
         )
         # get NPM noarch count
-        npmcomponents = self.corgi_session.components.retrieve_list(
-            limit=1, type="NPM", include_fields="name"
+        npmcomponents_cnt = self.corgi_session.components.count(
+            type="NPM",
         )
         # get GOLANG noarch count
-        golangcomponents = self.corgi_session.components.retrieve_list(
-            limit=1, type="GOLANG", include_fields="name"
+        golangcomponents_cnt = self.corgi_session.components.count(
+            type="GOLANG",
         )
         # get GENERIC count
-        genericcomponents = self.corgi_session.components.retrieve_list(
-            limit=1, type="GENERIC", include_fields="name"
+        genericcomponents_cnt = self.corgi_session.components.count(
+            type="GENERIC",
         )
         # get GEM count
-        gemcomponents = self.corgi_session.components.retrieve_list(
-            limit=1, type="GEM", include_fields="name"
+        gemcomponents_cnt = self.corgi_session.components.count(
+            type="GEM",
         )
         # get CARGO count
-        cargocomponents = self.corgi_session.components.retrieve_list(
-            limit=1, type="CARGO", include_fields="name"
+        cargocomponents_cnt = self.corgi_session.components.count(
+            type="CARGO",
         )
         # get GITHUB count
-        githubcomponents = self.corgi_session.components.retrieve_list(
-            limit=1, type="GITHUB", include_fields="name"
+        githubcomponents_cnt = self.corgi_session.components.count(
+            type="GITHUB",
         )
         # get MAVEN count
-        mavencomponents = self.corgi_session.components.retrieve_list(
-            limit=1, type="MAVEN", include_fields="name"
+        mavencomponents_cnt = self.corgi_session.components.count(
+            type="MAVEN",
         )
         # get PYPI count
-        pypicomponents = self.corgi_session.components.retrieve_list(
-            limit=1, type="PYPI", include_fields="name"
+        pypicomponents_cnt = self.corgi_session.components.count(
+            type="PYPI",
         )
         # get RPMMOD count
-        rpmmodcomponents = self.corgi_session.components.retrieve_list(
-            limit=1, type="RPMMOD", include_fields="name"
+        rpmmodcomponents_cnt = self.corgi_session.components.count(
+            type="RPMMOD",
         )
 
         total_component_cnt = (
-            rpmcomponents.count
-            + ocicomponents.count
-            + npmcomponents.count
-            + golangcomponents.count
-            + gemcomponents.count
-            + cargocomponents.count
-            + githubcomponents.count
-            + mavencomponents.count
-            + pypicomponents.count
-            + rpmmodcomponents.count
+            rpmcomponents_cnt
+            + ocicomponents_cnt
+            + npmcomponents_cnt
+            + golangcomponents_cnt
+            + gemcomponents_cnt
+            + cargocomponents_cnt
+            + githubcomponents_cnt
+            + mavencomponents_cnt
+            + pypicomponents_cnt
+            + rpmmodcomponents_cnt
         )
 
         return {
@@ -278,17 +280,17 @@ class entity_report:
                     "arches": component_arches,
                     "total_component_instances": component_instances_count,
                     "total_distinct_components": total_component_cnt,
-                    "rpm_root_components": rpmcomponents.count,
-                    "oci_root_components": ocicomponents.count,
-                    "npm_components": npmcomponents.count,
-                    "golang_components": golangcomponents.count,
-                    "generic_components": genericcomponents.count,
-                    "gem_components": gemcomponents.count,
-                    "cargo_components": cargocomponents.count,
-                    "github_components": githubcomponents.count,
-                    "maven_components": mavencomponents.count,
-                    "pypi_components": pypicomponents.count,
-                    "rpmmod_components": rpmmodcomponents.count,
+                    "rpm_root_components": rpmcomponents_cnt,
+                    "oci_root_components": ocicomponents_cnt,
+                    "npm_components": npmcomponents_cnt,
+                    "golang_components": golangcomponents_cnt,
+                    "generic_components": genericcomponents_cnt,
+                    "gem_components": gemcomponents_cnt,
+                    "cargo_components": cargocomponents_cnt,
+                    "github_components": githubcomponents_cnt,
+                    "maven_components": mavencomponents_cnt,
+                    "pypi_components": pypicomponents_cnt,
+                    "rpmmod_components": rpmmodcomponents_cnt,
                 },
                 "products": {
                     "products": corgi_status["products"]["count"],
@@ -319,7 +321,7 @@ class license_report:
     def generate(self) -> dict:
         output = {}
         component_filter = {
-            "include_fields": "uuid,purl,type,license_concluded,license_declared,related_url,download_url,software_build.build_id",
+            "include_fields": "uuid,purl,type,license_concluded,license_declared,related_url,download_url,software_build.build_id",  # noqa
         }
         if self.purl:
             component_filter["purl"] = self.purl
@@ -354,7 +356,7 @@ class license_report:
             children = []
             provides_filter = {
                 "sources": purl,
-                "include_fields": "purl,type,license_concluded,license_declared,related_url,download_url",
+                "include_fields": "purl,type,license_concluded,license_declared,related_url,download_url",  # noqa
             }
             provides_components = self.corgi_session.components.retrieve_list_iterator_async(
                 limit=50, **provides_filter
