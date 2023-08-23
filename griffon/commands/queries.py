@@ -382,45 +382,48 @@ def get_product_contain_component(
                 capture_output=True,
                 text=True,
             )
-            mw_json = loads(proc.stdout)
-            mw_components = mw_json["deps"]
-            # TODO: need to determine if we use "build" or "deps"
-            # if search_all:
-            #     mw_components.extend(mw_json["deps"])
-            for build in mw_components:
-                if build["build_type"] == "maven":
-                    component = {
-                        "product_versions": [{"name": build["ps_module"]}],
-                        "product_streams": [
-                            {
-                                "name": build["ps_update_stream"],
-                                "product_versions": [{"name": build["ps_module"]}],
-                            }
-                        ],
-                        "product_active": True,
-                        "type": build["build_type"],
-                        "name": build["build_name"],
-                        "nvr": build["build_nvr"],
-                        "upstreams": [],
-                        "sources": [],
-                        "software_build": {
-                            "build_id": build["build_id"],
-                            "source": build["build_repo"],
-                        },
-                    }
-                    if "sources" in build:
-                        for deps in build["sources"]:
-                            for dep in deps["dependencies"]:
-                                components = []
-                                components.append(
-                                    {
-                                        "name": dep.get("name"),
-                                        "nvr": dep.get("nvr"),
-                                        "type": dep.get("type"),
-                                    }
-                                )
-                                component["sources"] = components
-                    q.append(component)
+            try:
+                mw_json = loads(proc.stdout)
+                mw_components = mw_json["deps"]
+                # TODO: need to determine if we use "build" or "deps"
+                # if search_all:
+                #     mw_components.extend(mw_json["deps"])
+                for build in mw_components:
+                    if build["build_type"] == "maven":
+                        component = {
+                            "product_versions": [{"name": build["ps_module"]}],
+                            "product_streams": [
+                                {
+                                    "name": build["ps_update_stream"],
+                                    "product_versions": [{"name": build["ps_module"]}],
+                                }
+                            ],
+                            "product_active": True,
+                            "type": build["build_type"],
+                            "name": build["build_name"],
+                            "nvr": build["build_nvr"],
+                            "upstreams": [],
+                            "sources": [],
+                            "software_build": {
+                                "build_id": build["build_id"],
+                                "source": build["build_repo"],
+                            },
+                        }
+                        if "sources" in build:
+                            for deps in build["sources"]:
+                                for dep in deps["dependencies"]:
+                                    components = []
+                                    components.append(
+                                        {
+                                            "name": dep.get("name"),
+                                            "nvr": dep.get("nvr"),
+                                            "type": dep.get("type"),
+                                        }
+                                    )
+                                    component["sources"] = components
+                        q.append(component)
+            except Exception:
+                logger.warning("problem accessing deptopia.")
 
         # TODO: in the short term affect handling will be mediated via sfm2 here in the operation itself # noqa
         if ctx.params["sfm2_flaw_id"]:
