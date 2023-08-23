@@ -181,7 +181,7 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
         "name": component_name,
     }
     components = session.components.retrieve_list_iterator_async(**cond)
-    components_cnt = session.components.retrieve_list(limit=1, **cond).count
+    components_cnt = session.components.count(**cond)
     product_streams = []
     versions = []
     releases = []

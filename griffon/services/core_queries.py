@@ -364,19 +364,12 @@ class products_containing_component_query:
                 params["namespace"] = self.ns
 
             all_components_cnt = self.corgi_session.components.count(**params)
-            status.update("here1")
-
             if all_components_cnt > 0:
-                status.update("here2")
                 all_components = self.corgi_session.components.retrieve_list_iterator_async(
                     max_results=max_results, **params
                 )
-                status.update("here3")
-
                 status.update(f"griffoning: found {all_components_cnt} all component(s).")
                 for c in all_components:
-                    status.update("here4")
-
                     results.append(c)
             if not self.no_community:
                 all_community_components_cnt = self.community_session.components.count(**params)
