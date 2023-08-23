@@ -181,6 +181,7 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
         "name": component_name,
     }
     components = session.components.retrieve_list_iterator_async(**cond)
+    components_cnt = session.components.retrieve_list(limit=1,**cond).count
     product_streams = []
     upstreams = []
     versions = []
@@ -197,8 +198,6 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
         versions.append(component.version)
         releases.append(component.release)
         tags.extend(component.tags)
-        for upstream in component.upstreams:
-            upstreams.append(upstream["purl"])
         for ps in component.product_streams:
             product_streams.append(ps["name"])
     data = {
@@ -206,12 +205,12 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
         "type": component_type,
         "name": component_name,
         "tags": sorted(list(set(tags))),
-        "count": len(components.results),
+        "count": components_cnt,
         "product_streams": sorted(list(set(product_streams))),
         "related_urls": sorted(list(set(related_urls))),
         "download_urls": sorted(list(set(download_urls))),
         "releases": sorted(list(set(releases))),
-        "upstreams": sorted(list(set(upstreams))),
+        # "upstreams": sorted(list(set(upstreams))),
         "arches": sorted(list(set(arches))),
         "versions": sorted(list(set(versions))),
     }
