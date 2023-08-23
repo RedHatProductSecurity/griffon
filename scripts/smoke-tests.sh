@@ -75,3 +75,6 @@ griffon service report-license gitops-1.6.z
 griffon service products-contain-component 1to2 --search-upstreams --include-inactive-product-streams
 griffon service products-contain-component goutils --search-all -a
 griffon service products-contain-component -s zlib -vvv
+griffon service product-flaws cost-management --affectedness AFFECTED --affect-resolution FIX
+griffon service component-flaws npm
+griffon service component-flaws python-marshmallow --affectedness AFFECTED

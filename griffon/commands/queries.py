@@ -792,12 +792,6 @@ def product_versions_affected_by_cve_query(ctx, cve_id):
 @click.argument("component_name", required=False)
 @click.option("--purl")
 @click.option(
-    "--flaw-state",
-    "flaw_state",
-    help="Filter by Flaw state.",
-    type=click.Choice(OSIDBService.get_flaw_states()),
-)
-@click.option(
     "--flaw-impact",
     "flaw_impact",
     help="Filter by Flaw impact.",
@@ -839,7 +833,6 @@ def cves_for_specific_component_query(
     ctx,
     component_name,
     purl,
-    flaw_state,
     flaw_impact,
     flaw_resolution,
     affectedness,
@@ -867,12 +860,6 @@ def cves_for_specific_component_query(
     shell_complete=get_product_version_names,
 )
 @click.option("--ofuri")
-@click.option(
-    "--flaw-state",
-    "flaw_state",
-    help="Filter by Flaw state.",
-    type=click.Choice(OSIDBService.get_flaw_states()),
-)
 @click.option(
     "--flaw-impact",
     "flaw_impact",
@@ -915,7 +902,6 @@ def cves_for_specific_product_query(
     ctx,
     product_version_name,
     ofuri,
-    flaw_state,
     flaw_impact,
     flaw_resolution,
     affectedness,
