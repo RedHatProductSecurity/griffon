@@ -81,7 +81,10 @@ def list_flaws(ctx, **params):
     session = OSIDBService.create_session()
 
     params = multivalue_params_to_csv(params)
-    data = session.flaws.retrieve_list(**params).results
+    flaws = session.flaws.retrieve_list_iterator_async(**params)
+    data = []
+    for flaw in flaws:
+        data.append(flaw)
     return cprint(data, ctx=ctx)
 
 
@@ -558,7 +561,10 @@ def list_affects(ctx, **params):
     session = OSIDBService.create_session()
 
     params = multivalue_params_to_csv(params)
-    data = session.affects.retrieve_list(**params).results
+    affects = session.affects.retrieve_list_iterator_async(**params)
+    data = []
+    for affect in affects:
+        data.append(affect)
     return cprint(data, ctx=ctx)
 
 
@@ -730,7 +736,10 @@ def list_trackers(ctx, **params):
     session = OSIDBService.create_session()
 
     params = multivalue_params_to_csv(params)
-    data = session.trackers.retrieve_list(**params).results
+    trackers = session.trackers.retrieve_list_iterator_async(**params)
+    data = []
+    for tracker in trackers:
+        data.append(tracker)
     return cprint(data, ctx=ctx)
 
 
