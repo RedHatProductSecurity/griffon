@@ -265,7 +265,7 @@ class products_containing_component_query:
             self.community_session = CommunityComponentService.create_session()
 
     def execute(self, status=None) -> List[Dict[str, Any]]:
-        # TODO - max_results should probably be defined via top level --max-limit command flag
+        # TODO - this is a temporary guard, max-results will be pushed up to top level flag
         max_results = 10000
         status.update("griffoning: searching component-registry.")
         results = []
@@ -290,9 +290,10 @@ class products_containing_component_query:
                 status.update(f"griffoning: found {latest_components_cnt} latest component(s).")
                 for c in latest_components:
                     status.update(
-                        f"griffoning: found {latest_components_cnt} latest component(s), retrieving sources."  # noqa
+                        f"griffoning: found {latest_components_cnt} latest component(s), retrieving sources & upstreams."  # noqa
                     )
                     c.sources = async_retrieve_sources(self.corgi_session, c.purl)
+                    c.upstreams = async_retrieve_upstreams(self.corgi_session, c.purl)
                     results.append(c)
             if not self.no_community:
                 status.update("griffoning: searching latest community component(s).")
@@ -308,9 +309,10 @@ class products_containing_component_query:
                     )
                     for c in latest_community_components:
                         status.update(
-                            f"griffoning: found {community_component_cnt} latest community component(s), retrieving sources."  # noqa
+                            f"griffoning: found {community_component_cnt} latest community component(s), retrieving sources & upstreams."  # noqa
                         )
                         c.sources = async_retrieve_sources(self.community_session, c.purl)
+                        c.upstreams = async_retrieve_upstreams(self.community_session, c.purl)
                         results.append(c)
 
         if self.search_related_url:
@@ -330,9 +332,10 @@ class products_containing_component_query:
                 )
                 for c in related_url_components:
                     status.update(
-                        f"griffoning: found {related_url_components_cnt} related url component(s), retrieving sources."  # noqa
+                        f"griffoning: found {related_url_components_cnt} related url component(s), retrieving sources & upstreams."  # noqa
                     )
                     c.sources = async_retrieve_sources(self.corgi_session, c.purl)
+                    c.upstreams = async_retrieve_upstreams(self.corgi_session, c.purl)
                     results.append(c)
             if not self.no_community:
                 latest_community_url_components_components_cnt = (
@@ -349,9 +352,10 @@ class products_containing_component_query:
                     )
                     for c in latest_community_url_components_components:
                         status.update(
-                            f"griffoning: found {latest_community_url_components_components_cnt} related url community component(s), retrieving sources."  # noqa
+                            f"griffoning: found {latest_community_url_components_components_cnt} related url community component(s), retrieving sources & upstreams."  # noqa
                         )
-                        c.sources = async_retrieve_sources(self.corgi_session, c.purl)
+                        c.sources = async_retrieve_sources(self.community_session, c.purl)
+                        c.upstreams = async_retrieve_upstreams(self.community_session, c.purl)
                         results.append(c)
 
         if self.search_all:
@@ -375,6 +379,7 @@ class products_containing_component_query:
                 )
                 for c in all_components:
                     c.sources = async_retrieve_sources(self.corgi_session, c.purl)
+                    c.upstreams = async_retrieve_upstreams(self.corgi_session, c.purl)
                     results.append(c)
             if not self.no_community:
                 all_community_components_cnt = self.community_session.components.count(**params)
@@ -392,6 +397,7 @@ class products_containing_component_query:
                             f"griffoning: found {all_community_components_cnt} community all component(s), retrieving sources"  # noqa
                         )
                         c.sources = async_retrieve_sources(self.community_session, c.purl)
+                        c.upstreams = async_retrieve_upstreams(self.community_session, c.purl)
                         results.append(c)
 
         if self.search_all_roots:
@@ -445,6 +451,7 @@ class products_containing_component_query:
                         f"griffoning: found {upstream_components_cnt} upstream component(s), retrieving sources."  # noqa
                     )
                     c.sources = async_retrieve_sources(self.corgi_session, c.purl)
+                    c.upstreams = async_retrieve_upstreams(self.corgi_session, c.purl)
                     results.append(c)
 
             if not self.no_community:
@@ -462,6 +469,7 @@ class products_containing_component_query:
                     )
                     for c in commmunity_upstream_components:
                         c.sources = async_retrieve_sources(self.community_session, c.purl)
+                        c.upstreams = async_retrieve_upstreams(self.community_session, c.purl)
                         results.append(c)
 
         if self.filter_rh_naming:
@@ -521,6 +529,11 @@ class products_containing_component_query:
                     f"griffoning: found {all_community_components_cnt} community all component(s)."  # noqa
                 )
                 for c in all_community_components:
+                    status.update(
+                        f"griffoning: found {all_community_components_cnt} community all component(s). retrieving sources & upstreams."  # noqa
+                    )
+                    c.sources = async_retrieve_upstreams(self.community_session, c.purl)
+                    c.upstreams = async_retrieve_upstreams(self.community_session, c.purl)
                     results.append(c)
 
         return results
@@ -747,7 +760,7 @@ class cves_for_specific_component_query:
                 params["affects__impact"] = self.affect_impact
 
             # flaws_cnt = self.osidb_session.flaws.count(**params)
-            flaws = self.osidb_session.flaws.retrieve_list_iterator(**params)
+            flaws = self.osidb_session.flaws.retrieve_list_iterator_async(**params)
 
             for flaw in flaws:
                 for affect in flaw.affects:
@@ -838,7 +851,7 @@ class cves_for_specific_product_query:
                 params["affects__impact"] = self.affect_impact
 
             # flaws_cnt = self.osidb_session.flaws.count(**params)
-            flaws = self.osidb_session.flaws.retrieve_list_iterator(**params)
+            flaws = self.osidb_session.flaws.retrieve_list_iterator_async(**params)
             for flaw in flaws:
                 for affect in flaw.affects:
                     if self.affectedness:
