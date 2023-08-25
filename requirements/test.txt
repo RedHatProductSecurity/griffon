@@ -95,6 +95,7 @@ aiohttp==3.8.5 \
     # via
     #   -r requirements/base.txt
     #   component-registry-bindings
+    #   osidb-bindings
 aiosignal==1.3.1 \
     --hash=sha256:54cd96e15e1649b75d6c87526a6ff0b6c1b0dd3459f43d9ca11d48c339b68cfc \
     --hash=sha256:f8376fb07dd1e86a584e4fcdec80b36b7f81aac666ebc724e2c090300dd83b17
@@ -228,9 +229,9 @@ click==8.1.3 \
 click-completion==0.5.2 \
     --hash=sha256:5bf816b81367e638a190b6e91b50779007d14301b3f9f3145d68e3cade7bce86
     # via -r requirements/base.txt
-component-registry-bindings==1.3.7 \
-    --hash=sha256:307b569783f96281310ec0b6b6bafdd083ef1e24e524f2ffb615e3447a759d5e \
-    --hash=sha256:f3c4f6b6056bccaf89f2f7abfbfe7e707c4c1ab0e6664d03de6d50ee2650ea5b
+component-registry-bindings==1.3.8 \
+    --hash=sha256:6a9ecc673f1ace786629c35b806857a265024643f593411ce845070a771d83b0 \
+    --hash=sha256:6fc3260434857089730b84a52ea449dfb34bd56f4f230975aa09f755baa210de
     # via -r requirements/base.txt
 coverage[toml]==7.2.0 \
     --hash=sha256:049806ae2df69468c130f04f0fab4212c46b34ba5590296281423bb1ae379df2 \
@@ -658,9 +659,9 @@ mypy-extensions==1.0.0 \
     --hash=sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d \
     --hash=sha256:75dbf8955dc00442a438fc4d0666508a9a97b6bd41aa2f0ffe9d2f2725af0782
     # via mypy
-osidb-bindings==3.4.1 \
-    --hash=sha256:12b4107aaabbddb9104db4c9dd6656e1b1e6cc84f341006a75549f1027b4cbc9 \
-    --hash=sha256:1fb7b8bd52a8cb672dfa563aef6bc5f279595299f49904d38e6b1df24718f99e
+osidb-bindings==3.4.2 \
+    --hash=sha256:3d3ecf04020a970fc6c87e0414562b678d2f44a4ab19da1e9ccb5b8eff2b06f9 \
+    --hash=sha256:43504c93824940350b0f5c7d25b8e67df45edcb98bea4bc0f72abe54fa4af0ab
     # via -r requirements/base.txt
 packageurl-python==0.10.4 \
     --hash=sha256:5c91334f942cd55d45eb0c67dd339a535ef90e25f05b9ec016ad188ed0ef9048 \
