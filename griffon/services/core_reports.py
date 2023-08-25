@@ -359,7 +359,7 @@ class license_report:
                 "include_fields": "purl,type,license_concluded,license_declared,related_url,download_url",  # noqa
             }
             provides_components = self.corgi_session.components.retrieve_list_iterator_async(
-                limit=50, **provides_filter
+                **provides_filter
             )
             for c in provides_components:
                 child = {

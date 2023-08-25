@@ -197,11 +197,10 @@ def async_retrieve_sources(self, purl):
         "provides": purl,
         "include_fields": "type,nvr,purl,name,namespace,download_url,related_url",
     }
-    source_components = self.components.retrieve_list_iterator_async(**source_params)
-    sources = []
-    for source_component in source_components:
-        sources.append(source_component.to_dict())
-    return sources
+    return [
+        source_component.to_dict()
+        for source_component in self.components.retrieve_list_iterator_async(**source_params)
+    ]
 
 
 def async_retrieve_upstreams(self, purl):
@@ -209,11 +208,10 @@ def async_retrieve_upstreams(self, purl):
         "upstreams": purl,
         "include_fields": "type,nvr,purl,name,namespace,download_url,related_url",
     }
-    upstream_components = self.components.retrieve_list_iterator_async(**upstream_params)
-    upstreams = []
-    for upstream_component in upstream_components:
-        upstreams.append(upstream_component.to_dict())
-    return upstreams
+    return [
+        upstream_component.to_dict()
+        for upstream_component in self.components.retrieve_list_iterator_async(**upstream_params)
+    ]
 
 
 class products_containing_component_query:

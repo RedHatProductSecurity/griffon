@@ -104,10 +104,7 @@ def list_components(ctx, strict_name_search, component_name, **params):
         ] = "link,uuid,purl,nvr,version,type,name,upstreams,related_url,download_url"
 
     session = CommunityComponentService.create_session()
-    components = session.components.retrieve_list_iterator_async(**params)
-    data = []
-    for c in components:
-        data.append(c)
+    data = [c for c in session.components.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 
@@ -250,10 +247,10 @@ def get_component_provides(ctx, component_uuid, purl, **params):
     if component_uuid:
         purl = session.components.retrieve(component_uuid).purl
         params["sources"] = purl
-        data = session.components.retrieve_list(**params)
+        data = [c for c in session.components.retrieve_list_iterator_async(**params)]
         return cprint(data, ctx=ctx)
     else:
-        data = session.components.retrieve_list(**params)
+        data = [c for c in session.components.retrieve_list_iterator_async(**params)]
         return cprint(data, ctx=ctx)
 
 
@@ -285,10 +282,10 @@ def get_component_sources(ctx, component_uuid, purl, **params):
     if component_uuid:
         purl = session.components.retrieve(component_uuid).purl
         params["provides"] = purl
-        data = session.components.retrieve_list(**params)
+        data = [c for c in session.components.retrieve_list_iterator_async(**params)]
         return cprint(data, ctx=ctx)
     else:
-        data = session.components.retrieve_list(**params)
+        data = [c for c in session.components.retrieve_list_iterator_async(**params)]
         return cprint(data, ctx=ctx)
 
 
@@ -359,10 +356,7 @@ def list_product_streams(ctx, product_stream_name, **params):
 
     if product_stream_name:
         params["re_name"] = product_stream_name
-    product_streams = session.product_streams.retrieve_list_iterator_async(**params)
-    data = []
-    for ps in product_streams:
-        data.append(ps)
+    data = [ps for ps in session.product_streams.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 
@@ -499,10 +493,7 @@ def list_software_builds(ctx, software_build_name, **params):
     session = CommunityComponentService.create_session()
     if software_build_name:
         params["name"] = software_build_name
-    builds = session.builds.retrieve_list_iterator_async(**params)
-    data = []
-    for build in builds:
-        data.append(build)
+    data = [build for build in session.builds.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 
@@ -562,10 +553,7 @@ def list_products(ctx, product_name, **params):
     session = CommunityComponentService.create_session()
     if product_name:
         params["re_name"] = product_name
-    products = session.products.retrieve_list_iterator_async(**params)
-    data = []
-    for product in products:
-        data.append(product)
+    data = [product for product in session.products.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 
@@ -626,10 +614,7 @@ def list_product_versions(ctx, product_version_name, **params):
     session = CommunityComponentService.create_session()
     if product_version_name:
         params["re_name"] = product_version_name
-    product_versions = session.product_versions.retrieve_list_iterator_async(**params)
-    data = []
-    for pv in product_versions:
-        data.append(pv)
+    data = [pv for pv in session.product_versions.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 
@@ -692,10 +677,7 @@ def list_product_variants(ctx, product_variant_name, **params):
     session = CommunityComponentService.create_session()
     if product_variant_name:
         params["re_name"] = product_variant_name
-    product_variants = session.product_variants.retrieve_list_iterator_async(**params)
-    data = []
-    for pv in product_variants:
-        data.append(pv)
+    data = [pv for pv in session.product_variants.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 
@@ -756,10 +738,7 @@ def list_channels(ctx, channel_name, **params):
     session = CommunityComponentService.create_session()
     if channel_name:
         params["re_name"] = channel_name
-    channels = session.channels.retrieve_list_iterator_async(**params)
-    data = []
-    for channel in channels:
-        data.append(channel)
+    data = [channel for channel in session.channels.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 

@@ -88,22 +88,17 @@ def list_components(ctx, strict_name_search, component_name, **params):
     if not component_name and not is_params_empty:
         click.echo(ctx.get_help())
         exit(0)
+    session = CorgiService.create_session()
     if strict_name_search:
         params["name"] = component_name
     elif component_name:
         params["re_name"] = component_name
-
     if not params["include_fields"]:
         params[
             "include_fields"
         ] = "link,uuid,purl,nvr,version,type,name,upstreams,related_url,download_url"
-
     params = multivalue_params_to_csv(params)
-    session = CorgiService.create_session()
-    components = session.components.retrieve_list_iterator_async(**params)
-    data = []
-    for c in components:
-        data.append(c)
+    data = [c for c in session.components.retrieve_list_iterator_async(**params)]
     data = sorted(data, key=lambda d: d.purl)
     return cprint(data, ctx=ctx)
 
@@ -246,16 +241,10 @@ def get_component_provides(ctx, component_uuid, purl, **params):
     if component_uuid:
         purl = session.components.retrieve(component_uuid).purl
         params["sources"] = purl
-        components = session.components.retrieve_list_iterator_async(**params)
-        data = []
-        for c in components:
-            data.append(c)
+        data = [c for c in session.components.retrieve_list_iterator_async(**params)]
         return cprint(data, ctx=ctx)
     else:
-        components = session.components.retrieve_list_iterator_async(**params)
-        data = []
-        for c in components:
-            data.append(c)
+        data = [c for c in session.components.retrieve_list_iterator_async(**params)]
         return cprint(data, ctx=ctx)
 
 
@@ -288,16 +277,10 @@ def get_component_sources(ctx, component_uuid, purl, **params):
     if component_uuid:
         purl = session.components.retrieve(component_uuid).purl
         params["provides"] = purl
-        components = session.components.retrieve_list_iterator_async(**params)
-        data = []
-        for c in components:
-            data.append(c)
+        data = [c for c in session.components.retrieve_list_iterator_async(**params)]
         return cprint(data, ctx=ctx)
     else:
-        components = session.components.retrieve_list_iterator_async(**params)
-        data = []
-        for c in components:
-            data.append(c)
+        data = [c for c in session.components.retrieve_list_iterator_async(**params)]
         return cprint(data, ctx=ctx)
 
 
@@ -403,10 +386,7 @@ def list_product_streams(ctx, product_stream_name, **params):
     if product_stream_name:
         params["re_name"] = product_stream_name
     params = multivalue_params_to_csv(params)
-    product_streams = session.product_streams.retrieve_list_iterator_async(**params)
-    data = []
-    for ps in product_streams:
-        data.append(ps)
+    data = [ps for ps in session.product_streams.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 
@@ -545,10 +525,7 @@ def list_software_builds(ctx, software_build_name, **params):
     if software_build_name:
         params["name"] = software_build_name
     params = multivalue_params_to_csv(params)
-    builds = session.builds.retrieve_list_iterator_async(**params)
-    data = []
-    for build in builds:
-        data.append(build)
+    data = [build for build in session.builds.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 
@@ -607,10 +584,7 @@ def list_products(ctx, product_name, **params):
     if product_name:
         params["re_name"] = product_name
     params = multivalue_params_to_csv(params)
-    products = session.products.retrieve_list_iterator_async(**params)
-    data = []
-    for product in products:
-        data.append(product)
+    data = [product for product in session.products.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 
@@ -670,10 +644,7 @@ def list_product_versions(ctx, product_version_name, **params):
     if product_version_name:
         params["re_name"] = product_version_name
     params = multivalue_params_to_csv(params)
-    product_versions = session.product_versions.retrieve_list(**params)
-    data = []
-    for pv in product_versions:
-        data.append(pv)
+    data = [pv for pv in session.product_versions.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 
@@ -733,10 +704,7 @@ def list_product_variants(ctx, product_variant_name, **params):
     if product_variant_name:
         params["re_name"] = product_variant_name
     params = multivalue_params_to_csv(params)
-    product_variants = session.product_variants.retrieve_list_iterator_async(**params)
-    data = []
-    for pv in product_variants:
-        data.append(pv)
+    data = [pv for pv in session.product_variants.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 
@@ -796,10 +764,7 @@ def list_channels(ctx, channel_name, **params):
     if channel_name:
         params["re_name"] = channel_name
     params = multivalue_params_to_csv(params)
-    channels = session.channels.retrieve_list_iterator_async(**params)
-    data = []
-    for channel in channels:
-        data.append(channel)
+    data = [channel for channel in session.channels.retrieve_list_iterator_async(**params)]
     return cprint(data, ctx=ctx)
 
 
