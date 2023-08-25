@@ -98,8 +98,8 @@ def list_components(ctx, strict_name_search, component_name, **params):
             "include_fields"
         ] = "link,uuid,purl,nvr,version,type,name,upstreams,related_url,download_url"
 
+    params = multivalue_params_to_csv(params)
     session = CorgiService.create_session()
-    params["limit"] = 50
     components = session.components.retrieve_list_iterator_async(**params)
     data = []
     for c in components:
@@ -180,6 +180,7 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
         "include_fields": "name,type,download_url,purl,tags,arch,release,version,product_streams,upstreams,related_url",  # noqa
         "name": component_name,
     }
+    params = multivalue_params_to_csv(params)
     components = session.components.retrieve_list_iterator_async(**cond)
     components_cnt = session.components.count(**cond)
     product_streams = []
@@ -240,15 +241,21 @@ def get_component_provides(ctx, component_uuid, purl, **params):
         ] = "link,purl,nvr,version,type,name,upstreams,related_url,download_url"
     if purl:
         params["sources"] = purl
-
+    params = multivalue_params_to_csv(params)
     session = CorgiService.create_session()
     if component_uuid:
         purl = session.components.retrieve(component_uuid).purl
         params["sources"] = purl
-        data = session.components.retrieve_list(**params)
+        components = session.components.retrieve_list_iterator_async(**params)
+        data = []
+        for c in components:
+            data.append(c)
         return cprint(data, ctx=ctx)
     else:
-        data = session.components.retrieve_list(**params)
+        components = session.components.retrieve_list_iterator_async(**params)
+        data = []
+        for c in components:
+            data.append(c)
         return cprint(data, ctx=ctx)
 
 
@@ -276,14 +283,21 @@ def get_component_sources(ctx, component_uuid, purl, **params):
         ] = "link,purl,nvr,version,type,name,upstreams,related_url,download_url"
     if purl:
         params["provides"] = purl
+    params = multivalue_params_to_csv(params)
     session = CorgiService.create_session()
     if component_uuid:
         purl = session.components.retrieve(component_uuid).purl
         params["provides"] = purl
-        data = session.components.retrieve_list(**params)
+        components = session.components.retrieve_list_iterator_async(**params)
+        data = []
+        for c in components:
+            data.append(c)
         return cprint(data, ctx=ctx)
     else:
-        data = session.components.retrieve_list(**params)
+        components = session.components.retrieve_list_iterator_async(**params)
+        data = []
+        for c in components:
+            data.append(c)
         return cprint(data, ctx=ctx)
 
 
@@ -375,6 +389,7 @@ def product_streams(ctx):
     },
 )
 @click.pass_context
+@progress_bar
 def list_product_streams(ctx, product_stream_name, **params):
     """Retrieve a list of Product Streams."""
     is_params_empty = [False for v in params.values() if v]
@@ -387,7 +402,11 @@ def list_product_streams(ctx, product_stream_name, **params):
 
     if product_stream_name:
         params["re_name"] = product_stream_name
-    data = session.product_streams.retrieve_list(**params).results
+    params = multivalue_params_to_csv(params)
+    product_streams = session.product_streams.retrieve_list_iterator_async(**params)
+    data = []
+    for ps in product_streams:
+        data.append(ps)
     return cprint(data, ctx=ctx)
 
 
@@ -519,12 +538,17 @@ def builds(ctx):
     },
 )
 @click.pass_context
+@progress_bar
 def list_software_builds(ctx, software_build_name, **params):
     """Retrieve a list of Software Builds."""
     session = CorgiService.create_session()
     if software_build_name:
         params["name"] = software_build_name
-    data = session.builds.retrieve_list(**params).results
+    params = multivalue_params_to_csv(params)
+    builds = session.builds.retrieve_list_iterator_async(**params)
+    data = []
+    for build in builds:
+        data.append(build)
     return cprint(data, ctx=ctx)
 
 
@@ -582,7 +606,11 @@ def list_products(ctx, product_name, **params):
     session = CorgiService.create_session()
     if product_name:
         params["re_name"] = product_name
-    data = session.products.retrieve_list(**params).results
+    params = multivalue_params_to_csv(params)
+    products = session.products.retrieve_list_iterator_async(**params)
+    data = []
+    for product in products:
+        data.append(product)
     return cprint(data, ctx=ctx)
 
 
@@ -641,7 +669,11 @@ def list_product_versions(ctx, product_version_name, **params):
     session = CorgiService.create_session()
     if product_version_name:
         params["re_name"] = product_version_name
-    data = session.product_versions.retrieve_list(**params).results
+    params = multivalue_params_to_csv(params)
+    product_versions = session.product_versions.retrieve_list(**params)
+    data = []
+    for pv in product_versions:
+        data.append(pv)
     return cprint(data, ctx=ctx)
 
 
@@ -700,7 +732,11 @@ def list_product_variants(ctx, product_variant_name, **params):
     session = CorgiService.create_session()
     if product_variant_name:
         params["re_name"] = product_variant_name
-    data = session.product_variants.retrieve_list(**params).results
+    params = multivalue_params_to_csv(params)
+    product_variants = session.product_variants.retrieve_list_iterator_async(**params)
+    data = []
+    for pv in product_variants:
+        data.append(pv)
     return cprint(data, ctx=ctx)
 
 
@@ -759,7 +795,11 @@ def list_channels(ctx, channel_name, **params):
     session = CorgiService.create_session()
     if channel_name:
         params["re_name"] = channel_name
-    data = session.channels.retrieve_list(**params).results
+    params = multivalue_params_to_csv(params)
+    channels = session.channels.retrieve_list_iterator_async(**params)
+    data = []
+    for channel in channels:
+        data.append(channel)
     return cprint(data, ctx=ctx)
 
 
@@ -813,6 +853,7 @@ def corgi_status(ctx):
 
 @manage_grp.command(name="health")
 @click.pass_context
+@progress_bar
 def corgi_health(ctx):
     try:
         session = CorgiService.create_session()
