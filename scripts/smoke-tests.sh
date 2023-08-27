@@ -51,7 +51,7 @@ griffon entities component-registry components list --ofuri o:redhat:ansible_aut
 
 # flaws
 griffon entities osidb flaws get --id CVE-2023-25166
-griffon entities osidb flaws list --impact CRITICAL
+griffon entities osidb flaws list --impact MODERATE --affects--ps-component redis
 
 # affects
 griffon entities osidb affects list --affectedness AFFECTED --impact CRITICAL

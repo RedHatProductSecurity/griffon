@@ -1054,6 +1054,7 @@ def text_output_list(ctx, output, format, exclude_components, no_wrap=False):
         if "cve_id" in output["results"][0]:
             for row in output["results"]:
                 console.print(
+                    row["cve_id"],
                     row["title"],
                     row["state"],
                     row["impact"],
