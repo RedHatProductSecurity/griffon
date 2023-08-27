@@ -99,7 +99,7 @@ class CorgiService:
         """init corgi session"""
         try:
             return component_registry_bindings.new_session(
-                component_registry_server_uri=CORGI_API_URL
+                component_registry_server_uri=CORGI_API_URL,
             )
         except:  # noqa
             console.log(f"{CORGI_API_URL} is not accessible.")
@@ -268,7 +268,7 @@ class CommunityComponentService:
         """init corgi session"""
         try:
             return component_registry_bindings.new_session(
-                component_registry_server_uri=COMMUNITY_COMPONENTS_API_URL
+                component_registry_server_uri=COMMUNITY_COMPONENTS_API_URL,
             )
         except:  # noqa
             console.log(f"{COMMUNITY_COMPONENTS_API_URL} is not accessible.")

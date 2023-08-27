@@ -2,7 +2,6 @@
     read only queries
 
 """
-import concurrent
 import logging
 from datetime import datetime
 
@@ -212,113 +211,63 @@ class entity_report:
         component_instances_count = self.corgi_session.components.retrieve_list(limit=1).count
 
         # get src RPM count
-        component_cnt = self.corgi_session.components.retrieve_list(
-            arch="src", namespace="REDHAT", type="RPM", include_fields="name"
-        ).count
-        components = list()
-        if component_cnt < 3000000:
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = []
-                for batch in range(0, component_cnt, 5000):
-                    futures.append(
-                        executor.submit(
-                            self.corgi_session.components.retrieve_list,
-                            arch="src",
-                            namespace="REDHAT",
-                            type="RPM",
-                            include_fields="name",
-                            offset=batch,
-                            limit=5000,  # noqa
-                        )
-                    )
-
-                for future in concurrent.futures.as_completed(futures):
-                    try:
-                        components.extend(future.result().results)
-                    except Exception as exc:
-                        logger.warning("%r generated an exception: %s" % (future, exc))
-
-        # # get OCI noarch count
-        # component_cnt = self.corgi_session.components.retrieve_list(
-        #     arch="noarch", type="OCI", include_fields="name"
-        # ).count
-        # oci_components = list()
-        # if component_cnt < 3000000:
-        #     with concurrent.futures.ThreadPoolExecutor() as executor:
-        #         futures = []
-        #         for batch in range(0, component_cnt, 3000):
-        #             futures.append(
-        #                 executor.submit(
-        #                     self.corgi_session.components.retrieve_list,
-        #                     arch="noarch",
-        #                     type="OCI",
-        #                     include_fields="name",
-        #                     offset=batch,
-        #                     limit=3000,  # noqa
-        #                 )
-        #             )
-        #
-        #         for future in concurrent.futures.as_completed(futures):
-        #             try:
-        #                 oci_components.extend(future.result().results)
-        #             except Exception as exc:
-        #                 logger.warning("%r generated an exception: %s" % (future, exc))
-
-        # # get NPM noarch count
-        # component_cnt = self.corgi_session.components.retrieve_list(type="NPM",
-        #                                                             include_fields="name").count
-        # npm_components = list()
-        # if component_cnt < 3000000:
-        #     with concurrent.futures.ThreadPoolExecutor() as executor:
-        #         futures = []
-        #         for batch in range(0, component_cnt, 3000):
-        #             futures.append(
-        #                 executor.submit(
-        #                     self.corgi_session.components.retrieve_list,
-        #                     type="NPM", include_fields="name",
-        #                     offset=batch,
-        #                     limit=3000,  # noqa
-        #                 )
-        #             )
-        #
-        #         for future in concurrent.futures.as_completed(futures):
-        #             try:
-        #                 npm_components.extend(future.result().results)
-        #             except Exception as exc:
-        #                 logger.warning("%r generated an exception: %s" % (future, exc))
-
+        rpmcomponents_cnt = self.corgi_session.components.count(
+            root_components="True",
+            type="RPM",
+        )
+        # get OCI noarch count
+        ocicomponents_cnt = self.corgi_session.components.count(
+            root_components="True",
+            type="OCI",
+        )
+        # get NPM noarch count
+        npmcomponents_cnt = self.corgi_session.components.count(
+            type="NPM",
+        )
         # get GOLANG noarch count
-        # component_cnt = self.corgi_session.components.retrieve_list(type="GOLANG",
-        #                                                             include_fields="name").count
-        # golang_components = list()
-        # if component_cnt < 3000000:
-        #     with concurrent.futures.ThreadPoolExecutor() as executor:
-        #         futures = []
-        #         for batch in range(0, component_cnt, 3000):
-        #             futures.append(
-        #                 executor.submit(
-        #                     self.corgi_session.components.retrieve_list,
-        #                     type="GOLANG", include_fields="name",
-        #                     offset=batch,
-        #                     limit=3000,  # noqa
-        #                 )
-        #             )
-        #
-        #         for future in concurrent.futures.as_completed(futures):
-        #             try:
-        #                 golang_components.extend(future.result().results)
-        #             except Exception as exc:
-        #                 logger.warning("%r generated an exception: %s" % (future, exc))
-
-        rpm_components_cnt: int = len(list(set([component.name for component in components])))
-
-        # TODO: baking these values in as we will eventually process these server side
-        oci_components_cnt: int = 2873
-        npm_components_cnt: int = 8677
-        golang_components_cnt: int = 48359
+        golangcomponents_cnt = self.corgi_session.components.count(
+            type="GOLANG",
+        )
+        # get GENERIC count
+        genericcomponents_cnt = self.corgi_session.components.count(
+            type="GENERIC",
+        )
+        # get GEM count
+        gemcomponents_cnt = self.corgi_session.components.count(
+            type="GEM",
+        )
+        # get CARGO count
+        cargocomponents_cnt = self.corgi_session.components.count(
+            type="CARGO",
+        )
+        # get GITHUB count
+        githubcomponents_cnt = self.corgi_session.components.count(
+            type="GITHUB",
+        )
+        # get MAVEN count
+        mavencomponents_cnt = self.corgi_session.components.count(
+            type="MAVEN",
+        )
+        # get PYPI count
+        pypicomponents_cnt = self.corgi_session.components.count(
+            type="PYPI",
+        )
+        # get RPMMOD count
+        rpmmodcomponents_cnt = self.corgi_session.components.count(
+            type="RPMMOD",
+        )
 
         total_component_cnt = (
-            rpm_components_cnt + oci_components_cnt + npm_components_cnt + golang_components_cnt
+            rpmcomponents_cnt
+            + ocicomponents_cnt
+            + npmcomponents_cnt
+            + golangcomponents_cnt
+            + gemcomponents_cnt
+            + cargocomponents_cnt
+            + githubcomponents_cnt
+            + mavencomponents_cnt
+            + pypicomponents_cnt
+            + rpmmodcomponents_cnt
         )
 
         return {
@@ -331,10 +280,17 @@ class entity_report:
                     "arches": component_arches,
                     "total_component_instances": component_instances_count,
                     "total_distinct_components": total_component_cnt,
-                    "rpm_components": rpm_components_cnt,
-                    "oci_components": oci_components_cnt,
-                    "npm_components": npm_components_cnt,
-                    "golang_components": golang_components_cnt,
+                    "rpm_root_components": rpmcomponents_cnt,
+                    "oci_root_components": ocicomponents_cnt,
+                    "npm_components": npmcomponents_cnt,
+                    "golang_components": golangcomponents_cnt,
+                    "generic_components": genericcomponents_cnt,
+                    "gem_components": gemcomponents_cnt,
+                    "cargo_components": cargocomponents_cnt,
+                    "github_components": githubcomponents_cnt,
+                    "maven_components": mavencomponents_cnt,
+                    "pypi_components": pypicomponents_cnt,
+                    "rpmmod_components": rpmmodcomponents_cnt,
                 },
                 "products": {
                     "products": corgi_status["products"]["count"],
@@ -365,10 +321,7 @@ class license_report:
     def generate(self) -> dict:
         output = {}
         component_filter = {
-            "include_fields": "uuid,purl,type,"
-            "license_concluded,license_declared,"
-            "related_url,download_url,"
-            "software_build.build_id,provides",
+            "include_fields": "uuid,purl,type,license_concluded,license_declared,related_url,download_url,software_build.build_id",  # noqa
         }
         if self.purl:
             component_filter["purl"] = self.purl
@@ -378,94 +331,53 @@ class license_report:
             )
             stream_ofuri = product_stream["ofuri"]
             component_filter["ofuri"] = stream_ofuri
-        initial_component = self.corgi_session.components.retrieve_list(**component_filter)
-        component_cnt = initial_component.count
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            components = list()
-            if self.purl:
-                components.append(
-                    self.corgi_session.components.retrieve(initial_component.to_dict()["uuid"])
-                )
-            else:
-                for batch in range(0, component_cnt, 120):
-                    futures.append(
-                        executor.submit(
-                            self.corgi_session.components.retrieve_list,
-                            **component_filter,
-                            offset=batch,
-                            limit=120,
-                        )
-                    )
-                for future in concurrent.futures.as_completed(futures):
-                    try:
-                        components.extend(future.result().results)
-                    except Exception as exc:
-                        logger.warning("%r generated an exception: %s" % (future, exc))
+        search_components = self.corgi_session.components.retrieve_list_iterator_async(
+            **component_filter
+        )
+        for component in search_components:
+            purl = component.purl
+            output[purl] = {
+                "license_declared": component.license_declared,
+                "related_url": component.related_url,
+                "build_id": component.software_build.build_id,
+            }
+            if component.license_concluded:
+                # Some components can't be scanned, e.g. binary RPMs
+                output[purl]["license_concluded"] = component.license_concluded
+            if str(component.type) not in ("RPM", "RPMMOD") and (
+                # Report container's exact repository_url if present
+                # Container Catalog search page is used as a fallback
+                # Just ignore it if no specific URL is available
+                component.download_url
+                != "https://catalog.redhat.com/software/containers/search"
+            ):
+                output[purl]["download_url"] = component.download_url
 
-            for component in components:
-                purl = component.purl
-                logger.debug(purl)
-                output[purl] = {
-                    "license_declared": component.license_declared,
-                    "related_url": component.related_url,
-                    "build_id": component.software_build.build_id,
+            children = []
+            provides_filter = {
+                "sources": purl,
+                "include_fields": "purl,type,license_concluded,license_declared,related_url,download_url",  # noqa
+            }
+            provides_components = self.corgi_session.components.retrieve_list_iterator_async(
+                **provides_filter
+            )
+            for c in provides_components:
+                child = {
+                    "purl": c.purl,
+                    "license_declared": c.license_declared,
+                    "related_url": c.related_url,
                 }
-                if component.license_concluded:
+                if c.license_concluded:
                     # Some components can't be scanned, e.g. binary RPMs
-                    output[purl]["license_concluded"] = component.license_concluded
-                if str(component.type) not in ("RPM", "RPMMOD") and (
+                    child["license_concluded"] = c.license_concluded
+                if str(c.type) not in ("RPM", "RPMMOD") and (
                     # Report container's exact repository_url if present
                     # Container Catalog search page is used as a fallback
                     # Just ignore it if no specific URL is available
-                    component.download_url
+                    c.download_url
                     != "https://catalog.redhat.com/software/containers/search"
                 ):
-                    output[purl]["download_url"] = component.download_url
-
-                children = []
-                provides_filter = {
-                    "sources": purl,
-                    "include_fields": "purl,type,"
-                    "license_concluded,license_declared,"
-                    "related_url,download_url",
-                }
-                provides_cnt = self.corgi_session.components.retrieve_list(**provides_filter).count
-                logger.debug(provides_cnt)
-
-                if not self.exclude_children:
-                    futures_children = []
-                    for batch in range(0, provides_cnt, 120):
-                        futures_children.append(
-                            executor.submit(
-                                self.corgi_session.components.retrieve_list,
-                                **provides_filter,
-                                offset=batch,
-                                limit=120,
-                            )
-                        )
-                    for future in concurrent.futures.as_completed(futures_children):
-                        try:
-                            for c in future.result().results:
-                                child = {
-                                    "purl": c.purl,
-                                    "license_declared": c.license_declared,
-                                    "related_url": c.related_url,
-                                }
-                                if c.license_concluded:
-                                    # Some components can't be scanned, e.g. binary RPMs
-                                    child["license_concluded"] = c.license_concluded
-                                if str(c.type) not in ("RPM", "RPMMOD") and (
-                                    # Report container's exact repository_url if present
-                                    # Container Catalog search page is used as a fallback
-                                    # Just ignore it if no specific URL is available
-                                    c.download_url
-                                    != "https://catalog.redhat.com/software/containers/search"
-                                ):
-                                    child["download_url"] = c.download_url
-                                children.append(child)
-                        except Exception as exc:
-                            logger.warning("%r generated an exception: %s" % (future, exc))
-
-                    output[purl]["children"] = children
+                    child["download_url"] = c.download_url
+                children.append(child)
+            output[purl]["children"] = children
         return output

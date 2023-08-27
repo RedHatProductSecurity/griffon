@@ -2,7 +2,6 @@
 corgi entity operations
 
 """
-import concurrent.futures
 import logging
 
 import click
@@ -90,8 +89,6 @@ def components(ctx):
 @click.pass_context
 @progress_bar
 def list_components(ctx, strict_name_search, component_name, **params):
-    # TODO: handle pagination
-    # TODO: handle output
     is_params_empty = [False for v in params.values() if v]
     if not component_name and not is_params_empty:
         click.echo(ctx.get_help())
@@ -107,35 +104,9 @@ def list_components(ctx, strict_name_search, component_name, **params):
         ] = "link,uuid,purl,nvr,version,type,name,upstreams,related_url,download_url"
 
     session = CommunityComponentService.create_session()
-    params = multivalue_params_to_csv(params)
-
-    logger.debug("starting parallel http requests")
-    component_cnt = session.components.retrieve_list(**params).count
-    logger.debug(component_cnt)
-    if component_cnt < 3000000:
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            components = list()
-            for batch in range(0, component_cnt, 1200):
-                params["offset"] = batch
-                params["limit"] = 1200
-                futures.append(
-                    executor.submit(
-                        session.components.retrieve_list,
-                        **params,
-                    )
-                )
-
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    components.extend(future.result().results)
-                except Exception as exc:
-                    logger.warning("%r generated an exception: %s" % (future, exc))
-
-            data = sorted(components, key=lambda d: d.purl)
-            return cprint(data, ctx=ctx)
-    else:
-        console.warning("Too many components.")
+    return cprint(
+        list(session.components.retrieve_list_iterator_async(max_results=5000, **params)), ctx=ctx
+    )
 
 
 @components.command(name="get")
@@ -210,7 +181,7 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
         "include_fields": "name,type,download_url,purl,tags,arch,release,version,product_streams,upstreams,related_url",  # noqa
         "name": component_name,
     }
-    components = session.components.retrieve_list(**cond, limit=10000)
+    components = session.components.retrieve_list_iterator_async(max_results=5000, **cond)
     product_streams = []
     upstreams = []
     versions = []
@@ -220,7 +191,7 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
     download_urls = []
     tags = []
     component_type = None
-    for component in components.results:
+    for component in components:
         component_type = component.type
         related_urls.append(component.related_url)
         arches.append(component.arch)
@@ -231,23 +202,6 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
             upstreams.append(upstream["purl"])
         for ps in component.product_streams:
             product_streams.append(ps["name"])
-
-    cond = {
-        "include_fields": "name,purl,version,type,tags,arch,release,product_streams",  # noqa
-        "name": component_name,
-        "latest_components_by_streams": True,
-    }
-    # latest_components = session.components.retrieve_list(**cond, limit=10000)
-
-    latest = []
-
-    # for latest_component in latest_components.results:
-    #     latest.append(
-    #         {
-    #             "product_stream": latest_component["product_stream"],
-    #             "purl": latest_component.purl,
-    #         }
-    #     )
     data = {
         "link": f"{CORGI_API_URL}/api/v1/components?name={component_name}",
         "type": component_type,
@@ -261,7 +215,6 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
         "upstreams": sorted(list(set(upstreams))),
         "arches": sorted(list(set(arches))),
         "versions": sorted(list(set(versions))),
-        "latest": latest,
     }
     cprint(data, ctx=ctx)
 
@@ -295,11 +248,15 @@ def get_component_provides(ctx, component_uuid, purl, **params):
     if component_uuid:
         purl = session.components.retrieve(component_uuid).purl
         params["sources"] = purl
-        data = session.components.retrieve_list(**params)
-        return cprint(data, ctx=ctx)
+        return cprint(
+            list(session.components.retrieve_list_iterator_async(max_results=5000, **params)),
+            ctx=ctx,
+        )
     else:
-        data = session.components.retrieve_list(**params)
-        return cprint(data, ctx=ctx)
+        return cprint(
+            list(session.components.retrieve_list_iterator_async(max_results=5000, **params)),
+            ctx=ctx,
+        )
 
 
 @components.command(name="sources")
@@ -330,11 +287,15 @@ def get_component_sources(ctx, component_uuid, purl, **params):
     if component_uuid:
         purl = session.components.retrieve(component_uuid).purl
         params["provides"] = purl
-        data = session.components.retrieve_list(**params)
-        return cprint(data, ctx=ctx)
+        return cprint(
+            list(session.components.retrieve_list_iterator_async(max_results=5000, **params)),
+            ctx=ctx,
+        )
     else:
-        data = session.components.retrieve_list(**params)
-        return cprint(data, ctx=ctx)
+        return cprint(
+            list(session.components.retrieve_list_iterator_async(max_results=5000, **params)),
+            ctx=ctx,
+        )
 
 
 @components.command(name="manifest")
@@ -404,8 +365,10 @@ def list_product_streams(ctx, product_stream_name, **params):
 
     if product_stream_name:
         params["re_name"] = product_stream_name
-    data = session.product_streams.retrieve_list(**params).results
-    return cprint(data, ctx=ctx)
+    return cprint(
+        list(session.product_streams.retrieve_list_iterator_async(max_results=5000, **params)),
+        ctx=ctx,
+    )
 
 
 @product_streams.command(name="get")
@@ -541,8 +504,9 @@ def list_software_builds(ctx, software_build_name, **params):
     session = CommunityComponentService.create_session()
     if software_build_name:
         params["name"] = software_build_name
-    data = session.builds.retrieve_list(**params).results
-    return cprint(data, ctx=ctx)
+    return cprint(
+        list(session.builds.retrieve_list_iterator_async(max_results=5000, **params)), ctx=ctx
+    )
 
 
 @builds.command(name="get")
@@ -601,8 +565,9 @@ def list_products(ctx, product_name, **params):
     session = CommunityComponentService.create_session()
     if product_name:
         params["re_name"] = product_name
-    data = session.products.retrieve_list(**params).results
-    return cprint(data, ctx=ctx)
+    return cprint(
+        list(session.products.retrieve_list_iterator_async(max_results=5000, **params)), ctx=ctx
+    )
 
 
 @products.command(name="get")
@@ -662,8 +627,10 @@ def list_product_versions(ctx, product_version_name, **params):
     session = CommunityComponentService.create_session()
     if product_version_name:
         params["re_name"] = product_version_name
-    data = session.product_versions.retrieve_list(**params).results
-    return cprint(data, ctx=ctx)
+    return cprint(
+        list(session.product_versions.retrieve_list_iterator_async(max_results=5000, **params)),
+        ctx=ctx,
+    )
 
 
 @product_versions.command(name="get")
@@ -725,8 +692,10 @@ def list_product_variants(ctx, product_variant_name, **params):
     session = CommunityComponentService.create_session()
     if product_variant_name:
         params["re_name"] = product_variant_name
-    data = session.product_variants.retrieve_list(**params).results
-    return cprint(data, ctx=ctx)
+    return cprint(
+        list(session.product_variants.retrieve_list_iterator_async(max_results=5000, **params)),
+        ctx=ctx,
+    )
 
 
 @product_variants.command(name="get")
@@ -786,8 +755,9 @@ def list_channels(ctx, channel_name, **params):
     session = CommunityComponentService.create_session()
     if channel_name:
         params["re_name"] = channel_name
-    data = session.channels.retrieve_list(**params).results
-    return cprint(data, ctx=ctx)
+    return cprint(
+        list(session.channels.retrieve_list_iterator_async(max_results=5000, **params)), ctx=ctx
+    )
 
 
 @channels.command(name="get")

@@ -24,7 +24,10 @@ griffon service products-contain-component --purl "pkg:rpm/curl@7.29.0"
 griffon service products-contain-component webkitgtk --search-related-url --search-latest --search-all
 
 griffon service component-summary curl
-griffon service products-contain-component --search-community --search-all curl
+
+# TODO - RE-ENABLE !
+#griffon service products-contain-component --search-community --search-all curl
+
 griffon -vvv service products-contain-component -a libtiff
 
 # reports
@@ -34,20 +37,21 @@ griffon service report-affects
 griffon entities component-registry product-streams get pipelines-1.6.2
 griffon entities component-registry product-streams list ansible
 griffon entities component-registry products list --limit 1000
+griffon entities community-component-registry products list --limit 1000
 griffon entities component-registry product-versions list ansible
 
-
 # components
-griffon entities component-registry components list curl
+# TODO - RE-ENABLE
+#griffon entities component-registry components list curl
+#griffon entities community-component-registry components list curl
 griffon entities component-registry components list curl --namespace UPSTREAM
 griffon entities component-registry components get --purl "pkg:rpm/redhat/vim@8.2.2637-16.el9_0.3?arch=src&epoch=2"
 griffon entities component-registry components manifest --purl "pkg:rpm/curl@7.76.1"
 griffon entities component-registry components list --ofuri o:redhat:ansible_automation_platform:2.2 --type OCI
-griffon --format text entities component-registry components list curl
 
 # flaws
 griffon entities osidb flaws get --id CVE-2023-25166
-griffon entities osidb flaws list --state NEW --impact CRITICAL
+griffon entities osidb flaws list --impact MODERATE --affects--ps-component redis
 
 # affects
 griffon entities osidb affects list --affectedness AFFECTED --impact CRITICAL
@@ -57,12 +61,20 @@ griffon entities osidb trackers list --help
 
 # manage
 griffon entities component-registry admin health
-griffon entities osidb admin health
+griffon entities osidb admin status
 
 # plugins
 griffon plugins go_vuln get --cve-id CVE-2018-16873
 griffon plugins osv query-by-commit-hash --commit_hash 6879efc2c1596d11a6a6ad296f80063b558d5e0f
 
-griffon service products-contain-component 1to2 --search-upstreams --include-inactive-product-streams
+# reports
+griffon service report-entities
+griffon service report-license gitops-1.6.z
 
+# other
+griffon service products-contain-component 1to2 --search-upstreams --include-inactive-product-streams
 griffon service products-contain-component goutils --search-all -a
+griffon service products-contain-component -s zlib -vvv
+griffon service product-flaws cost-management --affectedness AFFECTED --affect-resolution FIX
+griffon service component-flaws npm
+griffon service component-flaws python-marshmallow --affectedness AFFECTED

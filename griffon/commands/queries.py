@@ -373,7 +373,7 @@ def get_product_contain_component(
 
         # TODO: interim hack for middleware
         if component_name and MIDDLEWARE_CLI and not no_middleware:
-            operation_status.update("griffoning: searching deptopia.", spinner="line")
+            operation_status.update("griffoning: searching deptopia middleware.", spinner="line")
             mw_command = [MIDDLEWARE_CLI, component_name, "-e", "maven", "--json"]
             if strict_name_search:
                 mw_command.append("-s")
@@ -382,45 +382,48 @@ def get_product_contain_component(
                 capture_output=True,
                 text=True,
             )
-            mw_json = loads(proc.stdout)
-            mw_components = mw_json["deps"]
-            # TODO: need to determine if we use "build" or "deps"
-            # if search_all:
-            #     mw_components.extend(mw_json["deps"])
-            for build in mw_components:
-                if build["build_type"] == "maven":
-                    component = {
-                        "product_versions": [{"name": build["ps_module"]}],
-                        "product_streams": [
-                            {
-                                "name": build["ps_update_stream"],
-                                "product_versions": [{"name": build["ps_module"]}],
-                            }
-                        ],
-                        "product_active": True,
-                        "type": build["build_type"],
-                        "name": build["build_name"],
-                        "nvr": build["build_nvr"],
-                        "upstreams": [],
-                        "sources": [],
-                        "software_build": {
-                            "build_id": build["build_id"],
-                            "source": build["build_repo"],
-                        },
-                    }
-                    if "sources" in build:
-                        for deps in build["sources"]:
-                            for dep in deps["dependencies"]:
-                                components = []
-                                components.append(
-                                    {
-                                        "name": dep.get("name"),
-                                        "nvr": dep.get("nvr"),
-                                        "type": dep.get("type"),
-                                    }
-                                )
-                                component["sources"] = components
-                    q.append(component)
+            try:
+                mw_json = loads(proc.stdout)
+                mw_components = mw_json["deps"]
+                # TODO: need to determine if we use "build" or "deps"
+                # if search_all:
+                #     mw_components.extend(mw_json["deps"])
+                for build in mw_components:
+                    if build["build_type"] == "maven":
+                        component = {
+                            "product_versions": [{"name": build["ps_module"]}],
+                            "product_streams": [
+                                {
+                                    "name": build["ps_update_stream"],
+                                    "product_versions": [{"name": build["ps_module"]}],
+                                }
+                            ],
+                            "product_active": True,
+                            "type": build["build_type"],
+                            "name": build["build_name"],
+                            "nvr": build["build_nvr"],
+                            "upstreams": [],
+                            "sources": [],
+                            "software_build": {
+                                "build_id": build["build_id"],
+                                "source": build["build_repo"],
+                            },
+                        }
+                        if "sources" in build:
+                            for deps in build["sources"]:
+                                for dep in deps["dependencies"]:
+                                    components = []
+                                    components.append(
+                                        {
+                                            "name": dep.get("name"),
+                                            "nvr": dep.get("nvr"),
+                                            "type": dep.get("type"),
+                                        }
+                                    )
+                                    component["sources"] = components
+                        q.append(component)
+            except Exception:
+                logger.warning("problem accessing deptopia.")
 
         # TODO: in the short term affect handling will be mediated via sfm2 here in the operation itself # noqa
         if ctx.params["sfm2_flaw_id"]:
@@ -789,12 +792,6 @@ def product_versions_affected_by_cve_query(ctx, cve_id):
 @click.argument("component_name", required=False)
 @click.option("--purl")
 @click.option(
-    "--flaw-state",
-    "flaw_state",
-    help="Filter by Flaw state.",
-    type=click.Choice(OSIDBService.get_flaw_states()),
-)
-@click.option(
     "--flaw-impact",
     "flaw_impact",
     help="Filter by Flaw impact.",
@@ -836,7 +833,6 @@ def cves_for_specific_component_query(
     ctx,
     component_name,
     purl,
-    flaw_state,
     flaw_impact,
     flaw_resolution,
     affectedness,
@@ -864,12 +860,6 @@ def cves_for_specific_component_query(
     shell_complete=get_product_version_names,
 )
 @click.option("--ofuri")
-@click.option(
-    "--flaw-state",
-    "flaw_state",
-    help="Filter by Flaw state.",
-    type=click.Choice(OSIDBService.get_flaw_states()),
-)
 @click.option(
     "--flaw-impact",
     "flaw_impact",
@@ -912,7 +902,6 @@ def cves_for_specific_product_query(
     ctx,
     product_version_name,
     ofuri,
-    flaw_state,
     flaw_impact,
     flaw_resolution,
     affectedness,

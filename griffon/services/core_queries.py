@@ -2,12 +2,10 @@
     read only queries
 
 """
-import concurrent
 import logging
 import re
 from typing import Any, Dict, List
 
-import requests
 from component_registry_bindings.bindings.python_client.models import Component
 
 from griffon import (
@@ -129,30 +127,19 @@ class products_versions_affected_by_specific_cve_query:
         results = list()
         product_versions = set()
         product_streams = set()
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            for affect in affects:
-                futures.append(
-                    executor.submit(
-                        self.corgi_session.components.retrieve_list,
-                        name=affect.ps_component,
-                        latest_components_by_streams=True,
-                        include_fields="product_streams.name,product_versions.name",
-                    )
-                )
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    for c in future.result().results:
-                        results.append(c.to_dict())
-                except Exception as exc:
-                    logger.error("%r generated an exception: %s" % (future, exc))
-                    exit(0)
-
-            for c in results:
-                for ps in c["product_streams"]:
-                    product_streams.add(ps["name"])
-                for pv in c["product_versions"]:
-                    product_versions.add(ps["name"])
+        for affect in affects:
+            components = self.corgi_session.components.retrieve_list_iterator_async(
+                name=affect.ps_component,
+                latest_components_by_streams="True",
+                include_fields="product_streams.name,product_versions.name",
+            )
+            for c in components:
+                results.append(c.to_dict())
+        for c in results:
+            for ps in c["product_streams"]:
+                product_streams.add(ps["name"])
+            for pv in c["product_versions"]:
+                product_versions.add(ps["name"])
         return {
             "link": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
             "cve_id": flaw.cve_id,
@@ -205,31 +192,28 @@ class products_containing_specific_component_query:
         return c["product_streams"]
 
 
-def async_retrieve_components(
-    corgi_session, params, components_initial, component_cnt, item_limit=50
-):
-    components = list()
-    if component_cnt <= item_limit:
-        components.extend(components_initial.results)
-    elif component_cnt > item_limit:
-        components.extend(components_initial.results)
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            for batch in range(item_limit, component_cnt, item_limit):
-                futures.append(
-                    executor.submit(
-                        corgi_session.components.retrieve_list,
-                        **params,
-                        offset=batch,
-                        limit=item_limit,  # noqa
-                    )
-                )
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    components.extend(future.result().results)
-                except Exception as exc:
-                    logger.warning("%r generated an exception: %s" % (future, exc))
-    return components
+def async_retrieve_sources(self, purl, max_results=5000):
+    source_params = {
+        "max_results": max_results,
+        "provides": purl,
+        "include_fields": "type,nvr,purl,name,namespace,download_url,related_url",
+    }
+    return [
+        source_component.to_dict()
+        for source_component in self.components.retrieve_list_iterator_async(**source_params)
+    ]
+
+
+def async_retrieve_upstreams(self, purl, max_results=5000):
+    upstream_params = {
+        "max_results": max_results,
+        "upstreams": purl,
+        "include_fields": "type,nvr,purl,name,namespace,download_url,related_url",
+    }
+    return [
+        upstream_component.to_dict()
+        for upstream_component in self.components.retrieve_list_iterator_async(**upstream_params)
+    ]
 
 
 class products_containing_component_query:
@@ -281,11 +265,11 @@ class products_containing_component_query:
             self.community_session = CommunityComponentService.create_session()
 
     def execute(self, status=None) -> List[Dict[str, Any]]:
+        max_limit = 5000
         status.update("griffoning: searching component-registry.")
-        item_limit = 50
         results = []
         params = {
-            "include_fields": "link,purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components,sources.nvr,sources.purl,sources.name,sources.namespace,sources.download_url,sources.related_url,upstreams.nvr,upstreams.purl,upstreams.namespace,upstreams.name,upstreams.download_url,upstreams.related_url",  # noqa
+            "include_fields": "link,purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components",  # noqa
         }
         if self.search_latest:
             params["latest_components_by_streams"] = "True"
@@ -295,34 +279,37 @@ class products_containing_component_query:
                 params["name"] = self.component_name
             if self.ns:
                 params["namespace"] = self.ns
-
-            component_initial = self.corgi_session.components.retrieve_list(
-                limit=item_limit, **params
+            status.update("griffoning: searching latest component(s).")
+            latest_components_cnt = self.corgi_session.components.count(**params)
+            latest_components = self.corgi_session.components.retrieve_list_iterator_async(
+                max_results=max_limit, **params
             )
-            status.update(f"griffoning: found {component_initial.count} latest component(s).")
-            latest_components: list = async_retrieve_components(
-                self.corgi_session,
-                params,
-                component_initial,
-                component_initial.count,
-                item_limit=item_limit,
-            )
-            results.extend(latest_components)
+            status.update(f"griffoning: found {latest_components_cnt} latest component(s).")
+            for c in latest_components:
+                status.update(
+                    f"griffoning: found {latest_components_cnt} latest component(s), retrieving sources & upstreams."  # noqa
+                )
+                c.sources = async_retrieve_sources(self.corgi_session, c.purl)
+                c.upstreams = async_retrieve_upstreams(self.corgi_session, c.purl)
+                results.append(c)
             if not self.no_community:
-                community_component_initial = self.community_session.components.retrieve_list(
-                    limit=item_limit, **params
+                status.update("griffoning: searching latest community component(s).")
+                community_component_cnt = self.community_session.components.count(**params)
+                latest_community_components = (
+                    self.community_session.components.retrieve_list_iterator_async(
+                        max_results=max_limit, **params
+                    )
                 )
                 status.update(
-                    f"griffoning: found {community_component_initial.count} latest community component(s)."  # noqa
+                    f"griffoning: found {community_component_cnt} latest community component(s)."  # noqa
                 )
-                community_latest_components: list = async_retrieve_components(
-                    self.community_session,
-                    params,
-                    community_component_initial,
-                    community_component_initial.count,
-                    item_limit=item_limit,
-                )
-                results.extend(community_latest_components)
+                for c in latest_community_components:
+                    status.update(
+                        f"griffoning: found {community_component_cnt} latest community component(s), retrieving sources & upstreams."  # noqa
+                    )
+                    c.sources = async_retrieve_sources(self.community_session, c.purl)
+                    c.upstreams = async_retrieve_upstreams(self.community_session, c.purl)
+                    results.append(c)
 
         if self.search_related_url:
             # Note: related_url filter has no concept of strict
@@ -331,20 +318,39 @@ class products_containing_component_query:
                 params["namespace"] = self.ns
             if self.component_type:
                 params["type"] = self.component_type
-
-            component_initial = self.corgi_session.components.retrieve_list(
-                limit=item_limit, **params
+            related_url_components_cnt = self.corgi_session.components.count(**params)
+            related_url_components = self.corgi_session.components.retrieve_list_iterator_async(
+                max_results=max_limit, **params
             )
-            status.update(f"griffoning: found {component_initial.count} related url component(s).")
-            related_url_components: list = async_retrieve_components(
-                self.corgi_session,
-                params,
-                component_initial,
-                component_initial.count,
-                item_limit=item_limit,
+            status.update(
+                f"griffoning: found {related_url_components_cnt} related url component(s)."
             )
-            results.extend(related_url_components)
-
+            for c in related_url_components:
+                status.update(
+                    f"griffoning: found {related_url_components_cnt} related url component(s), retrieving sources & upstreams."  # noqa
+                )
+                c.sources = async_retrieve_sources(self.corgi_session, c.purl)
+                c.upstreams = async_retrieve_upstreams(self.corgi_session, c.purl)
+                results.append(c)
+            if not self.no_community:
+                latest_community_url_components_cnt = self.community_session.components.count(
+                    **params
+                )
+                latest_community_url_components_components = (
+                    self.community_session.components.retrieve_list_iterator_async(
+                        max_results=max_limit, **params
+                    )
+                )
+                status.update(
+                    f"griffoning: found {latest_community_url_components_cnt} related url community component(s)."  # noqa
+                )
+                for c in latest_community_url_components_components:
+                    status.update(
+                        f"griffoning: found {latest_community_url_components_cnt} related url community component(s), retrieving sources & upstreams."  # noqa
+                    )
+                    c.sources = async_retrieve_sources(self.community_session, c.purl)
+                    c.upstreams = async_retrieve_upstreams(self.community_session, c.purl)
+                    results.append(c)
         if self.search_all:
             if not self.strict_name_search:
                 params["re_name"] = self.component_name
@@ -355,54 +361,61 @@ class products_containing_component_query:
             if self.ns:
                 params["namespace"] = self.ns
 
-            all_component_initial = self.corgi_session.components.retrieve_list(
-                limit=item_limit, **params
+            all_components_cnt = self.corgi_session.components.count(**params)
+            status.update(f"griffoning: found {all_components_cnt} all component(s).")
+            all_components = self.corgi_session.components.retrieve_list_iterator_async(
+                max_results=max_limit, **params
             )
-            status.update(f"griffoning: found {all_component_initial.count} all component(s).")
-            all_components: list = async_retrieve_components(
-                self.corgi_session,
-                params,
-                all_component_initial,
-                all_component_initial.count,
-                item_limit=item_limit,
-            )
-            results.extend(all_components)
-
+            status.update(f"griffoning: found {all_components_cnt} all component(s).")
+            for c in all_components:
+                status.update(
+                    f"griffoning: found {all_components_cnt} all component(s), retrieving sources."  # noqa
+                )
+                c.sources = async_retrieve_sources(self.corgi_session, c.purl)
+                results.append(c)
+            if not self.no_community:
+                all_community_components_cnt = self.community_session.components.count(**params)
+                all_community_components = (
+                    self.community_session.components.retrieve_list_iterator_async(
+                        max_results=max_limit, **params
+                    )
+                )
+                status.update(
+                    f"griffoning: found {all_community_components_cnt} community all component(s)."  # noqa
+                )
+                for c in all_community_components:
+                    status.update(
+                        f"griffoning: found {all_community_components_cnt} community all component(s), retrieving sources."  # noqa
+                    )
+                    c.sources = async_retrieve_sources(self.community_session, c.purl)
+                    results.append(c)
         if self.search_all_roots:
-            params["type"] = "RPM"
-            params["arch"] = "src"
+            params["root_components"] = "True"
             if not self.strict_name_search:
                 params["re_name"] = self.component_name
             else:
                 params["name"] = self.component_name
             if self.ns:
                 params["namespace"] = self.ns
-
-            all_src_component_initial = self.corgi_session.components.retrieve_list(
-                limit=item_limit, **params
+            all_src_components_cnt = self.corgi_session.components.count(**params)
+            all_src_components = self.corgi_session.components.retrieve_list_iterator_async(
+                max_results=max_limit, **params
             )
-            all_src_components: list = async_retrieve_components(
-                self.corgi_session,
-                params,
-                all_src_component_initial,
-                all_src_component_initial.count,
-                item_limit=item_limit,
-            )
-            params["type"] = "OCI"
-            params["arch"] = "noarch"
-            all_noarch_component_initial = self.corgi_session.components.retrieve_list(
-                limit=item_limit, **params
-            )
-            all_noarch_components: list = async_retrieve_components(
-                self.corgi_session,
-                params,
-                all_noarch_component_initial,
-                all_noarch_component_initial.count,
-                item_limit=item_limit,
-            )
-            all_root_components = all_src_components + all_noarch_components
-            results.extend(all_root_components)
-
+            status.update(f"griffoning: found {all_src_components_cnt} all root component(s).")
+            for c in all_src_components:
+                results.append(c)
+            if not self.no_community:
+                all_src_community_components_cnt = self.community_session.components.count(**params)
+                all_src_community_components = (
+                    self.community_session.components.retrieve_list_iterator_async(
+                        max_results=max_limit, **params
+                    )
+                )
+                status.update(
+                    f"griffoning: found {all_src_community_components_cnt} community all root component(s)."  # noqa
+                )
+                for c in all_src_community_components:
+                    results.append(c)
         if self.search_upstreams:
             # Note: upstreams only takes a purl ... so we must use re_upstreams for
             # both strict and not strict search
@@ -413,35 +426,34 @@ class products_containing_component_query:
                 params["name"] = self.component_name
             if self.component_type:
                 params["type"] = self.component_type
-
-            component_initial = self.corgi_session.components.retrieve_list(
-                limit=item_limit, **params
+            upstream_components_cnt = self.corgi_session.components.count(**params)
+            upstream_components = self.corgi_session.components.retrieve_list_iterator_async(
+                max_results=max_limit, **params
             )
-            status.update(f"griffoning: found {component_initial.count} upstream component(s).")
-            upstream_components: list = async_retrieve_components(
-                self.corgi_session,
-                params,
-                component_initial,
-                component_initial.count,
-                item_limit=item_limit,
-            )
-            results.extend(upstream_components)
+            status.update(f"griffoning: found {upstream_components_cnt} upstream component(s).")
+            for c in upstream_components:
+                status.update(
+                    f"griffoning: found {upstream_components_cnt} upstream component(s), retrieving sources."  # noqa
+                )
+                c.sources = async_retrieve_sources(self.corgi_session, c.purl)
+                c.upstreams = async_retrieve_upstreams(self.corgi_session, c.purl)
+                results.append(c)
             if not self.no_community:
-                component_community_initial = self.community_session.components.retrieve_list(
-                    limit=item_limit, **params
+                commmunity_upstream_components_cnt = self.community_session.components.count(
+                    **params
+                )
+                commmunity_upstream_components = (
+                    self.community_session.components.retrieve_list_iterator_async(
+                        max_results=max_limit, **params
+                    )
                 )
                 status.update(
-                    f"griffoning: found {component_community_initial.count} community upstream component(s)."  # noqa
+                    f"griffoning: found {commmunity_upstream_components_cnt} community upstream component(s)."  # noqa
                 )
-                commmunity_upstream_components: list = async_retrieve_components(
-                    self.community_session,
-                    params,
-                    component_community_initial,
-                    component_community_initial.count,
-                    item_limit=item_limit,
-                )
-                results.extend(commmunity_upstream_components)
-
+                for c in commmunity_upstream_components:
+                    c.sources = async_retrieve_sources(self.community_session, c.purl)
+                    c.upstreams = async_retrieve_upstreams(self.community_session, c.purl)
+                    results.append(c)
         if self.filter_rh_naming:
             flags = re.IGNORECASE
             patterns = [
@@ -481,53 +493,29 @@ class products_containing_component_query:
 
             results = filtered_results
 
-        if not self.no_community and (
-            self.search_community or self.search_all or self.search_all_roots
-        ):
-            params["type"] = "RPM"
-            params["arch"] = "src"
+        if self.search_community:
             if not self.strict_name_search:
                 params["re_name"] = self.component_name
             else:
                 params["name"] = self.component_name
-            if self.search_upstreams:
-                params["namespace"] = "UPSTREAM"
             if self.ns:
                 params["namespace"] = self.ns
-
-            if self.component_type:
-                params["type"] = self.component_type
-
-            component_initial = self.community_session.components.retrieve_list(
-                limit=item_limit, **params
+            all_community_components_cnt = self.community_session.components.count(**params)
+            all_community_components = (
+                self.community_session.components.retrieve_list_iterator_async(
+                    max_results=max_limit, **params
+                )
             )
             status.update(
-                f"griffoning: found {component_initial.count} community RPM src component(s)."
+                f"griffoning: found {all_community_components_cnt} community all component(s)."  # noqa
             )
-            commmunity_src_components: list = async_retrieve_components(
-                self.community_session,
-                params,
-                component_initial,
-                component_initial.count,
-                item_limit=item_limit,
-            )
-            params["type"] = "OCI"
-            params["arch"] = "noarch"
-            component_initial_noarch = self.community_session.components.retrieve_list(
-                limit=item_limit, **params
-            )
-            status.update(
-                f"griffoning: found {component_initial_noarch.count} community OCI noarch component(s)."  # noqa
-            )
-            commmunity_noarch_components: list = async_retrieve_components(
-                self.community_session,
-                params,
-                component_initial_noarch,
-                component_initial_noarch.count,
-                item_limit=item_limit,
-            )
-            community_components = commmunity_src_components + commmunity_noarch_components
-            results.extend(community_components)
+            for c in all_community_components:
+                status.update(
+                    f"griffoning: found {all_community_components_cnt} community all component(s). retrieving sources & upstreams."  # noqa
+                )
+                c.sources = async_retrieve_upstreams(self.community_session, c.purl)
+                c.upstreams = async_retrieve_upstreams(self.community_session, c.purl)
+                results.append(c)
 
         return results
 
@@ -612,29 +600,7 @@ class components_containing_component_query:
         if self.namespace:
             cond["namespace"] = self.namespace
 
-        components: List[Any] = []
-        logger.debug("starting parallel http requests")
-        component_cnt = self.corgi_session.components.retrieve_list(**cond).count
-        if component_cnt < 3000000:
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = []
-                components = list()
-                for batch in range(0, component_cnt, 120):
-                    futures.append(
-                        executor.submit(
-                            self.corgi_session.components.retrieve_list,
-                            **cond,
-                            offset=batch,
-                            include_fields="link,name,type,arch,version,purl,nvr,sources,related_url,download_url",  # noqa
-                            limit=120,
-                        )
-                    )
-                for future in concurrent.futures.as_completed(futures):
-                    try:
-                        components.extend(future.result().results)
-                    except Exception as exc:
-                        logger.warning("%r generated an exception: %s" % (future, exc))
-
+        components = self.corgi_session.components.retrieve_list_iterator_async(**cond)
         results = []
         for c in components:
             sources = [{"link": source["link"], "purl": source["purl"]} for source in c.sources]
@@ -702,24 +668,15 @@ class components_affected_by_specific_cve_query:
         flaw = self.osidb_session.flaws.retrieve(self.cve_id)
         affects = flaw.affects
         results = list()
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            for affect in affects:
-                futures.append(
-                    executor.submit(
-                        self.corgi_session.components.retrieve_list,
-                        name=affect.ps_component,
-                        latest_components_by_streams=True,
-                        include_fields="purl,product_streams,product_versions,software_build",
-                    )
-                )
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    for c in future.result().results:
-                        results.append(c.to_dict())
-                except Exception as exc:
-                    logger.error("%r generated an exception: %s" % (future, exc))
-                    exit(0)
+
+        for affect in affects:
+            components = self.corgi_session.components.retrieve_list_iterator_async(
+                name=affect.ps_component,
+                latest_components_by_streams="True",
+                include_fields="purl,product_streams,product_versions,software_build",
+            )
+            for c in components:
+                results.append(c.to_dict())
 
         return {
             "link": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
@@ -766,7 +723,7 @@ class cves_for_specific_component_query:
         if self.component_name:
             affects: list = []
             params = {
-                "include_fields": "cve_id,title,state,resolution,impact,affects",
+                "include_fields": "cve_id,title,resolution,impact,affects",
             }
             params["affects__ps_component"] = self.component_name
             if self.flaw_state:
@@ -782,63 +739,42 @@ class cves_for_specific_component_query:
             if self.affect_impact:
                 params["affects__impact"] = self.affect_impact
 
-            res = requests.get(f"{OSIDB_API_URL}/osidb/api/v1/flaws", params=params)
-            flaws = res.json()
-            flaws_cnt = int(flaws["count"])
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = []
-                flaws = list()
-                for batch in range(0, flaws_cnt, 75):
-                    params["offset"] = batch  # type: ignore
-                    params["limit"] = 75  # type: ignore
-                    futures.append(
-                        executor.submit(
-                            requests.get,
-                            f"{OSIDB_API_URL}/osidb/api/v1/flaws",
-                            params=params,
-                        )
-                    )
-                for future in concurrent.futures.as_completed(futures):
-                    try:
-                        flaws.extend(future.result().json()["results"])
-                    except Exception as exc:
-                        logger.warning("%r generated an exception: %s" % (future, exc))
+            flaws = self.osidb_session.flaws.retrieve_list_iterator_async(**params)
 
-                for flaw in flaws:
-                    for affect in flaw["affects"]:
-                        if self.affectedness:
-                            if self.affectedness != affect["affectedness"]:
-                                continue
-                        if self.affect_resolution:
-                            if self.affect_resolution != affect["resolution"]:
-                                continue
-                        if self.affect_impact:
-                            if self.affect_impact != affect["impact"]:
-                                continue
-                        affects.append(
-                            {
-                                "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect['uuid']}",  # noqa
-                                "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw['cve_id']}",  # noqa
-                                "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect['ps_component']}&latest_components_by_streams=True",  # noqa
-                                "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect['ps_component']}&latest_components_by_streams=True",  # noqa
-                                "flaw_cve_id": flaw["cve_id"],
-                                "title": flaw["title"],
-                                "flaw_state": flaw["state"],
-                                "flaw_resolution": flaw["resolution"],
-                                "affect_component_name": affect["ps_component"],
-                                "affect_product_version": affect["ps_module"],
-                                "affect_affectedness": affect["affectedness"],
-                                "affect_impact": affect["impact"],
-                                "affect_resolution": affect["resolution"],
-                            }
-                        )
-                components.append(
-                    {
-                        "link": f"{CORGI_API_URL}/api/v1/components?name={self.component_name}",
-                        "name": self.component_name,
-                        "affects": affects,
-                    }
-                )
+            for flaw in flaws:
+                for affect in flaw.affects:
+                    if self.affectedness:
+                        if self.affectedness != affect.affectedness:
+                            continue
+                    if self.affect_resolution:
+                        if self.affect_resolution != affect.resolution:
+                            continue
+                    if self.affect_impact:
+                        if self.affect_impact != affect.impact:
+                            continue
+                    affects.append(
+                        {
+                            "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect.uuid}",  # noqa
+                            "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",  # noqa
+                            "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
+                            "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
+                            "flaw_cve_id": flaw.cve_id,
+                            "title": flaw.title,
+                            "flaw_resolution": flaw.resolution,
+                            "affect_component_name": affect.ps_component,
+                            "affect_product_version": affect.ps_module,
+                            "affect_affectedness": affect.affectedness,
+                            "affect_impact": affect.impact,
+                            "affect_resolution": affect.resolution,
+                        }
+                    )
+            components.append(
+                {
+                    "link": f"{CORGI_API_URL}/api/v1/components?name={self.component_name}",
+                    "name": self.component_name,
+                    "affects": affects,
+                }
+            )
 
         if self.purl:
             pass
@@ -879,11 +815,9 @@ class cves_for_specific_product_query:
         if self.product_version_name:
             affects: list = []
             params = {
-                "include_fields": "cve_id,title,state,resolution,impact,affects",
+                "include_fields": "cve_id,title,resolution,impact,affects",
             }
             params["affects__ps_module"] = self.product_version_name
-            if self.flaw_state:
-                params["state"] = self.flaw_state
             if self.flaw_resolution:
                 params["resolution"] = self.flaw_resolution
             if self.flaw_impact:
@@ -895,62 +829,41 @@ class cves_for_specific_product_query:
             if self.affect_impact:
                 params["affects__impact"] = self.affect_impact
 
-            res = requests.get(f"{OSIDB_API_URL}/osidb/api/v1/flaws", params=params)
-            flaws = res.json()
-            flaws_cnt = int(flaws["count"])
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = []
-                flaws = list()
-                for batch in range(0, flaws_cnt, 75):
-                    params["offset"] = batch  # type: ignore
-                    params["limit"] = 75  # type: ignore
-                    futures.append(
-                        executor.submit(
-                            requests.get,
-                            f"{OSIDB_API_URL}/osidb/api/v1/flaws",
-                            params=params,
-                        )
+            flaws = self.osidb_session.flaws.retrieve_list_iterator_async(**params)
+            for flaw in flaws:
+                for affect in flaw.affects:
+                    if self.affectedness:
+                        if self.affectedness != affect.affectedness:
+                            continue
+                    if self.affect_resolution:
+                        if self.affect_resolution != affect.resolution:
+                            continue
+                    if self.affect_impact:
+                        if self.affect_impact != affect.impact:
+                            continue
+                    affects.append(
+                        {
+                            "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect.uuid}",  # noqa
+                            "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",  # noqa
+                            "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
+                            "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
+                            "flaw_cve_id": flaw.cve_id,
+                            "title": flaw.title,
+                            "flaw_state": flaw.state,
+                            "flaw_resolution": flaw.resolution,
+                            "affect_component_name": affect.ps_component,
+                            "affect_product_version": affect.ps_module,
+                            "affect_affectedness": affect.affectedness,
+                            "affect_impact": affect.impact,
+                            "affect_resolution": affect.resolution,
+                        }
                     )
-                for future in concurrent.futures.as_completed(futures):
-                    try:
-                        flaws.extend(future.result().json()["results"])
-                    except Exception as exc:
-                        logger.warning("%r generated an exception: %s" % (future, exc))
-
-                for flaw in flaws:
-                    for affect in flaw["affects"]:
-                        if self.affectedness:
-                            if self.affectedness != affect["affectedness"]:
-                                continue
-                        if self.affect_resolution:
-                            if self.affect_resolution != affect["resolution"]:
-                                continue
-                        if self.affect_impact:
-                            if self.affect_impact != affect["impact"]:
-                                continue
-                        affects.append(
-                            {
-                                "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect['uuid']}",  # noqa
-                                "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw['cve_id']}",  # noqa
-                                "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect['ps_component']}&latest_components_by_streams=True",  # noqa
-                                "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect['ps_component']}&latest_components_by_streams=True",  # noqa
-                                "flaw_cve_id": flaw["cve_id"],
-                                "title": flaw["title"],
-                                "flaw_state": flaw["state"],
-                                "flaw_resolution": flaw["resolution"],
-                                "affect_component_name": affect["ps_component"],
-                                "affect_product_version": affect["ps_module"],
-                                "affect_affectedness": affect["affectedness"],
-                                "affect_impact": affect["impact"],
-                                "affect_resolution": affect["resolution"],
-                            }
-                        )
-                components.append(
-                    {
-                        "link": f"{CORGI_API_URL}/api/v1/product_versions?name={self.product_version_name}",  # noqa
-                        "name": self.product_version_name,
-                        "affects": affects,
-                    }
-                )
+            components.append(
+                {
+                    "link": f"{CORGI_API_URL}/api/v1/product_versions?name={self.product_version_name}",  # noqa
+                    "name": self.product_version_name,
+                    "affects": affects,
+                }
+            )
 
         return components
