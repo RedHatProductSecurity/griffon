@@ -739,7 +739,6 @@ class cves_for_specific_component_query:
             if self.affect_impact:
                 params["affects__impact"] = self.affect_impact
 
-            # flaws_cnt = self.osidb_session.flaws.count(**params)
             flaws = self.osidb_session.flaws.retrieve_list_iterator_async(**params)
 
             for flaw in flaws:
@@ -830,7 +829,6 @@ class cves_for_specific_product_query:
             if self.affect_impact:
                 params["affects__impact"] = self.affect_impact
 
-            # flaws_cnt = self.osidb_session.flaws.count(**params)
             flaws = self.osidb_session.flaws.retrieve_list_iterator_async(**params)
             for flaw in flaws:
                 for affect in flaw.affects:
