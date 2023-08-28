@@ -195,6 +195,8 @@ class products_containing_specific_component_query:
 def async_retrieve_sources(self, purl, max_results=5000):
     source_params = {
         "max_results": max_results,
+        "latest_components": "True",
+        "root_components": "True",
         "provides": purl,
         "include_fields": "type,nvr,purl,name,namespace,download_url,related_url",
     }
@@ -207,6 +209,8 @@ def async_retrieve_sources(self, purl, max_results=5000):
 def async_retrieve_upstreams(self, purl, max_results=5000):
     upstream_params = {
         "max_results": max_results,
+        "latest_components": "True",
+        "root_components": "True",
         "upstreams": purl,
         "include_fields": "type,nvr,purl,name,namespace,download_url,related_url",
     }
