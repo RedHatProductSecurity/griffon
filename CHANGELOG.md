@@ -5,7 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-* added back parallism for resolving sub resources (sources & upstreams)
+
+## [0.3.2] - 2023-08-29
+added back parallism for resolving sub resources (sources & upstreams)
 * added back upstream retrieval when performing --search-all
 
 ## [0.3.1] - 2023-08-28
