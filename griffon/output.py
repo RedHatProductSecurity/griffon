@@ -272,9 +272,9 @@ def generate_affects(
                 for nvr in result_tree[pv][ps][component_name].keys():
                     if result_tree[pv][ps][component_name][nvr]["sources"]:
                         source_names = [
-                            source["name"]
+                            source.name
                             for source in result_tree[pv][ps][component_name][nvr]["sources"]
-                            if source.get("namespace") == "REDHAT"
+                            if source.namespace == "REDHAT"
                         ]
                         component_names.update(source_names)
                     else:
@@ -412,7 +412,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source["name"]
+                                                source.name
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "upstreams"
                                                 ]
@@ -438,7 +438,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source["name"]
+                                                source.name
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "sources"
                                                 ]
@@ -502,7 +502,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source.get("name")
+                                                source.name
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "upstreams"
                                                 ]
@@ -529,7 +529,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source.get("name")
+                                                source.name
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "sources"
                                                 ]
@@ -597,7 +597,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source["name"]
+                                                source.name
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "upstreams"
                                                 ]
@@ -619,7 +619,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source["name"]
+                                                source.name
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "sources"
                                                 ]
@@ -683,7 +683,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source["nvr"]
+                                                source.nvr
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "upstreams"
                                                 ]
@@ -705,7 +705,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source["nvr"]
+                                                source.nvr
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "sources"
                                                 ]
