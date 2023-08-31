@@ -16,7 +16,7 @@ from rich.logging import RichHandler
 
 from griffon.output import console
 
-__version__ = "0.3.4"
+__version__ = "0.3.5"
 
 if "CORGI_API_URL" not in os.environ:
     print("Must set CORGI_API_URL environment variable.")
