@@ -197,31 +197,35 @@ class products_containing_specific_component_query:
 def async_retrieve_sources(self, purl):
     params = {
         "limit": 300,
-        "latest_components": "True",
         "root_components": "True",
+        "released_components": "True",
         "provides": purl,
         "include_fields": "type,nvr,purl,name,namespace,download_url,related_url",
     }
-    # TODO: remove max_result
+    # TODO: remove cnt and max_result and cnt > 10000 on next stage-> prod deployment
+    cnt = self.components.count(**params)
+    if cnt > 10000:
+        return list(self.components.retrieve_list_iterator_async(max_results=5000, **params))
     return list(self.components.retrieve_list_iterator_async(max_results=10000, **params))
 
 
 def async_retrieve_upstreams(self, purl):
     params = {
         "limit": 300,
-        "latest_components": "True",
         "root_components": "True",
         "upstreams": purl,
         "include_fields": "type,nvr,purl,name,namespace,download_url,related_url",
     }
-    # TODO: remove max_result
+    # TODO: remove max_result on next stage-> prod deployment
     return list(self.components.retrieve_list_iterator_async(max_results=10000, **params))
 
 
 def process_component(session, c):
     """perform any neccessary sub retrievals."""
-    c.sources = async_retrieve_sources(session, c.purl)
-    c.upstreams = async_retrieve_upstreams(session, c.purl)
+    # we only need to resolve on REDHAT namespace components (for now)
+    if c.namespace == "REDHAT":
+        c.sources = async_retrieve_sources(session, c.purl)
+        c.upstreams = async_retrieve_upstreams(session, c.purl)
     return c
 
 
@@ -326,6 +330,7 @@ class products_containing_component_query:
                 params["namespace"] = self.ns
             if self.component_type:
                 params["type"] = self.component_type
+            params["released_components"] = "True"
             related_url_components_cnt = self.corgi_session.components.count(**params)
             status.update(
                 f"griffoning: found {related_url_components_cnt} related url component(s)."
@@ -370,7 +375,7 @@ class products_containing_component_query:
                 params["type"] = self.component_type
             if self.ns:
                 params["namespace"] = self.ns
-
+            params["released_components"] = "True"
             all_components_cnt = self.corgi_session.components.count(**params)
             status.update(f"griffoning: found {all_components_cnt} all component(s).")
             # TODO: remove max_results
@@ -416,6 +421,7 @@ class products_containing_component_query:
                 params["name"] = self.component_name
             if self.ns:
                 params["namespace"] = self.ns
+            params["released_components"] = "True"
             all_src_components_cnt = self.corgi_session.components.count(**params)
             status.update(f"griffoning: found {all_src_components_cnt} all root component(s).")
             all_src_components = self.corgi_session.components.retrieve_list_iterator_async(
@@ -450,9 +456,7 @@ class products_containing_component_query:
                 **params
             )
             with multiprocessing.Pool() as pool:
-                status.update(
-                    f"griffoning: found {upstream_components_cnt} upstream component(s), retrieving sources & upstreams."  # noqa
-                )
+                status.update(f"griffoning: found {upstream_components_cnt} upstream component(s).")
                 for processed_component in pool.map(
                     partial(process_component, self.corgi_session), upstream_components
                 ):
