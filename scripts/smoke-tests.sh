@@ -78,3 +78,5 @@ griffon service products-contain-component -s zlib -vvv
 griffon service product-flaws cost-management --affectedness AFFECTED --affect-resolution FIX
 griffon service component-flaws npm
 griffon service component-flaws python-marshmallow --affectedness AFFECTED
+griffon service products-contain-component --search-all --search-upstreams -s libxml2 -a
+griffon service products-contain-component -s grep -v --search-all
