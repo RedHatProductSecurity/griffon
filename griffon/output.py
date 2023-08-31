@@ -265,6 +265,8 @@ def generate_affects(
     ctx, result_tree, exclude_components, flaw_operation, format="text", no_wrap=False
 ):
     search_component_name = ctx.params["component_name"]
+    affects = []
+
     for pv in result_tree.keys():
         component_names = set()
         for ps in result_tree[pv].keys():
@@ -299,14 +301,13 @@ def generate_affects(
                         no_wrap=no_wrap,
                     )
         else:
-            affects = []
             for cn in component_names:
                 # ensure {component name} is not in profile exclude components enum
                 if not any([re.search(match, cn) for match in exclude_components]):
                     affects.append(
                         {"product_version": pv, "component_name": cn, "operation": flaw_operation}
                     )
-            return affects
+    return affects
 
 
 def text_output_products_contain_component(
