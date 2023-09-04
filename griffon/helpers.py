@@ -56,7 +56,7 @@ def debug_data_load(
         if transform_fn is not None:
             json_data = list(map(transform_fn, json_data))
 
-        data = [model.from_dict(item) for item in json_data]
+        data = [model.from_dict(item) for item in json_data]  # type: ignore
 
     else:
         data = json_data
