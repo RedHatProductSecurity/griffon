@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+
+## [0.3.6] - 2023-09-04
+### Changed
+* add error handling to some async invokes
+* fix mypy error
+
 ## [0.3.5] - 2023-08-31
 ### Changed
 * process all product version upon generating affects
