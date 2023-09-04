@@ -196,7 +196,7 @@ class products_containing_specific_component_query:
 
 def async_retrieve_sources(self, purl):
     params = {
-        "limit": 300,
+        "limit": 200,
         "root_components": "True",
         "released_components": "True",
         "provides": purl,
@@ -204,20 +204,35 @@ def async_retrieve_sources(self, purl):
     }
     # TODO: remove cnt and max_result and cnt > 10000 on next stage-> prod deployment
     cnt = self.components.count(**params)
-    if cnt > 10000:
-        return list(self.components.retrieve_list_iterator_async(max_results=5000, **params))
-    return list(self.components.retrieve_list_iterator_async(max_results=10000, **params))
+    if cnt == 0:
+        return []
+    try:
+        if cnt > 10000:
+            return list(self.components.retrieve_list_iterator_async(max_results=5000, **params))
+        return list(self.components.retrieve_list_iterator_async(max_results=10000, **params))
+    except Exception as e:
+        logger.warning(f"problem retrieving all of {purl} {cnt} sources.")
+        return []
 
 
 def async_retrieve_upstreams(self, purl):
     params = {
-        "limit": 300,
+        "limit": 200,
         "root_components": "True",
         "upstreams": purl,
         "include_fields": "type,nvr,purl,name,namespace,download_url,related_url",
     }
-    # TODO: remove max_result on next stage-> prod deployment
-    return list(self.components.retrieve_list_iterator_async(max_results=10000, **params))
+    # TODO: remove cnt and max_result and cnt > 10000 on next stage-> prod deployment
+    cnt = self.components.count(**params)
+    if cnt == 0:
+        return []
+    try:
+        if cnt > 10000:
+            return list(self.components.retrieve_list_iterator_async(max_results=5000, **params))
+        return list(self.components.retrieve_list_iterator_async(max_results=10000, **params))
+    except Exception as e:
+        logger.warning(f"problem retrieving all of {purl} {cnt} upstreams.")
+        return []
 
 
 def process_component(session, c):
@@ -281,7 +296,7 @@ class products_containing_component_query:
         status.update("griffoning: searching component-registry.")
         results = []
         params = {
-            "limit": 75,
+            "limit": 50,
             "include_fields": "purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components",  # noqa
         }
         if self.search_latest:
