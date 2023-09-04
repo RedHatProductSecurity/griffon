@@ -211,7 +211,7 @@ def async_retrieve_sources(self, purl):
             return list(self.components.retrieve_list_iterator_async(max_results=5000, **params))
         return list(self.components.retrieve_list_iterator_async(max_results=10000, **params))
     except Exception as e:
-        logger.warning(f"problem retrieving all of {purl} {cnt} sources.")
+        logger.warning(f"{type(e).__name__} - problem retrieving all of {purl} {cnt} sources.")
         return []
 
 
@@ -231,7 +231,7 @@ def async_retrieve_upstreams(self, purl):
             return list(self.components.retrieve_list_iterator_async(max_results=5000, **params))
         return list(self.components.retrieve_list_iterator_async(max_results=10000, **params))
     except Exception as e:
-        logger.warning(f"problem retrieving all of {purl} {cnt} upstreams.")
+        logger.warning(f"{type(e).__name__} - problem retrieving all of {purl} {cnt} upstreams.")
         return []
 
 
