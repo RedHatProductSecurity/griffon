@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.3.6] - 2023-09-04
+### Changed
+* minor try/except handling on async invokes
+
 ## [0.3.5] - 2023-08-31
 ### Changed
 * process all product version upon generating affects
