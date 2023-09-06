@@ -25,11 +25,7 @@ def multivalue_params_to_csv(params: dict) -> dict:
     for param_name, param_value in params.items():
         if isinstance(param_value, (tuple, list)):
             params[param_name] = ",".join(params[param_name])
-    # TODO - ugly hack to fix osidb bindings ... this should be fixed at some point
-    rename_params = {}
-    for param_name, param_value in params.items():
-        rename_params[param_name.replace("__", "_")] = param_value
-    return rename_params
+    return params
 
 
 def safe_issubclass(cls: type, class_or_tuple):
