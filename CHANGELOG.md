@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Fixed
+* Fix affects sorting with no CVE ID attached in component-flaws output
 
 ## [0.3.7] - 2023-09-06
 ### Added

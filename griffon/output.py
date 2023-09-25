@@ -916,8 +916,9 @@ def text_output_component_flaws(ctx, output, format, no_wrap=False):
     ordered_components = sorted(output["results"], key=lambda d: d["name"])
     for item in ordered_components:
         component_name = item["name"]
-        # sorting should work when there is no title or cve-id key
-        ordered_affects = sorted(item["affects"], key=lambda d: d["flaw_cve_id"])
+        ordered_affects = sorted(
+            item["affects"], key=lambda d: (d["flaw_cve_id"] is None, d["flaw_cve_id"])
+        )
         for affect in ordered_affects:
             flaw_cve_id = "Vulnerability"
             if affect["flaw_cve_id"]:
