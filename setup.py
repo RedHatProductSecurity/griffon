@@ -3,7 +3,7 @@
 This setup.py file uses setuptools to install the `griffon` package
 """
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 with open("README.md") as f:
     readme = f.read()
@@ -25,14 +25,7 @@ setup(
     url="https://github.com/RedHatProductSecurity/griffon",
     description="Red Hat Product Security CLI",
     package_data={"griffon": ["static/*"]},
-    packages=[
-        "griffon",
-        "griffon/commands",
-        "griffon/commands/entities",
-        "griffon/commands/plugins",
-        "griffon/services",
-        "griffon/autocomplete",
-    ],
+    packages=find_packages(),
     install_requires=[
         "click",
         "click-completion",
