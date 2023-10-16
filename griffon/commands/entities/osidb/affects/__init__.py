@@ -1,5 +1,5 @@
 """
-osidb entity operations
+osidb affect entity operations
 
 """
 import json

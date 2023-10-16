@@ -27,6 +27,8 @@ from griffon.output import console, cprint
 
 from .acknowledgments import flaw_acknowledgments
 from .comments import flaw_comments
+from .cvss import flaw_cvss
+from .package_versions import flaw_package_versions
 from .references import flaw_references
 
 logger = logging.getLogger("griffon")
@@ -189,6 +191,8 @@ def create_flaw(ctx, **params):
     return cprint(data, ctx=ctx)
 
 
-flaws.add_command(flaw_comments)
-flaws.add_command(flaw_references)
 flaws.add_command(flaw_acknowledgments)
+flaws.add_command(flaw_comments)
+flaws.add_command(flaw_cvss)
+flaws.add_command(flaw_package_versions)
+flaws.add_command(flaw_references)
