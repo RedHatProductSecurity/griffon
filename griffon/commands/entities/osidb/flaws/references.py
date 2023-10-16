@@ -155,7 +155,7 @@ def create_flaw_reference(ctx, flaw_id, **params):
 @click.option("--uuid", "reference_uuid", help="Reference UUID.", required=True)
 @request_body_options(endpoint_module=osidb_api_v1_flaws_references_update, exclude=["uuid"])
 @click.pass_context
-def update_flaw_references(ctx, flaw_id, reference_uuid, **params):
+def update_flaw_reference(ctx, flaw_id, reference_uuid, **params):
     request_body_type = getattr(osidb_api_v1_flaws_references_update, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
         raise click.ClickException(
@@ -219,7 +219,7 @@ def update_flaw_references(ctx, flaw_id, reference_uuid, **params):
     prompt="Are you sure you want to delete Flaw Reference?",
 )
 @click.pass_context
-def delete_flaw_references(ctx, flaw_id, reference_uuid, **params):
+def delete_flaw_reference(ctx, flaw_id, reference_uuid, **params):
     session = OSIDBService.create_session()
     try:
         data = session.flaws.references.delete(flaw_id, reference_uuid)
