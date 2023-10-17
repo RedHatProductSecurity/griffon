@@ -1,0 +1,3 @@
+"""
+griffon plugins
+"""
