@@ -210,6 +210,20 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     help="Search root Components (\033[1menabled by default\033[0m).",
 )
 @click.option(
+    "--search-provides",
+    "search_provides",
+    is_flag=True,
+    default=False,
+    help="Search root Components by provides children(\033[1menabled by default\033[0m).",
+)
+@click.option(
+    "--search-upstreams",
+    "search_upstreams",
+    is_flag=True,
+    default=False,
+    help="Search root Components by upstreams children (\033[1menabled by default\033[0m).",
+)
+@click.option(
     "--search-related-url",
     "search_related_url",
     is_flag=True,
@@ -251,8 +265,8 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     help="Search community Components.",
 )
 @click.option(
-    "--search-upstreams",
-    "search_upstreams",
+    "--search-all-upstreams",
+    "search_all_upstreams",
     is_flag=True,
     default=False,
     help="Search for Components by upstream.",
@@ -319,13 +333,15 @@ def get_product_contain_component(
     sfm2_flaw_id,
     flaw_mode,
     search_latest,
+    search_provides,
+    search_upstreams,
     search_related_url,
     filter_rh_naming,
     search_all,
     search_all_roots,
     search_redhat,
     search_community,
-    search_upstreams,
+    search_all_upstreams,
     no_community,
     no_middleware,
     no_upstream_affects,
@@ -350,10 +366,13 @@ def get_product_contain_component(
             and not search_all_roots
             and not search_related_url
             and not search_community
-            and not search_upstreams
+            and not search_all_upstreams
             and not search_redhat
+            and not search_provides
+            and not search_upstreams
         ):
             ctx.params["search_latest"] = True
+            ctx.params["search_provides"] = True
 
         params = copy.deepcopy(ctx.params)
         params.pop("verbose")
