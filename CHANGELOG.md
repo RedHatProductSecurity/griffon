@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### changed
+* existing --search-upstreams changed to --search-all-upstreams in 
+  service products-contain-component
+### Added
+* --search-provides in service products-contain-component which
+  will search name of components that are provide dependencies
+* --search-upstreams in service products-contain-component which
+  will search name of components that are upstream dependencies
 
 ## [0.3.8] - 2023-10-18
 ### Added
