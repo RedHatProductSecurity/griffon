@@ -469,6 +469,7 @@ class products_containing_component_query:
                 search_related_url_params["type"] = self.component_type
             if not (self.include_inactive_product_streams):
                 search_related_url_params["active_streams"] = "True"
+            search_related_url_params["released_components"] = "True"
             related_url_components_cnt = self.corgi_session.components.count(
                 **search_related_url_params
             )
@@ -520,6 +521,7 @@ class products_containing_component_query:
                 search_all_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_all_params["active_streams"] = "True"
+            search_all_params["released_components"] = "True"
             all_components_cnt = self.corgi_session.components.count(**search_all_params)
             status.update(f"griffoning: found {all_components_cnt} all component(s).")
             # TODO: remove max_results
@@ -570,6 +572,7 @@ class products_containing_component_query:
                 search_all_roots_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_all_roots_params["active_streams"] = "True"
+            search_all_roots_params["released_components"] = "True"
             all_src_components_cnt = self.corgi_session.components.count(**search_all_roots_params)
             status.update(f"griffoning: found {all_src_components_cnt} all root component(s).")
             all_src_components = self.corgi_session.components.retrieve_list_iterator_async(
@@ -603,6 +606,7 @@ class products_containing_component_query:
                 search_all_upstreams_params["type"] = self.component_type
             if not (self.include_inactive_product_streams):
                 search_all_upstreams_params["active_streams"] = "True"
+            search_all_upstreams_params["released_components"] = "True"
             upstream_components_cnt = self.corgi_session.components.count(
                 **search_all_upstreams_params
             )
