@@ -61,8 +61,8 @@ export REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt
 
 Set service urls.
 ```commandline
-export OSIDB_API_URL="https://<INSERT OSIDB API URL>"
-export CORGI_API_URL="https://<INSERT COMPONENT REGISTRY API URL>"
+export OSIDB_SERVER_URL="https://<INSERT OSIDB API URL>"
+export CORGI_SERVER_URL="https://<INSERT COMPONENT REGISTRY API URL>"
 ```
 
 and the following is set to enable searching community components:
@@ -113,8 +113,8 @@ The container is unsupported.
 First set some env vars
 
 ```commandline
-export CORGI_API_URL=<INSERT COMPONENT REGISTRY URL>
-export OSIDB_API_URL=<INESRT OSIDB URL>
+export CORGI_SERVER_URL=<INSERT COMPONENT REGISTRY URL>
+export OSIDB_SERVER_URL=<INESRT OSIDB URL>
 export REQUESTS_CA_BUNDLE=<INSERT CA BUNDLE PATH>
 export PIP_INDEX_URL=<INSERT PIP INDEX URL>
 export ROOT_CA_URL=<INSERT ROOT CA URL >

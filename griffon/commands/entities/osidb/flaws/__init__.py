@@ -15,7 +15,7 @@ from osidb_bindings.bindings.python_client.api.osidb import (
 from osidb_bindings.bindings.python_client.models import Flaw
 from requests import HTTPError
 
-from griffon import OSIDB_API_URL, OSIDBService, progress_bar
+from griffon import OSIDB_SERVER_URL, OSIDBService, progress_bar
 from griffon.commands.entities.helpers import (
     filter_request_fields,
     get_editor,
@@ -34,7 +34,7 @@ from .references import flaw_references
 logger = logging.getLogger("griffon")
 
 
-@click.group(help=f"{OSIDB_API_URL}/osidb/api/v1/flaws")
+@click.group(help=f"{OSIDB_SERVER_URL}/osidb/api/v1/flaws")
 @click.pass_context
 def flaws(ctx):
     """OSIDB Flaws."""

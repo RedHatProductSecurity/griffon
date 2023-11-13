@@ -14,19 +14,40 @@ from osidb_bindings.bindings.python_client.models import Affect, Flaw, Tracker
 from pkg_resources import resource_filename  # type: ignore
 from rich.logging import RichHandler
 
+from griffon.helpers import Color, Style
 from griffon.output import console
 
 __version__ = "0.3.8"
 
-if "CORGI_API_URL" not in os.environ:
-    print("Must set CORGI_API_URL environment variable.")
-    exit(1)
-CORGI_API_URL = os.environ["CORGI_API_URL"]
+# TODO: Deprecate CORGI_API_URL completely in the next version or two
+if "CORGI_API_URL" in os.environ:
+    print(
+        (
+            f"{Style.BOLD}{Color.YELLOW}WARNING: CORGI_API_URL will be deprecated "
+            "in the next version of Griffon in favour of CORGI_SERVER_URL, please "
+            f"switch to the new environment variable.{Style.RESET}"
+        )
+    )
 
-if "OSIDB_API_URL" not in os.environ:
-    print("Must set OSIDB_API_URL environment variable.")
+if "CORGI_SERVER_URL" not in os.environ and "CORGI_API_URL" not in os.environ:
+    print("Must set CORGI_SERVER_URL environment variable.")
     exit(1)
-OSIDB_API_URL = os.environ["OSIDB_API_URL"]
+CORGI_SERVER_URL = os.getenv("CORGI_SERVER_URL", os.getenv("CORGI_API_URL"))
+
+# TODO: Deprecate CORGI_API_URL completely in the next version or two
+if "OSIDB_API_URL" in os.environ:
+    print(
+        (
+            f"{Style.BOLD}{Color.YELLOW}WARNING: OSIDB_API_URL will be deprecated "
+            "in the next version of Griffon in favour of OSIDB_SERVER_URL, please "
+            f"switch to the new environment variable.{Style.RESET}"
+        )
+    )
+if "OSIDB_SERVER_URL" not in os.environ and "OSIDB_API_URL" not in os.environ:
+    print("Must set OSIDB_SERVER_URL environment variable.")
+    exit(1)
+OSIDB_SERVER_URL = os.getenv("OSIDB_SERVER_URL", os.getenv("OSIDB_API_URL"))
+
 OSIDB_USERNAME = os.getenv("OSIDB_USERNAME", "")
 OSIDB_PASSWORD = os.getenv("OSIDB_PASSWORD", "")
 OSIDB_AUTH_METHOD = os.getenv("OSIDB_AUTH_METHOD", "kerberos")
@@ -99,10 +120,10 @@ class CorgiService:
         """init corgi session"""
         try:
             return component_registry_bindings.new_session(
-                component_registry_server_uri=CORGI_API_URL,
+                component_registry_server_uri=CORGI_SERVER_URL,
             )
         except:  # noqa
-            console.log(f"{CORGI_API_URL} is not accessible.")
+            console.log(f"{CORGI_SERVER_URL} is not accessible.")
             exit(1)
 
     @staticmethod
@@ -166,9 +187,9 @@ class OSIDBService:
             if OSIDB_AUTH_METHOD == "credentials":
                 credentials["username"] = OSIDB_USERNAME
                 credentials["password"] = OSIDB_PASSWORD
-            return osidb_bindings.new_session(osidb_server_uri=OSIDB_API_URL, **credentials)
+            return osidb_bindings.new_session(osidb_server_uri=OSIDB_SERVER_URL, **credentials)
         except:  # noqa
-            console.log(f"{OSIDB_API_URL} is not accessible (or krb ticket has expired).")
+            console.log(f"{OSIDB_SERVER_URL} is not accessible (or krb ticket has expired).")
             exit(1)
 
     @staticmethod

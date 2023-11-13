@@ -15,7 +15,7 @@ from osidb_bindings.bindings.python_client.api.osidb import (
 from osidb_bindings.bindings.python_client.models import FlawPackageVersion
 from requests import HTTPError
 
-from griffon import OSIDB_API_URL, OSIDBService, progress_bar
+from griffon import OSIDB_SERVER_URL, OSIDBService, progress_bar
 from griffon.commands.entities.helpers import (
     abort_if_false,
     filter_request_fields,
@@ -30,7 +30,7 @@ logger = logging.getLogger("griffon")
 
 
 @click.group(
-    help=f"{OSIDB_API_URL}/osidb/api/v1/flaws/<id>/package_versions", name="package_versions"
+    help=f"{OSIDB_SERVER_URL}/osidb/api/v1/flaws/<id>/package_versions", name="package_versions"
 )
 @click.pass_context
 def flaw_package_versions(ctx):

@@ -32,7 +32,7 @@ from component_registry_bindings.bindings.python_client.models import (
     SoftwareBuild,
 )
 
-from griffon import CORGI_API_URL, CorgiService, progress_bar
+from griffon import CORGI_SERVER_URL, CorgiService, progress_bar
 from griffon.autocomplete import (
     get_component_purls,
     get_product_stream_names,
@@ -59,7 +59,7 @@ def corgi_grp(ctx):
 # COMPONENTS
 
 
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/components")
+@corgi_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/components")
 @click.pass_context
 def components(ctx):
     """Corgi Components."""
@@ -198,7 +198,7 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
         for ps in component.product_streams:
             product_streams.append(ps["name"])
     data = {
-        "link": f"{CORGI_API_URL}/api/v1/components?name={component_name}",
+        "link": f"{CORGI_SERVER_URL}/api/v1/components?name={component_name}",
         "type": component_type,
         "name": component_name,
         "tags": sorted(list(set(tags))),
@@ -352,14 +352,14 @@ def get_component_tree(ctx, component_uuid, nvr, purl, show_purl):
         component_uuid = c.results[0].uuid
     c = session.components.retrieve(component_uuid, include_fields="uuid,nvr,arch")
     if c.arch == "src" or c.arch == "noarch":
-        data = requests.get(f"{CORGI_API_URL}/api/v1/components/{component_uuid}/taxonomy")
+        data = requests.get(f"{CORGI_SERVER_URL}/api/v1/components/{component_uuid}/taxonomy")
         return cprint(data.json(), ctx=ctx)
     else:
         logger.info(f"{c.nvr},{c.arch} not a root component.")
 
 
 # PRODUCT STREAM
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/product_streams")
+@corgi_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/product_streams")
 @click.pass_context
 def product_streams(ctx):
     pass
@@ -512,7 +512,7 @@ def get_product_stream_manifest(ctx, product_stream_name, ofuri, spdx_json_forma
 # BUILDS
 
 
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/builds")
+@corgi_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/builds")
 @click.pass_context
 def builds(ctx):
     pass
@@ -572,7 +572,7 @@ def get_software_build(ctx, software_build_name, **params):
 # Products
 
 
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/products")
+@corgi_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/products")
 @click.pass_context
 def products(ctx):
     pass
@@ -633,7 +633,7 @@ def get_product(ctx, product_name, ofuri, **params):
 
 
 # PRODUCT VERSION
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/product-versions")
+@corgi_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/product-versions")
 @click.pass_context
 def product_versions(ctx):
     pass
@@ -695,7 +695,7 @@ def get_product_version(ctx, product_version_name, ofuri, **params):
 
 
 # PRODUCT VARIANT
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/product-variants")
+@corgi_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/product-variants")
 @click.pass_context
 def product_variants(ctx):
     pass
@@ -757,7 +757,7 @@ def get_product_variant(ctx, product_variant_name, ofuri, **params):
 
 
 # CHANNEL
-@corgi_grp.group(help=f"{CORGI_API_URL}/api/v1/channels")
+@corgi_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/channels")
 @click.pass_context
 def channels(ctx):
     pass
@@ -841,20 +841,20 @@ def corgi_health(ctx):
         session = CorgiService.create_session()
         status = session.status()["status"]
         if status == "ok":
-            console.log(f"{CORGI_API_URL} is operational")
+            console.log(f"{CORGI_SERVER_URL} is operational")
         else:
-            console.log(f"{CORGI_API_URL} is NOT operational")
+            console.log(f"{CORGI_SERVER_URL} is NOT operational")
             exit(1)
     except:  # noqa
-        console.log(f"{CORGI_API_URL} is NOT operational")
+        console.log(f"{CORGI_SERVER_URL} is NOT operational")
         raise click.ClickException("Component registry health check failed.")
 
 
 @manage_grp.command(name="data")
 def corgi_data():
-    click.launch(f"{CORGI_API_URL}/data")
+    click.launch(f"{CORGI_SERVER_URL}/data")
 
 
 @manage_grp.command(name="api_doc")
 def corgi_api_docs():
-    click.launch(f"{CORGI_API_URL}/api/v1/schema/docs")
+    click.launch(f"{CORGI_SERVER_URL}/api/v1/schema/docs")

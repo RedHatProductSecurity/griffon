@@ -15,7 +15,7 @@ from osidb_bindings.bindings.python_client.api.osidb import (
 from osidb_bindings.bindings.python_client.models import Affect
 from requests import HTTPError
 
-from griffon import OSIDB_API_URL, OSIDBService, progress_bar
+from griffon import OSIDB_SERVER_URL, OSIDBService, progress_bar
 from griffon.commands.entities.helpers import (
     abort_if_false,
     filter_request_fields,
@@ -29,7 +29,7 @@ from griffon.output import console, cprint
 logger = logging.getLogger("griffon")
 
 
-@click.group(help=f"{OSIDB_API_URL}/osidb/api/v1/affects")
+@click.group(help=f"{OSIDB_SERVER_URL}/osidb/api/v1/affects")
 @click.pass_context
 def affects(ctx):
     """OSIDB Affects."""
@@ -75,7 +75,7 @@ def list_affects(ctx, **params):
 def get_affect(ctx, affect_uuid, **params):
     """
     For parameter reference see:
-    <OSIDB_API_URL>/osidb/api/v1/schema/swagger-ui - /osidb/api/v1/affects/{uuid}
+    <OSIDB_SERVER_URL>/osidb/api/v1/schema/swagger-ui - /osidb/api/v1/affects/{uuid}
     """
     params = multivalue_params_to_csv(params)
 

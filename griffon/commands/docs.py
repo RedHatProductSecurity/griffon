@@ -4,7 +4,7 @@
 
 import click
 
-from griffon import CORGI_API_URL, OSIDB_API_URL
+from griffon import CORGI_SERVER_URL, OSIDB_SERVER_URL
 
 
 @click.group(name="docs", help="Links to useful docs.")
@@ -36,7 +36,7 @@ def griffon_tutorial():
 
 @service_grp.command()
 def osidb():
-    click.launch(OSIDB_API_URL)
+    click.launch(OSIDB_SERVER_URL)
 
 
 @service_grp.command()
@@ -56,7 +56,7 @@ def osidb_bindings():
 
 @service_grp.command()
 def corgi():
-    click.launch(CORGI_API_URL)
+    click.launch(CORGI_SERVER_URL)
 
 
 @service_grp.command()

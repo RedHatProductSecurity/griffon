@@ -15,7 +15,7 @@ from osidb_bindings.bindings.python_client.api.osidb import (
 from osidb_bindings.bindings.python_client.models import FlawAcknowledgment
 from requests import HTTPError
 
-from griffon import OSIDB_API_URL, OSIDBService, progress_bar
+from griffon import OSIDB_SERVER_URL, OSIDBService, progress_bar
 from griffon.commands.entities.helpers import (
     abort_if_false,
     filter_request_fields,
@@ -32,7 +32,7 @@ default_conditions: dict = {}
 
 
 @click.group(
-    help=f"{OSIDB_API_URL}/osidb/api/v1/flaws/<id>/acknowledgments", name="acknowledgments"
+    help=f"{OSIDB_SERVER_URL}/osidb/api/v1/flaws/<id>/acknowledgments", name="acknowledgments"
 )
 @click.pass_context
 def flaw_acknowledgments(ctx):

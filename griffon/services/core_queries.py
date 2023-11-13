@@ -13,8 +13,8 @@ from component_registry_bindings.bindings.python_client.models import Component
 
 from griffon import (
     COMMUNITY_COMPONENTS_API_URL,
-    CORGI_API_URL,
-    OSIDB_API_URL,
+    CORGI_SERVER_URL,
+    OSIDB_SERVER_URL,
     CommunityComponentService,
     CorgiService,
     OSIDBService,
@@ -69,8 +69,8 @@ class product_stream_summary:
                     "brew_tags": [brew_tag for brew_tag in ps.brew_tags.to_dict().keys()],
                     # "build_count": ps.build_count,
                     "manifest_link": ps.manifest,
-                    "latest_components_link": f"{CORGI_API_URL}/api/v1/components?ofuri={ps.ofuri}&view=summary",  # noqa
-                    "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={ps.ofuri}&include_fields=link,name,purl",  # noqa
+                    "latest_components_link": f"{CORGI_SERVER_URL}/api/v1/components?ofuri={ps.ofuri}&view=summary",  # noqa
+                    "all_components_link": f"{CORGI_SERVER_URL}/api/v1/components?product_streams={ps.ofuri}&include_fields=link,name,purl",  # noqa
                 }
                 results.append(result)
         else:
@@ -83,8 +83,8 @@ class product_stream_summary:
                     "product_version": product_streams["product_versions"][0]["name"],
                     "brew_tags": "",
                     "manifest_link": product_streams["manifest"],
-                    "latest_components_link": f"{CORGI_API_URL}/api/v1/components?ofuri={product_streams['ofuri']}&view=summary",  # noqa
-                    "all_components_link": f"{CORGI_API_URL}/api/v1/components?product_streams={product_streams['ofuri']}&include_fields=link,name,purl",  # noqa
+                    "latest_components_link": f"{CORGI_SERVER_URL}/api/v1/components?ofuri={product_streams['ofuri']}&view=summary",  # noqa
+                    "all_components_link": f"{CORGI_SERVER_URL}/api/v1/components?product_streams={product_streams['ofuri']}&include_fields=link,name,purl",  # noqa
                 }
                 results.append(result)
             else:
@@ -144,7 +144,7 @@ class products_versions_affected_by_specific_cve_query:
             for pv in c["product_versions"]:
                 product_versions.add(ps["name"])
         return {
-            "link": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
+            "link": f"{OSIDB_SERVER_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
             "cve_id": flaw.cve_id,
             "title": flaw.title,
             "description": flaw.description,
@@ -873,7 +873,7 @@ class components_affected_by_specific_cve_query:
                 results.append(c.to_dict())
 
         return {
-            "link": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
+            "link": f"{OSIDB_SERVER_URL}/osidb/api/v1/flaws/{flaw.cve_id}",
             "cve_id": flaw.cve_id,
             "title": flaw.title,
             "description": flaw.description,
@@ -948,9 +948,9 @@ class cves_for_specific_component_query:
                             continue
                     affects.append(
                         {
-                            "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect.uuid}",  # noqa
-                            "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",  # noqa
-                            "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
+                            "link_affect": f"{OSIDB_SERVER_URL}/osidb/api/v1/affects/{affect.uuid}",  # noqa
+                            "link_cve": f"{OSIDB_SERVER_URL}/osidb/api/v1/flaws/{flaw.cve_id}",  # noqa
+                            "link_component": f"{CORGI_SERVER_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
                             "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
                             "flaw_cve_id": flaw.cve_id,
                             "title": flaw.title,
@@ -964,7 +964,7 @@ class cves_for_specific_component_query:
                     )
             components.append(
                 {
-                    "link": f"{CORGI_API_URL}/api/v1/components?name={self.component_name}",
+                    "link": f"{CORGI_SERVER_URL}/api/v1/components?name={self.component_name}",
                     "name": self.component_name,
                     "affects": affects,
                 }
@@ -1037,9 +1037,9 @@ class cves_for_specific_product_query:
                             continue
                     affects.append(
                         {
-                            "link_affect": f"{OSIDB_API_URL}/osidb/api/v1/affects/{affect.uuid}",  # noqa
-                            "link_cve": f"{OSIDB_API_URL}/osidb/api/v1/flaws/{flaw.cve_id}",  # noqa
-                            "link_component": f"{CORGI_API_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
+                            "link_affect": f"{OSIDB_SERVER_URL}/osidb/api/v1/affects/{affect.uuid}",  # noqa
+                            "link_cve": f"{OSIDB_SERVER_URL}/osidb/api/v1/flaws/{flaw.cve_id}",  # noqa
+                            "link_component": f"{CORGI_SERVER_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
                             "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
                             "flaw_cve_id": flaw.cve_id,
                             "title": flaw.title,
@@ -1054,7 +1054,7 @@ class cves_for_specific_product_query:
                     )
             components.append(
                 {
-                    "link": f"{CORGI_API_URL}/api/v1/product_versions?name={self.product_version_name}",  # noqa
+                    "link": f"{CORGI_SERVER_URL}/api/v1/product_versions?name={self.product_version_name}",  # noqa
                     "name": self.product_version_name,
                     "affects": affects,
                 }
