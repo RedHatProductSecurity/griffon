@@ -40,6 +40,7 @@ from griffon.commands.reports import (
     generate_entity_report,
     generate_license_report,
 )
+from griffon.helpers import Style
 from griffon.output import (
     console,
     cprint,
@@ -188,12 +189,12 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
 # @click.option(
 #     "--cve-id",
 #     "cve_id",
-#     help="Attach affects to this (\033[1mCVE-ID\033[0m).",
+#     help=f"Attach affects to this {Style.BOLD}CVE-ID{Style.RESET}.",
 # )
 @click.option(
     "--sfm2-flaw-id",
     "sfm2_flaw_id",
-    help="Attach affects to this (\033[1msfm2 flaw id\033[0m).",
+    help=f"Attach affects to this {Style.BOLD}sfm2 flaw id{Style.RESET}.",
 )
 @click.option(
     "--flaw-mode",
@@ -207,28 +208,34 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "search_latest",
     is_flag=True,
     default=False,
-    help="Search root Components (\033[1menabled by default\033[0m).",
+    help=f"Search root Components {Style.BOLD}(enabled by default){Style.RESET}.",
 )
 @click.option(
     "--search-provides",
     "search_provides",
     is_flag=True,
     default=False,
-    help="Search root Components by provides children(\033[1menabled by default\033[0m).",
+    help=(
+        f"Search root Components by provides children "
+        f"{Style.BOLD}(enabled by default){Style.RESET}."
+    ),
 )
 @click.option(
     "--search-upstreams",
     "search_upstreams",
     is_flag=True,
     default=False,
-    help="Search root Components by upstreams children (\033[1menabled by default\033[0m).",
+    help=(
+        f"Search root Components by upstreams children "
+        f"{Style.BOLD}(enabled by default){Style.RESET}."
+    ),
 )
 @click.option(
     "--search-related-url",
     "search_related_url",
     is_flag=True,
     default=False,
-    help="Search related url (\033[1menabled by default\033[0m).",
+    help=f"Search related url {Style.BOLD}(enabled by default){Style.RESET}.",
 )
 @click.option(
     "--filter-rh-naming",
@@ -357,7 +364,7 @@ def get_product_contain_component(
         if not purl and not component_name:
             click.echo(ctx.get_help())
             click.echo("")
-            click.echo("\033[1mMust supply Component name or --purl.\033[0m")
+            click.echo(f"{Style.BOLD}Must supply Component name or --purl.{Style.RESET}")
             exit(0)
 
         if (
