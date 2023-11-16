@@ -23,6 +23,7 @@ from griffon.commands.entities.helpers import (
     query_params_options,
     request_body_options,
 )
+from griffon.exceptions import GriffonException
 from griffon.output import console, cprint
 
 from .acknowledgments import flaw_acknowledgments
@@ -102,7 +103,7 @@ def get_flaw(ctx, flaw_id, **params):
 def update_flaw(ctx, flaw_id, **params):
     request_body_type = getattr(osidb_api_v1_flaws_update, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for Flaw update. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -119,7 +120,7 @@ def update_flaw(ctx, flaw_id, **params):
     except Exception as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to fetch Flaw with ID '{flaw_id}'. "
             "Flaw either does not exist or you have insufficient permissions. "
             "Consider running griffon with -v option for verbose error log."
@@ -139,7 +140,7 @@ def update_flaw(ctx, flaw_id, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to update Flaw with ID '{flaw_id}'. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."
@@ -156,7 +157,7 @@ def update_flaw(ctx, flaw_id, **params):
 def create_flaw(ctx, **params):
     request_body_type = getattr(osidb_api_v1_flaws_create, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for Flaw create. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -183,7 +184,7 @@ def create_flaw(ctx, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             "Failed to create Flaw. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."

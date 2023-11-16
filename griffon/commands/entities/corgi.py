@@ -43,6 +43,7 @@ from griffon.commands.entities.helpers import (
     multivalue_params_to_csv,
     query_params_options,
 )
+from griffon.exceptions import GriffonException
 from griffon.output import console, cprint
 
 logger = logging.getLogger("griffon")
@@ -847,7 +848,7 @@ def corgi_health(ctx):
             exit(1)
     except:  # noqa
         console.log(f"{CORGI_SERVER_URL} is NOT operational")
-        raise click.ClickException("Component registry health check failed.")
+        raise GriffonException("Component registry health check failed.")
 
 
 @manage_grp.command(name="data")

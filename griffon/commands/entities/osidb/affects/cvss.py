@@ -24,6 +24,7 @@ from griffon.commands.entities.helpers import (
     query_params_options,
     request_body_options,
 )
+from griffon.exceptions import GriffonException
 from griffon.output import console, cprint
 
 logger = logging.getLogger("griffon")
@@ -106,7 +107,7 @@ def list_affect_cvss(ctx, affect_id, **params):
 def create_affect_cvss(ctx, affect_id, **params):
     request_body_type = getattr(osidb_api_v1_affects_cvss_scores_create, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for affect CVSS create. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -133,7 +134,7 @@ def create_affect_cvss(ctx, affect_id, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             "Failed to create affect CVSS. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."
@@ -154,7 +155,7 @@ def create_affect_cvss(ctx, affect_id, **params):
 def update_affect_cvss(ctx, affect_id, cvss_uuid, **params):
     request_body_type = getattr(osidb_api_v1_affects_cvss_scores_update, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for affect CVSS update. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -171,7 +172,7 @@ def update_affect_cvss(ctx, affect_id, cvss_uuid, **params):
     except Exception as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to fetch affect CVSS with ID '{cvss_uuid}'. "
             "affect or affect CVSS either does not exist or you have insufficient permissions. "
             "Consider running griffon with -v option for verbose error log."
@@ -191,7 +192,7 @@ def update_affect_cvss(ctx, affect_id, cvss_uuid, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to update affect CVSS with ID '{cvss_uuid}'. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."
@@ -222,7 +223,7 @@ def delete_affect_cvss(ctx, affect_id, cvss_uuid, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to delete affect CVSS {cvss_uuid}. "
             "It either does not exist or you have insufficient permissions."
         )

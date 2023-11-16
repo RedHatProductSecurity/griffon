@@ -22,6 +22,7 @@ from griffon.commands.entities.helpers import (
     query_params_options,
     request_body_options,
 )
+from griffon.exceptions import GriffonException
 from griffon.output import console, cprint
 
 logger = logging.getLogger("griffon")
@@ -104,7 +105,7 @@ def list_flaw_comments(ctx, flaw_id, **params):
 def create_flaw_comment(ctx, flaw_id, **params):
     request_body_type = getattr(osidb_api_v1_flaws_comments_create, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for Flaw Comment create. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -131,7 +132,7 @@ def create_flaw_comment(ctx, flaw_id, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             "Failed to create Flaw Comment. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."

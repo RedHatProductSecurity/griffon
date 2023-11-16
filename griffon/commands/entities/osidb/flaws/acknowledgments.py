@@ -24,6 +24,7 @@ from griffon.commands.entities.helpers import (
     query_params_options,
     request_body_options,
 )
+from griffon.exceptions import GriffonException
 from griffon.output import console, cprint
 
 logger = logging.getLogger("griffon")
@@ -116,7 +117,7 @@ def create_flaw_acknowledgment(ctx, flaw_id, **params):
         osidb_api_v1_flaws_acknowledgments_create, "REQUEST_BODY_TYPE", None
     )
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for Flaw Acknowledgment create. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -143,7 +144,7 @@ def create_flaw_acknowledgment(ctx, flaw_id, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             "Failed to create Flaw Acknowledgment. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."
@@ -166,7 +167,7 @@ def update_flaw_acknowledgment(ctx, flaw_id, acknowledgment_uuid, **params):
         osidb_api_v1_flaws_acknowledgments_update, "REQUEST_BODY_TYPE", None
     )
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for Flaw Acknowledgment update. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -183,7 +184,7 @@ def update_flaw_acknowledgment(ctx, flaw_id, acknowledgment_uuid, **params):
     except Exception as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to fetch Flaw Acknowledgment with ID '{acknowledgment_uuid}'. "
             "Flaw or Flaw Acknowledgment either does not exist or you have "
             "insufficient permissions. Consider running griffon with "
@@ -204,7 +205,7 @@ def update_flaw_acknowledgment(ctx, flaw_id, acknowledgment_uuid, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to update Flaw Acknowledgment with ID '{acknowledgment_uuid}'. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."
@@ -235,7 +236,7 @@ def delete_flaw_acknowledgments(ctx, flaw_id, acknowledgment_uuid, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to delete Flaw Acknowledgment {acknowledgment_uuid}. "
             "It either does not exist or you have insufficient permissions."
         )
