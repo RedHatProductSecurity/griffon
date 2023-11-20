@@ -16,8 +16,8 @@ dependencies = [
     "click-completion",
     "packageurl-python",
     "rich",
-    "component-registry-bindings",
-    "osidb-bindings",
+    "component-registry-bindings>=1.4.0",
+    "osidb-bindings>=3.5.1",
 ]
 classifiers = [
     "Topic :: Security",
