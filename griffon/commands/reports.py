@@ -42,7 +42,16 @@ def reports_grp(ctx):
 @click.pass_context
 @progress_bar
 def generate_affects_report(
-    ctx, product_version_name, all, show_components, show_products, purl, name, product_name, ofuri
+    ctx,
+    product_version_name,
+    all,
+    show_components,
+    show_products,
+    purl,
+    name,
+    product_name,
+    ofuri,
+    operation_status,
 ):
     """A report operation"""
     if not all and not product_version_name:
@@ -55,7 +64,7 @@ def generate_affects_report(
 @click.option("--all", is_flag=True, default=True, help="Show summary report on all entities.")
 @click.pass_context
 @progress_bar
-def generate_entity_report(ctx, all):
+def generate_entity_report(ctx, all, operation_status):
     """A report operation"""
     if not all:
         click.echo(ctx.get_help())
@@ -76,7 +85,7 @@ def generate_entity_report(ctx, all):
 )
 @click.pass_context
 @progress_bar
-def generate_license_report(ctx, product_stream_name, purl, exclude_children):
+def generate_license_report(ctx, product_stream_name, purl, exclude_children, operation_status):
     """A report operation"""
     if not product_stream_name and not purl:
         click.echo(ctx.get_help())

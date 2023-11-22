@@ -32,7 +32,7 @@ process_service = ProcessService()
 @catch_exception(handle=(HTTPError))
 @click.pass_context
 @progress_bar
-def generate_affects_for_component_process(ctx, purl, cve_id):
+def generate_affects_for_component_process(ctx, purl, cve_id, operation_status):
     """Generate affects for specific component."""
     if not purl and not cve_id:
         click.echo(ctx.get_help())

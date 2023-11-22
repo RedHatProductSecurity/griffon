@@ -303,7 +303,7 @@ class products_containing_component_query:
         self.include_inactive_product_streams = self.params.get("include_inactive_product_streams")
 
     def execute(self, status=None) -> List[Dict[str, Any]]:
-        status.update("griffoning: searching component-registry.")
+        status.update("searching component-registry.")
         results = []
         params = {
             "limit": 50,
@@ -321,27 +321,27 @@ class products_containing_component_query:
                 search_latest_params["active_streams"] = "True"
             search_latest_params["root_components"] = "True"
             search_latest_params["latest_components_by_streams"] = "True"
-            status.update("griffoning: searching latest root component(s).")
+            status.update("searching latest root component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_latest_params)
-            status.update(f"griffoning: found {latest_components_cnt} latest component(s).")
+            status.update(f"found {latest_components_cnt} latest component(s).")
             latest_components = self.corgi_session.components.retrieve_list_iterator_async(
                 **search_latest_params
             )
             with multiprocessing.Pool() as pool:
                 status.update(
-                    f"griffoning: found {latest_components_cnt} latest root component(s), retrieving sources & upstreams."  # noqa
+                    f"found {latest_components_cnt} latest root component(s), retrieving sources & upstreams."  # noqa
                 )
                 for processed_component in pool.map(
                     partial(process_component, self.corgi_session), latest_components
                 ):
                     results.append(processed_component)
             if not self.no_community:
-                status.update("griffoning: searching latest community root component(s).")
+                status.update("searching latest community root component(s).")
                 community_component_cnt = self.community_session.components.count(
                     **search_latest_params
                 )
                 status.update(
-                    f"griffoning: found {community_component_cnt} latest community root component(s)."  # noqa
+                    f"found {community_component_cnt} latest community root component(s)."  # noqa
                 )
                 latest_community_components = (
                     self.community_session.components.retrieve_list_iterator_async(
@@ -350,7 +350,7 @@ class products_containing_component_query:
                 )
                 with multiprocessing.Pool() as pool:
                     status.update(
-                        f"griffoning: found {community_component_cnt} latest community root component(s), retrieving sources & upstreams."  # noqa
+                        f"found {community_component_cnt} latest community root component(s), retrieving sources & upstreams."  # noqa
                     )
                     for processed_component in pool.map(
                         partial(process_component, self.community_session),
@@ -370,27 +370,27 @@ class products_containing_component_query:
                 search_provides_params["active_streams"] = "True"
             search_provides_params["root_components"] = "True"
             search_provides_params["latest_components_by_streams"] = "True"
-            status.update("griffoning: searching latest provided child component(s).")
+            status.update("searching latest provided child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_provides_params)
-            status.update(f"griffoning: found {latest_components_cnt} latest component(s).")
+            status.update(f"found {latest_components_cnt} latest component(s).")
             latest_components = self.corgi_session.components.retrieve_list_iterator_async(
                 **search_provides_params
             )
             with multiprocessing.Pool() as pool:
                 status.update(
-                    f"griffoning: found {latest_components_cnt} latest provides child component(s), retrieving sources & upstreams."  # noqa
+                    f"found {latest_components_cnt} latest provides child component(s), retrieving sources & upstreams."  # noqa
                 )
                 for processed_component in pool.map(
                     partial(process_component, self.corgi_session), latest_components
                 ):
                     results.append(processed_component)
             if not self.no_community:
-                status.update("griffoning: searching latest community provided child component(s).")
+                status.update("searching latest community provided child component(s).")
                 community_component_cnt = self.community_session.components.count(
                     **search_provides_params
                 )
                 status.update(
-                    f"griffoning: found {community_component_cnt} latest community provided child component(s)."  # noqa
+                    f"found {community_component_cnt} latest community provided child component(s)."  # noqa
                 )
                 latest_community_components = (
                     self.community_session.components.retrieve_list_iterator_async(
@@ -399,7 +399,7 @@ class products_containing_component_query:
                 )
                 with multiprocessing.Pool() as pool:
                     status.update(
-                        f"griffoning: found {community_component_cnt} latest community provided child component(s), retrieving sources & upstreams."  # noqa
+                        f"found {community_component_cnt} latest community provided child component(s), retrieving sources & upstreams."  # noqa
                     )
                     for processed_component in pool.map(
                         partial(process_component, self.community_session),
@@ -420,29 +420,27 @@ class products_containing_component_query:
                 search_upstreams_params["active_streams"] = "True"
             search_upstreams_params["released_components"] = "True"
             search_upstreams_params["latest_components_by_streams"] = "True"
-            status.update("griffoning: searching latest upstreams child component(s).")
+            status.update("searching latest upstreams child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_upstreams_params)
-            status.update(f"griffoning: found {latest_components_cnt} latest component(s).")
+            status.update(f"found {latest_components_cnt} latest component(s).")
             latest_components = self.corgi_session.components.retrieve_list_iterator_async(
                 **search_upstreams_params
             )
             with multiprocessing.Pool() as pool:
                 status.update(
-                    f"griffoning: found {latest_components_cnt} latest upstreams child component(s), retrieving sources & upstreams."  # noqa
+                    f"found {latest_components_cnt} latest upstreams child component(s), retrieving sources & upstreams."  # noqa
                 )
                 for processed_component in pool.map(
                     partial(process_component, self.corgi_session), latest_components
                 ):
                     results.append(processed_component)
             if not self.no_community:
-                status.update(
-                    "griffoning: searching latest community upstreams child component(s)."
-                )
+                status.update("searching latest community upstreams child component(s).")
                 community_component_cnt = self.community_session.components.count(
                     **search_upstreams_params
                 )
                 status.update(
-                    f"griffoning: found {community_component_cnt} latest community upstreams child component(s)."  # noqa
+                    f"found {community_component_cnt} latest community upstreams child component(s)."  # noqa
                 )
                 latest_community_components = (
                     self.community_session.components.retrieve_list_iterator_async(
@@ -451,7 +449,7 @@ class products_containing_component_query:
                 )
                 with multiprocessing.Pool() as pool:
                     status.update(
-                        f"griffoning: found {community_component_cnt} latest community provided child component(s), retrieving sources & upstreams."  # noqa
+                        f"found {community_component_cnt} latest community provided child component(s), retrieving sources & upstreams."  # noqa
                     )
                     for processed_component in pool.map(
                         partial(process_component, self.community_session),
@@ -473,15 +471,13 @@ class products_containing_component_query:
             related_url_components_cnt = self.corgi_session.components.count(
                 **search_related_url_params
             )
-            status.update(
-                f"griffoning: found {related_url_components_cnt} related url component(s)."
-            )
+            status.update(f"found {related_url_components_cnt} related url component(s).")
             related_url_components = self.corgi_session.components.retrieve_list_iterator_async(
                 **search_related_url_params
             )
             with multiprocessing.Pool() as pool:
                 status.update(
-                    f"griffoning: found {related_url_components_cnt} related url component(s), retrieving sources & upstreams."  # noqa
+                    f"found {related_url_components_cnt} related url component(s), retrieving sources & upstreams."  # noqa
                 )
                 for processed_component in pool.map(
                     partial(process_component, self.corgi_session), related_url_components
@@ -492,7 +488,7 @@ class products_containing_component_query:
                     **search_related_url_params
                 )
                 status.update(
-                    f"griffoning: found {latest_community_url_components_cnt} related url community component(s)."  # noqa
+                    f"found {latest_community_url_components_cnt} related url community component(s)."  # noqa
                 )
                 latest_community_url_components = (
                     self.community_session.components.retrieve_list_iterator_async(
@@ -501,7 +497,7 @@ class products_containing_component_query:
                 )
                 with multiprocessing.Pool() as pool:
                     status.update(
-                        f"griffoning: found {latest_community_url_components_cnt} related url community component(s), retrieving sources & upstreams."  # noqa
+                        f"found {latest_community_url_components_cnt} related url community component(s), retrieving sources & upstreams."  # noqa
                     )
                     for processed_component in pool.map(
                         partial(process_component, self.community_session),
@@ -523,15 +519,15 @@ class products_containing_component_query:
                 search_all_params["active_streams"] = "True"
             search_all_params["released_components"] = "True"
             all_components_cnt = self.corgi_session.components.count(**search_all_params)
-            status.update(f"griffoning: found {all_components_cnt} all component(s).")
+            status.update(f"found {all_components_cnt} all component(s).")
             # TODO: remove max_results
             all_components = self.corgi_session.components.retrieve_list_iterator_async(
                 **search_all_params, max_results=10000
             )
-            status.update(f"griffoning: found {all_components_cnt} all component(s).")
+            status.update(f"found {all_components_cnt} all component(s).")
             with multiprocessing.Pool() as pool:
                 status.update(
-                    f"griffoning: found {all_components_cnt} all component(s), retrieving sources & upstreams."  # noqa
+                    f"found {all_components_cnt} all component(s), retrieving sources & upstreams."  # noqa
                 )
                 for processed_component in pool.map(
                     partial(process_component, self.corgi_session), all_components
@@ -543,7 +539,7 @@ class products_containing_component_query:
                     **search_all_params
                 )
                 status.update(
-                    f"griffoning: found {all_community_components_cnt} community all component(s)."  # noqa
+                    f"found {all_community_components_cnt} community all component(s)."  # noqa
                 )
                 # TODO: remove max_results
                 all_community_components = (
@@ -553,7 +549,7 @@ class products_containing_component_query:
                 )
                 with multiprocessing.Pool() as pool:
                     status.update(
-                        f"griffoning: found {all_community_components_cnt} community all component(s), retrieving sources & upstreams."  # noqa
+                        f"found {all_community_components_cnt} community all component(s), retrieving sources & upstreams."  # noqa
                     )
                     for processed_component in pool.map(
                         partial(process_component, self.community_session),
@@ -574,7 +570,7 @@ class products_containing_component_query:
                 search_all_roots_params["active_streams"] = "True"
             search_all_roots_params["released_components"] = "True"
             all_src_components_cnt = self.corgi_session.components.count(**search_all_roots_params)
-            status.update(f"griffoning: found {all_src_components_cnt} all root component(s).")
+            status.update(f"found {all_src_components_cnt} all root component(s).")
             all_src_components = self.corgi_session.components.retrieve_list_iterator_async(
                 **search_all_roots_params
             )
@@ -590,7 +586,7 @@ class products_containing_component_query:
                     )
                 )
                 status.update(
-                    f"griffoning: found {all_src_community_components_cnt} community all root component(s)."  # noqa
+                    f"found {all_src_community_components_cnt} community all root component(s)."  # noqa
                 )
                 for c in all_src_community_components:
                     results.append(c)
@@ -610,12 +606,12 @@ class products_containing_component_query:
             upstream_components_cnt = self.corgi_session.components.count(
                 **search_all_upstreams_params
             )
-            status.update(f"griffoning: found {upstream_components_cnt} upstream component(s).")
+            status.update(f"found {upstream_components_cnt} upstream component(s).")
             upstream_components = self.corgi_session.components.retrieve_list_iterator_async(
                 **search_all_upstreams_params
             )
             with multiprocessing.Pool() as pool:
-                status.update(f"griffoning: found {upstream_components_cnt} upstream component(s).")
+                status.update(f"found {upstream_components_cnt} upstream component(s).")
                 for processed_component in pool.map(
                     partial(process_component, self.corgi_session), upstream_components
                 ):
@@ -625,7 +621,7 @@ class products_containing_component_query:
                     **search_all_upstreams_params
                 )
                 status.update(
-                    f"griffoning: found {commmunity_upstream_components_cnt} community upstream component(s)."  # noqa
+                    f"found {commmunity_upstream_components_cnt} community upstream component(s)."  # noqa
                 )
                 commmunity_upstream_components = (
                     self.community_session.components.retrieve_list_iterator_async(
@@ -634,7 +630,7 @@ class products_containing_component_query:
                 )
                 with multiprocessing.Pool() as pool:
                     status.update(
-                        f"griffoning: found {commmunity_upstream_components_cnt} community upstream component(s), retrieving sources & upstreams."  # noqa
+                        f"found {commmunity_upstream_components_cnt} community upstream component(s), retrieving sources & upstreams."  # noqa
                     )
                     for processed_component in pool.map(
                         partial(process_component, self.community_session),
@@ -695,7 +691,7 @@ class products_containing_component_query:
                 **search_community_params
             )
             status.update(
-                f"griffoning: found {all_community_components_cnt} community all component(s)."  # noqa
+                f"found {all_community_components_cnt} community all component(s)."  # noqa
             )
             all_community_components = (
                 self.community_session.components.retrieve_list_iterator_async(
@@ -704,7 +700,7 @@ class products_containing_component_query:
             )
             with multiprocessing.Pool() as pool:
                 status.update(
-                    f"griffoning: found {all_community_components_cnt} community all component(s), retrieving sources & upstreams."  # noqa
+                    f"found {all_community_components_cnt} community all component(s), retrieving sources & upstreams."  # noqa
                 )
                 for processed_component in pool.map(
                     partial(process_component, self.community_session), all_community_components

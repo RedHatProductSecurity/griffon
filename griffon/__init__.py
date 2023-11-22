@@ -6,12 +6,13 @@ import configparser
 import logging
 import os
 from configparser import ConfigParser
+from contextlib import contextmanager
 from functools import partial, wraps
 
 import component_registry_bindings
 import osidb_bindings
 from osidb_bindings.bindings.python_client.models import Affect, Flaw, Tracker
-from pkg_resources import resource_filename  # type: ignore
+from pkg_resources import resource_filename
 from rich.logging import RichHandler
 
 from griffon.helpers import Color, Style
@@ -340,6 +341,44 @@ class CommunityComponentService:
         return fields
 
 
+@contextmanager
+def console_status(no_progress_bar):
+    """updatable console status progress bar"""
+
+    class DisabledStatusObject:
+        """
+        Dummy disabled status object for graceful handle of
+        no progress bar option
+        """
+
+        def __getattr__(self, attr):
+            def dummy_method(*args, **kwargs):
+                pass  # Do nothing when any method is called
+
+            return dummy_method
+
+    class StatusObject:
+        """
+        Status object for default Griffon status handling
+        """
+
+        def __init__(self, status):
+            self.status = status
+
+        def update(self, status, *args, **kwargs):
+            self.status.update(
+                status=f"[magenta b]griffoning:[/magenta b] [bold]{status}[/bold]", *args, **kwargs
+            )
+
+    if no_progress_bar:
+        yield DisabledStatusObject()
+    else:
+        with console.status(
+            "[magenta b]griffoning[/magenta b]", spinner="line"
+        ) as operation_status:
+            yield StatusObject(operation_status)
+
+
 def progress_bar(
     func=None,
 ):
@@ -350,11 +389,8 @@ def progress_bar(
     @wraps(func)
     def wrapper(*args, **kwargs):
         obj: dict = args[0].obj
-        if obj.get("NO_PROGRESS_BAR"):
-            func(*args, **kwargs)
-        else:
-            with console.status("griffoning", spinner="line"):
-                func(*args, **kwargs)
+        with console_status(obj.get("NO_PROGRESS_BAR")) as operation_status:
+            func(*args, operation_status=operation_status, **kwargs)
 
     return wrapper
 
