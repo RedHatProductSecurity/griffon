@@ -8,6 +8,7 @@ pip=`which pip`
 pc=`which pip-compile`
 ps=`which pip-sync`
 openssl=`which openssl`
+type=patch
 
 ############################################################################
 # container targets
@@ -73,6 +74,9 @@ shell:
 
 setup-venv:
 	virtualenv --python=/usr/bin/python3.9 venv
+
+release:
+	scripts/release.sh $(type)
 
 ############################################################################
 # utility targets
