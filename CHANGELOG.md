@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   service products-contain-component
 * OSIDB_API_URL environment variable changed to OSIDB_SERVER_URL
 * CORGI_API_URL environment variable changed to CORGI_SERVER_URL
+* Migrated from setup.py to pyproject.toml
 
 ### Added
 * --search-provides in service products-contain-component which
@@ -17,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * --search-upstreams in service products-contain-component which
   will search name of components that are upstream dependencies
 * example plugin introduced
+* osidb-bindings and component-registry-bindings dependency versions
+  are now pinned in pyproject.toml
 
 ### Fixed
 * standardized progress bar accross whole Griffon which fixes

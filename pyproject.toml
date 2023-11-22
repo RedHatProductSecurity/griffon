@@ -1,3 +1,61 @@
+[project]
+name = "griffon"
+license = {file = "LICENSE"}
+authors = [
+    {name="James Fuller (Red Hat Product Security)"},
+    {name="Jakub Frejlach (Red Hat Product Security)"},
+]
+maintainers = [
+    {name="James Fuller (Red Hat Product Security)"},
+    {name="Jakub Frejlach (Red Hat Product Security)"},
+]
+description = "Red Hat Product Security CLI"
+requires-python = ">=3.9"
+dependencies = [
+    "click",
+    "click-completion",
+    "packageurl-python",
+    "rich",
+    "component-registry-bindings>=1.4.0",
+    "osidb-bindings>=3.5.1",
+]
+classifiers = [
+    "Topic :: Security",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+]
+dynamic = ["version", "readme"]
+
+
+[project.scripts]
+griffon = "griffon.cli:cli"
+
+
+[project.urls]
+Homepage = "https://github.com/RedHatProductSecurity/griffon"
+Documentation = "https://github.com/RedHatProductSecurity/griffon/tree/main/docs"
+Changelog = "https://github.com/RedHatProductSecurity/griffon/blob/main/CHANGELOG.md"
+Issues = "https://github.com/RedHatProductSecurity/griffon/issues"
+
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools.dynamic]
+version = {attr = "griffon.__version__"}
+readme = {file = ["README.md"], content-type = "text/markdown"}
+
+
+[tool.setuptools.package-data]
+griffon = ["griffon/static/*"]
+
+
+[tool.setuptools.packages]
+find = {namespaces = false}
+
 [tool.pytest.ini_options]
 testpaths = "tests"
 # Options used for every pytest command:
@@ -29,8 +87,10 @@ filterwarnings = [
 [tool.black]
 line-length = 100
 
+
 [tool.isort]
 profile = "black"
+
 
 [tool.mypy]
 python_version = "3.9"
