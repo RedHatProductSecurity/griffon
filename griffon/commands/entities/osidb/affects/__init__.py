@@ -15,7 +15,7 @@ from osidb_bindings.bindings.python_client.api.osidb import (
 from osidb_bindings.bindings.python_client.models import Affect
 from requests import HTTPError
 
-from griffon import OSIDB_API_URL, OSIDBService, progress_bar
+from griffon import OSIDB_SERVER_URL, OSIDBService, progress_bar
 from griffon.commands.entities.helpers import (
     abort_if_false,
     filter_request_fields,
@@ -24,12 +24,13 @@ from griffon.commands.entities.helpers import (
     query_params_options,
     request_body_options,
 )
+from griffon.exceptions import GriffonException
 from griffon.output import console, cprint
 
 logger = logging.getLogger("griffon")
 
 
-@click.group(help=f"{OSIDB_API_URL}/osidb/api/v1/affects")
+@click.group(help=f"{OSIDB_SERVER_URL}/osidb/api/v1/affects")
 @click.pass_context
 def affects(ctx):
     """OSIDB Affects."""
@@ -75,7 +76,7 @@ def list_affects(ctx, **params):
 def get_affect(ctx, affect_uuid, **params):
     """
     For parameter reference see:
-    <OSIDB_API_URL>/osidb/api/v1/schema/swagger-ui - /osidb/api/v1/affects/{uuid}
+    <OSIDB_SERVER_URL>/osidb/api/v1/schema/swagger-ui - /osidb/api/v1/affects/{uuid}
     """
     params = multivalue_params_to_csv(params)
 
@@ -91,7 +92,7 @@ def get_affect(ctx, affect_uuid, **params):
 def update_affect(ctx, affect_uuid, **params):
     request_body_type = getattr(osidb_api_v1_affects_update, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for Affect update. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -106,7 +107,7 @@ def update_affect(ctx, affect_uuid, **params):
     except Exception as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to fetch Affect with ID '{affect_uuid}'. "
             "Affect either does not exist or you have insufficient permissions. "
             "Consider running griffon with -v option for verbose error log."
@@ -126,7 +127,7 @@ def update_affect(ctx, affect_uuid, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to update Affect with ID '{affect_uuid}'. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."
@@ -143,7 +144,7 @@ def update_affect(ctx, affect_uuid, **params):
 def create_affect(ctx, **params):
     request_body_type = getattr(osidb_api_v1_affects_create, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for Affect create. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -170,7 +171,7 @@ def create_affect(ctx, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             "Failed to create Affect. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."
@@ -195,7 +196,7 @@ def delete_affect(ctx, affect_uuid, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to delete {affect_uuid}. "
             "It either does not exist or you have insufficient permissions."
         )

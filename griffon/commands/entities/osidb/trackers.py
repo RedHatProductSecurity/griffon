@@ -11,7 +11,7 @@ from osidb_bindings.bindings.python_client.api.osidb import (
 )
 from osidb_bindings.bindings.python_client.models import Tracker
 
-from griffon import OSIDB_API_URL, OSIDBService, progress_bar
+from griffon import OSIDB_SERVER_URL, OSIDBService, progress_bar
 from griffon.commands.entities.helpers import (
     multivalue_params_to_csv,
     query_params_options,
@@ -21,7 +21,7 @@ from griffon.output import cprint
 logger = logging.getLogger("griffon")
 
 
-@click.group(help=f"{OSIDB_API_URL}/osidb/api/v1/trackers")
+@click.group(help=f"{OSIDB_SERVER_URL}/osidb/api/v1/trackers")
 @click.pass_context
 def trackers(ctx):
     """OSIDB Trackers."""

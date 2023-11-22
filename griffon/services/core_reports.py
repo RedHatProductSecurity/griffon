@@ -7,7 +7,7 @@ from datetime import datetime
 
 import requests
 
-from griffon import OSIDB_API_URL, CorgiService, OSIDBService
+from griffon import OSIDB_SERVER_URL, CorgiService, OSIDBService
 
 logger = logging.getLogger("griffon")
 
@@ -48,7 +48,7 @@ class example_affects_report:
 
         # TODO osidb_session.affects does not support include_fields, do it manually for now
         affect_critical_res = requests.get(
-            f"{OSIDB_API_URL}/osidb/api/v1/affects?affectedness=AFFECTED&impact=CRITICAL&include_fields=ps_component,ps_module,impact&limit=10000"  # noqa
+            f"{OSIDB_SERVER_URL}/osidb/api/v1/affects?affectedness=AFFECTED&impact=CRITICAL&include_fields=ps_component,ps_module,impact&limit=10000"  # noqa
         )
         affects_critical = affect_critical_res.json()
         critical_components = {}
@@ -68,7 +68,7 @@ class example_affects_report:
         top_critical_product = max(critical_products, key=critical_products.get)  # type: ignore
 
         affect_important_res = requests.get(
-            f"{OSIDB_API_URL}/osidb/api/v1/affects?affectedness=AFFECTED&impact=IMPORTANT&include_fields=ps_component,ps_module,impact&limit=10000"  # noqa
+            f"{OSIDB_SERVER_URL}/osidb/api/v1/affects?affectedness=AFFECTED&impact=IMPORTANT&include_fields=ps_component,ps_module,impact&limit=10000"  # noqa
         )
         affects_important = affect_important_res.json()
         important_components = {}
@@ -87,7 +87,7 @@ class example_affects_report:
         top_important_product = max(important_products, key=important_products.get)  # type: ignore # noqa
 
         affect_moderate_res = requests.get(
-            f"{OSIDB_API_URL}/osidb/api/v1/affects?affectedness=AFFECTED&impact=MODERATE&include_fields=ps_component,ps_module,impact&limit=10000"  # noqa
+            f"{OSIDB_SERVER_URL}/osidb/api/v1/affects?affectedness=AFFECTED&impact=MODERATE&include_fields=ps_component,ps_module,impact&limit=10000"  # noqa
         )
         affects_moderate = affect_moderate_res.json()
         moderate_components = {}
@@ -106,7 +106,7 @@ class example_affects_report:
         top_moderate_product = max(moderate_products, key=moderate_products.get)  # type: ignore
 
         affect_low_res = requests.get(
-            f"{OSIDB_API_URL}/osidb/api/v1/affects?affectedness=AFFECTED&impact=LOW&include_fields=ps_component,ps_module,impact&limit=10000"  # noqa
+            f"{OSIDB_SERVER_URL}/osidb/api/v1/affects?affectedness=AFFECTED&impact=LOW&include_fields=ps_component,ps_module,impact&limit=10000"  # noqa
         )
         affects_low = affect_low_res.json()
         low_components = {}

@@ -15,7 +15,7 @@ from osidb_bindings.bindings.python_client.api.osidb import (
 from osidb_bindings.bindings.python_client.models import FlawPackageVersion
 from requests import HTTPError
 
-from griffon import OSIDB_API_URL, OSIDBService, progress_bar
+from griffon import OSIDB_SERVER_URL, OSIDBService, progress_bar
 from griffon.commands.entities.helpers import (
     abort_if_false,
     filter_request_fields,
@@ -24,13 +24,14 @@ from griffon.commands.entities.helpers import (
     query_params_options,
     request_body_options,
 )
+from griffon.exceptions import GriffonException
 from griffon.output import console, cprint
 
 logger = logging.getLogger("griffon")
 
 
 @click.group(
-    help=f"{OSIDB_API_URL}/osidb/api/v1/flaws/<id>/package_versions", name="package_versions"
+    help=f"{OSIDB_SERVER_URL}/osidb/api/v1/flaws/<id>/package_versions", name="package_versions"
 )
 @click.pass_context
 def flaw_package_versions(ctx):
@@ -114,7 +115,7 @@ def create_flaw_package_version(ctx, flaw_id, **params):
         osidb_api_v1_flaws_package_versions_create, "REQUEST_BODY_TYPE", None
     )
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for Flaw Package Version create. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -141,7 +142,7 @@ def create_flaw_package_version(ctx, flaw_id, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             "Failed to create Flaw Package Version. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."
@@ -164,7 +165,7 @@ def update_flaw_package_version(ctx, flaw_id, package_version_uuid, **params):
         osidb_api_v1_flaws_package_versions_update, "REQUEST_BODY_TYPE", None
     )
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for Flaw Package Version update. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -181,7 +182,7 @@ def update_flaw_package_version(ctx, flaw_id, package_version_uuid, **params):
     except Exception as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to fetch Flaw Package Version with ID '{package_version_uuid}'. "
             "Flaw or Flaw Package Version either does not exist or you have "
             "insufficient permissions. "
@@ -202,7 +203,7 @@ def update_flaw_package_version(ctx, flaw_id, package_version_uuid, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to update Flaw Package Version with ID '{package_version_uuid}'. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."
@@ -233,7 +234,7 @@ def delete_flaw_package_version(ctx, flaw_id, package_versions_uuid, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to delete Flaw Package Version {package_versions_uuid}. "
             "It either does not exist or you have insufficient permissions."
         )

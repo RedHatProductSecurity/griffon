@@ -34,7 +34,7 @@ from component_registry_bindings.bindings.python_client.models import (
 
 from griffon import (
     COMMUNITY_COMPONENTS_API_URL,
-    CORGI_API_URL,
+    CORGI_SERVER_URL,
     CommunityComponentService,
     progress_bar,
 )
@@ -48,6 +48,7 @@ from griffon.commands.entities.helpers import (
     multivalue_params_to_csv,
     query_params_options,
 )
+from griffon.exceptions import GriffonException
 from griffon.output import console, cprint
 
 logger = logging.getLogger("griffon")
@@ -203,7 +204,7 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
         for ps in component.product_streams:
             product_streams.append(ps["name"])
     data = {
-        "link": f"{CORGI_API_URL}/api/v1/components?name={component_name}",
+        "link": f"{CORGI_SERVER_URL}/api/v1/components?name={component_name}",
         "type": component_type,
         "name": component_name,
         "tags": sorted(list(set(tags))),
@@ -330,7 +331,7 @@ def get_component_manifest(ctx, component_uuid, purl, spdx_json_format):
 
 
 # PRODUCT STREAM
-@commmunity_components_grp.group(help=f"{CORGI_API_URL}/api/v1/product_streams")
+@commmunity_components_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/product_streams")
 @click.pass_context
 def product_streams(ctx):
     pass
@@ -481,7 +482,7 @@ def get_product_stream_manifest(ctx, product_stream_name, ofuri, spdx_json_forma
 # BUILDS
 
 
-@commmunity_components_grp.group(help=f"{CORGI_API_URL}/api/v1/builds")
+@commmunity_components_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/builds")
 @click.pass_context
 def builds(ctx):
     pass
@@ -543,7 +544,7 @@ def get_software_build(ctx, software_build_name, **params):
 # Products
 
 
-@commmunity_components_grp.group(help=f"{CORGI_API_URL}/api/v1/products")
+@commmunity_components_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/products")
 @click.pass_context
 def products(ctx):
     pass
@@ -603,7 +604,7 @@ def get_product(ctx, product_name, ofuri, **params):
 
 
 # PRODUCT VERSION
-@commmunity_components_grp.group(help=f"{CORGI_API_URL}/api/v1/product-versions")
+@commmunity_components_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/product-versions")
 @click.pass_context
 def product_versions(ctx):
     pass
@@ -668,7 +669,7 @@ def get_product_version(ctx, product_version_name, ofuri, **params):
 
 
 # PRODUCT VARIANT
-@commmunity_components_grp.group(help=f"{CORGI_API_URL}/api/v1/product-variants")
+@commmunity_components_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/product-variants")
 @click.pass_context
 def product_variants(ctx):
     pass
@@ -733,7 +734,7 @@ def get_product_variant(ctx, product_variant_name, ofuri, **params):
 
 
 # CHANNEL
-@commmunity_components_grp.group(help=f"{CORGI_API_URL}/api/v1/channels")
+@commmunity_components_grp.group(help=f"{CORGI_SERVER_URL}/api/v1/channels")
 @click.pass_context
 def channels(ctx):
     pass
@@ -815,20 +816,20 @@ def corgi_health(ctx):
         session = CommunityComponentService.create_session()
         status = session.status()["status"]
         if status == "ok":
-            console.log(f"{CORGI_API_URL} is operational")
+            console.log(f"{CORGI_SERVER_URL} is operational")
         else:
-            console.log(f"{CORGI_API_URL} is NOT operational")
+            console.log(f"{CORGI_SERVER_URL} is NOT operational")
             exit(1)
     except:  # noqa
-        console.log(f"{CORGI_API_URL} is NOT operational")
-        raise click.ClickException("Component registry health check failed.")
+        console.log(f"{CORGI_SERVER_URL} is NOT operational")
+        raise GriffonException("Component registry health check failed.")
 
 
 @manage_grp.command(name="data")
 def corgi_data():
-    click.launch(f"{CORGI_API_URL}/data")
+    click.launch(f"{CORGI_SERVER_URL}/data")
 
 
 @manage_grp.command(name="api_doc")
 def corgi_api_docs():
-    click.launch(f"{CORGI_API_URL}/api/v1/schema/docs")
+    click.launch(f"{CORGI_SERVER_URL}/api/v1/schema/docs")

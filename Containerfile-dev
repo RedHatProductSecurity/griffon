@@ -9,15 +9,15 @@ LABEL maintainer="Red Hat Product Security Dev - Red Hat, Inc." \
 ARG PIP_INDEX_URL
 ARG ROOT_CA_URL
 ARG REQUESTS_CA_BUNDLE
-ARG CORGI_API_URL
-ARG OSIDB_API_URL
+ARG CORGI_SERVER_URL
+ARG OSIDB_SERVER_URL
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=off \
     PIP_INDEX_URL="${PIP_INDEX_URL}" \
     REQUESTS_CA_BUNDLE="${REQUESTS_CA_BUNDLE}" \
     ROOT_CA_URL="${ROOT_CA_URL}" \
-    CORGI_API_URL="${CORGI_API_URL}" \
-    OSIDB_API_URL="${OSIDB_API_URL}"
+    CORGI_SERVER_URL="${CORGI_SERVER_URL}" \
+    OSIDB_SERVER_URL="${OSIDB_SERVER_URL}"
 
 RUN cd /etc/pki/ca-trust/source/anchors/ && \
     # The '| true' skips this step if the ROOT_CA_URL is unset or fails in another way

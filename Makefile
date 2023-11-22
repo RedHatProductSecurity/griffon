@@ -13,8 +13,8 @@ openssl=`which openssl`
 # container targets
 ############################################################################
 build-container: Containerfile
-	$(podman) build --build-arg CORGI_API_URL="${CORGI_API_URL}" \
-					--build-arg OSIDB_API_URL="${OSIDB_API_URL}" \
+	$(podman) build --build-arg CORGI_SERVER_URL="${CORGI_SERVER_URL}" \
+					--build-arg OSIDB_SERVER_URL="${OSIDB_SERVER_URL}" \
 					--build-arg REQUESTS_CA_BUNDLE="${REQUESTS_CA_BUNDLE}" \
 					--build-arg PIP_INDEX_URL="${PIP_INDEX_URL}" \
 					--build-arg ROOT_CA_URL="${ROOT_CA_URL}" \

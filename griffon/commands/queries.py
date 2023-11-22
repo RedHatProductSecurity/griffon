@@ -28,6 +28,7 @@ from griffon.autocomplete import (
     get_product_stream_ofuris,
     get_product_version_names,
 )
+from griffon.commands.custom_commands import GroupArgument, GroupOption
 from griffon.commands.entities.corgi import (
     get_component_manifest,
     get_component_summary,
@@ -40,6 +41,7 @@ from griffon.commands.reports import (
     generate_entity_report,
     generate_license_report,
 )
+from griffon.helpers import Style
 from griffon.output import (
     console,
     cprint,
@@ -156,10 +158,17 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
 )
 @click.argument(
     "component_name",
+    cls=GroupArgument,
     required=False,
+    required_group=["component_name", "purl"],
+    mutually_exclusive_group=["purl"],
 )
 @click.option(
-    "--purl", help="Component purl, needs to be in quotes (ex. 'pkg:rpm/python-pyjwt@1.7.1')"
+    "--purl",
+    cls=GroupOption,
+    help="Component purl, needs to be in quotes (ex. 'pkg:rpm/python-pyjwt@1.7.1')",
+    required_group=["component_name", "purl"],
+    mutually_exclusive_group=["component_name"],
 )
 @click.option(
     "--arch",
@@ -188,12 +197,12 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
 # @click.option(
 #     "--cve-id",
 #     "cve_id",
-#     help="Attach affects to this (\033[1mCVE-ID\033[0m).",
+#     help=f"Attach affects to this {Style.BOLD}CVE-ID{Style.RESET}.",
 # )
 @click.option(
     "--sfm2-flaw-id",
     "sfm2_flaw_id",
-    help="Attach affects to this (\033[1msfm2 flaw id\033[0m).",
+    help=f"Attach affects to this {Style.BOLD}sfm2 flaw id{Style.RESET}.",
 )
 @click.option(
     "--flaw-mode",
@@ -207,28 +216,34 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "search_latest",
     is_flag=True,
     default=False,
-    help="Search root Components (\033[1menabled by default\033[0m).",
+    help=f"Search root Components {Style.BOLD}(enabled by default){Style.RESET}.",
 )
 @click.option(
     "--search-provides",
     "search_provides",
     is_flag=True,
     default=False,
-    help="Search root Components by provides children(\033[1menabled by default\033[0m).",
+    help=(
+        f"Search root Components by provides children "
+        f"{Style.BOLD}(enabled by default){Style.RESET}."
+    ),
 )
 @click.option(
     "--search-upstreams",
     "search_upstreams",
     is_flag=True,
     default=False,
-    help="Search root Components by upstreams children (\033[1menabled by default\033[0m).",
+    help=(
+        f"Search root Components by upstreams children "
+        f"{Style.BOLD}(enabled by default){Style.RESET}."
+    ),
 )
 @click.option(
     "--search-related-url",
     "search_related_url",
     is_flag=True,
     default=False,
-    help="Search related url (\033[1menabled by default\033[0m).",
+    help=f"Search related url {Style.BOLD}(enabled by default){Style.RESET}.",
 )
 @click.option(
     "--filter-rh-naming",
@@ -321,6 +336,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
 )  # noqa
 @click.pass_context
+@progress_bar
 def get_product_contain_component(
     ctx,
     component_name,
@@ -349,244 +365,251 @@ def get_product_contain_component(
     include_product_stream_excluded_components,
     output_type_filter,
     verbose,
+    operation_status,
 ):
-    with console.status("griffoning", spinner="line") as operation_status:
-        """List products of a latest component."""
-        if verbose:
-            ctx.obj["VERBOSE"] = verbose
-        if not purl and not component_name:
-            click.echo(ctx.get_help())
-            click.echo("")
-            click.echo("\033[1mMust supply Component name or --purl.\033[0m")
-            exit(0)
+    # with console_status(ctx) as operation_status:
+    """List products of a latest component."""
+    if verbose:
+        ctx.obj["VERBOSE"] = verbose
 
-        if (
-            not search_latest
-            and not search_all
-            and not search_all_roots
-            and not search_related_url
-            and not search_community
-            and not search_all_upstreams
-            and not search_redhat
-            and not search_provides
-            and not search_upstreams
-        ):
-            ctx.params["search_latest"] = True
-            ctx.params["search_provides"] = True
+    if (
+        not search_latest
+        and not search_all
+        and not search_all_roots
+        and not search_related_url
+        and not search_community
+        and not search_all_upstreams
+        and not search_redhat
+        and not search_provides
+        and not search_upstreams
+    ):
+        ctx.params["search_latest"] = True
+        ctx.params["search_provides"] = True
 
-        params = copy.deepcopy(ctx.params)
-        params.pop("verbose")
-        params.pop("sfm2_flaw_id")
-        params.pop("flaw_mode")
-        params.pop("affect_mode")
-        if component_name:
-            q = query_service.invoke(
-                core_queries.products_containing_component_query, params, status=operation_status
+    params = copy.deepcopy(ctx.params)
+    params.pop("verbose")
+    params.pop("sfm2_flaw_id")
+    params.pop("flaw_mode")
+    params.pop("affect_mode")
+    if component_name:
+        q = query_service.invoke(
+            core_queries.products_containing_component_query, params, status=operation_status
+        )
+    if purl:
+        q = query_service.invoke(
+            core_queries.products_containing_specific_component_query,
+            params,
+            status=operation_status,
+        )
+
+    # TODO: interim hack for middleware
+    if component_name and MIDDLEWARE_CLI and not no_middleware:
+        operation_status.update("searching deptopia middleware.")
+        mw_command = [MIDDLEWARE_CLI, component_name, "-e", "maven", "--json"]
+        if strict_name_search:
+            mw_command.append("-s")
+        proc = subprocess.run(
+            mw_command,
+            capture_output=True,
+            text=True,
+        )
+        try:
+            mw_json = loads(proc.stdout)
+            mw_components = mw_json["deps"]
+            # TODO: need to determine if we use "build" or "deps"
+            # if search_all:
+            #     mw_components.extend(mw_json["deps"])
+            for build in mw_components:
+                if build["build_type"] == "maven":
+                    component = {
+                        "product_versions": [{"name": build["ps_module"]}],
+                        "product_streams": [
+                            {
+                                "name": build["ps_update_stream"],
+                                "product_versions": [{"name": build["ps_module"]}],
+                            }
+                        ],
+                        "product_active": True,
+                        "type": build["build_type"],
+                        "name": build["build_name"],
+                        "nvr": build["build_nvr"],
+                        "upstreams": [],
+                        "sources": [],
+                        "software_build": {
+                            "build_id": build["build_id"],
+                            "source": build["build_repo"],
+                        },
+                    }
+                    if "sources" in build:
+                        for deps in build["sources"]:
+                            for dep in deps["dependencies"]:
+                                components = []
+                                components.append(
+                                    {
+                                        "name": dep.get("name"),
+                                        "nvr": dep.get("nvr"),
+                                        "type": dep.get("type"),
+                                    }
+                                )
+                                component["sources"] = components
+                    q.append(component)
+        except Exception:
+            logger.warning("problem accessing deptopia.")
+
+    # TODO: in the short term affect handling will be mediated via sfm2 here in the operation itself # noqa
+    if ctx.params["sfm2_flaw_id"]:
+        operation_status.update("invoking sfm2.")
+
+        console.no_color = True
+        console.highlighter = None
+        operation_status.stop()
+
+        # generate affects
+        output = raw_json_transform(q, True)
+
+        exclude_products = []
+        if get_config_option(ctx.obj["PROFILE"], "exclude"):
+            exclude_products = get_config_option(ctx.obj["PROFILE"], "exclude").split("\n")
+        exclude_components = []
+        if get_config_option(ctx.obj["PROFILE"], "exclude_components"):
+            exclude_components = get_config_option(ctx.obj["PROFILE"], "exclude_components").split(
+                "\n"
             )
-        if purl:
-            q = query_service.invoke(
-                core_queries.products_containing_specific_component_query,
-                params,
-                status=operation_status,
-            )
+        normalised_results = generate_normalised_results(
+            output,
+            exclude_products,
+            exclude_components,
+            output_type_filter,
+            include_inactive_product_streams,
+            include_product_stream_excluded_components,
+        )
+        result_tree = generate_result_tree(normalised_results)
+        affects = generate_affects(ctx, result_tree, exclude_components, "add", format="json")
 
-        # TODO: interim hack for middleware
-        if component_name and MIDDLEWARE_CLI and not no_middleware:
-            operation_status.update("griffoning: searching deptopia middleware.", spinner="line")
-            mw_command = [MIDDLEWARE_CLI, component_name, "-e", "maven", "--json"]
-            if strict_name_search:
-                mw_command.append("-s")
-            proc = subprocess.run(
-                mw_command,
-                capture_output=True,
-                text=True,
-            )
-            try:
-                mw_json = loads(proc.stdout)
-                mw_components = mw_json["deps"]
-                # TODO: need to determine if we use "build" or "deps"
-                # if search_all:
-                #     mw_components.extend(mw_json["deps"])
-                for build in mw_components:
-                    if build["build_type"] == "maven":
-                        component = {
-                            "product_versions": [{"name": build["ps_module"]}],
-                            "product_streams": [
-                                {
-                                    "name": build["ps_update_stream"],
-                                    "product_versions": [{"name": build["ps_module"]}],
-                                }
-                            ],
-                            "product_active": True,
-                            "type": build["build_type"],
-                            "name": build["build_name"],
-                            "nvr": build["build_nvr"],
-                            "upstreams": [],
-                            "sources": [],
-                            "software_build": {
-                                "build_id": build["build_id"],
-                                "source": build["build_repo"],
-                            },
-                        }
-                        if "sources" in build:
-                            for deps in build["sources"]:
-                                for dep in deps["dependencies"]:
-                                    components = []
-                                    components.append(
-                                        {
-                                            "name": dep.get("name"),
-                                            "nvr": dep.get("nvr"),
-                                            "type": dep.get("type"),
-                                        }
-                                    )
-                                    component["sources"] = components
-                        q.append(component)
-            except Exception:
-                logger.warning("problem accessing deptopia.")
-
-        # TODO: in the short term affect handling will be mediated via sfm2 here in the operation itself # noqa
-        if ctx.params["sfm2_flaw_id"]:
-            operation_status.update("griffoning: invoking sfm2.", spinner="line")
-
-            console.no_color = True
-            console.highlighter = None
-            operation_status.stop()
-
-            # generate affects
-            output = raw_json_transform(q, True)
-
-            exclude_products = []
-            if get_config_option(ctx.obj["PROFILE"], "exclude"):
-                exclude_products = get_config_option(ctx.obj["PROFILE"], "exclude").split("\n")
-            exclude_components = []
-            if get_config_option(ctx.obj["PROFILE"], "exclude_components"):
-                exclude_components = get_config_option(
-                    ctx.obj["PROFILE"], "exclude_components"
-                ).split("\n")
-            normalised_results = generate_normalised_results(
-                output,
-                exclude_products,
-                exclude_components,
-                output_type_filter,
-                include_inactive_product_streams,
-                include_product_stream_excluded_components,
-            )
-            result_tree = generate_result_tree(normalised_results)
-            affects = generate_affects(ctx, result_tree, exclude_components, "add", format="json")
-
-            # attempt to import sfm2client module
-            try:
-                import sfm2client
-            except ImportError:
-                logger.warning("sfm2client library not found, cannot compare with flaw affects")
-                ctx.exit()
-
-            # TODO: paramaterise into dotfile/env var
-            sfm2 = sfm2client.api.core.SFMApi({"url": "http://localhost:5600"})
-            try:
-                flaw = sfm2.flaw.get(sfm2_flaw_id)
-            except Exception as e:
-                logger.warning(f"Could not retrieve flaw {sfm2_flaw_id}: {e}")
-                return
-
-            if ctx.params["flaw_mode"] == "replace":
-                if affects:
-                    console.print(
-                        f"The following affects will REPLACE all flaw {flaw['id']}'s existing affects in \"new\" state:\n"  # noqa
-                    )
-                    for m in affects:
-                        console.print(
-                            f"{m['product_version']}\t{m['component_name']}",
-                            no_wrap=False,
-                        )
-
-                    if click.confirm(
-                        f"\nREPLACE flaw {flaw['id']}'s existing affects in \"new\" state with the above? THIS CANNOT BE UNDONE: ",  # noqa
-                        default=True,
-                    ):
-                        click.echo("Updating ...")
-                        # only discard affects in 'new' state, we should preserve all others so not to throw work away # noqa
-                        new_affects = [a for a in flaw["affects"] if a["affected"] != "new"]
-                        # get map of existing affects first, so that we don't try to add duplicates
-                        existing = set((a["ps_module"], a["ps_component"]) for a in new_affects)
-                        for m in affects:
-                            if (m["product_version"], m["component_name"]) in existing:
-                                continue
-                            new_affects.append(
-                                {
-                                    "affected": "new",
-                                    "ps_component": m["component_name"],
-                                    "ps_module": m["product_version"],
-                                }
-                            )
-                        try:
-                            sfm2.flaw.update(flaw["id"], data={"affects": new_affects})
-                        except Exception as e:
-                            msg = e.response.json()
-                            logger.warning(f"Failed to update flaw: {e}: {msg}")
-                        console.print("Operation done.")
-                        ctx.exit()
-
-                    click.echo("No affects were added to flaw.")
-                else:
-                    console.print("No affects to add to flaw.")
-            else:
-                missing = []
-                for affect in affects:
-                    flaw_has_affect = False
-                    for a in flaw.get("affects"):
-                        if a.get("ps_module") == affect.get("product_version") and a.get(
-                            "ps_component"
-                        ) == affect.get("component_name"):
-                            flaw_has_affect = True
-                    if not flaw_has_affect:
-                        missing.append(affect)
-
-                if missing:
-                    console.log("Flaw is missing the following affect entries:\n")
-                    for m in missing:
-                        console.print(
-                            f"{m['product_version']}\t{m['component_name']}",
-                            no_wrap=False,
-                        )
-                    if click.confirm(
-                        "Would you like to add them? ",
-                        default=True,
-                    ):
-                        click.echo("Updating ...")
-
-                        updated_affects = flaw.get("affects")[:]
-                        for m in missing:
-                            updated_affects.append(
-                                {
-                                    "affected": "new",
-                                    "ps_component": m["component_name"],
-                                    "ps_module": m["product_version"],
-                                }
-                            )
-                        try:
-                            sfm2.flaw.update(flaw["id"], data={"affects": updated_affects})
-                        except Exception as e:
-                            msg = e.response.json()
-                            logger.warning(f"Failed to update flaw: {e}: {msg}")
-                        console.print("Operation done.")
-                        ctx.exit()
-                    click.echo("No affects were added to flaw.")
-
-                else:
-                    console.print("Flaw is not missing any affect entries")
-
+        # attempt to import sfm2client module
+        try:
+            import sfm2client
+        except ImportError:
+            logger.warning("sfm2client library not found, cannot compare with flaw affects")
             ctx.exit()
 
-        cprint(q, ctx=ctx)
+        # TODO: paramaterise into dotfile/env var
+        sfm2 = sfm2client.api.core.SFMApi({"url": "http://localhost:5600"})
+        try:
+            flaw = sfm2.flaw.get(sfm2_flaw_id)
+        except Exception as e:
+            logger.warning(f"Could not retrieve flaw {sfm2_flaw_id}: {e}")
+            return
+
+        if ctx.params["flaw_mode"] == "replace":
+            if affects:
+                console.print(
+                    f"The following affects will REPLACE all flaw {flaw['id']}'s existing affects in \"new\" state:\n"  # noqa
+                )
+                for m in affects:
+                    console.print(
+                        f"{m['product_version']}\t{m['component_name']}",
+                        no_wrap=False,
+                    )
+
+                if click.confirm(
+                    f"\nREPLACE flaw {flaw['id']}'s existing affects in \"new\" state with the above? THIS CANNOT BE UNDONE: ",  # noqa
+                    default=True,
+                ):
+                    click.echo("Updating ...")
+                    # only discard affects in 'new' state, we should preserve all others so not to throw work away # noqa
+                    new_affects = [a for a in flaw["affects"] if a["affected"] != "new"]
+                    # get map of existing affects first, so that we don't try to add duplicates
+                    existing = set((a["ps_module"], a["ps_component"]) for a in new_affects)
+                    for m in affects:
+                        if (m["product_version"], m["component_name"]) in existing:
+                            continue
+                        new_affects.append(
+                            {
+                                "affected": "new",
+                                "ps_component": m["component_name"],
+                                "ps_module": m["product_version"],
+                            }
+                        )
+                    try:
+                        sfm2.flaw.update(flaw["id"], data={"affects": new_affects})
+                    except Exception as e:
+                        msg = e.response.json()
+                        logger.warning(f"Failed to update flaw: {e}: {msg}")
+                    console.print("Operation done.")
+                    ctx.exit()
+
+                click.echo("No affects were added to flaw.")
+            else:
+                console.print("No affects to add to flaw.")
+        else:
+            missing = []
+            for affect in affects:
+                flaw_has_affect = False
+                for a in flaw.get("affects"):
+                    if a.get("ps_module") == affect.get("product_version") and a.get(
+                        "ps_component"
+                    ) == affect.get("component_name"):
+                        flaw_has_affect = True
+                if not flaw_has_affect:
+                    missing.append(affect)
+
+            if missing:
+                console.log("Flaw is missing the following affect entries:\n")
+                for m in missing:
+                    console.print(
+                        f"{m['product_version']}\t{m['component_name']}",
+                        no_wrap=False,
+                    )
+                if click.confirm(
+                    "Would you like to add them? ",
+                    default=True,
+                ):
+                    click.echo("Updating ...")
+
+                    updated_affects = flaw.get("affects")[:]
+                    for m in missing:
+                        updated_affects.append(
+                            {
+                                "affected": "new",
+                                "ps_component": m["component_name"],
+                                "ps_module": m["product_version"],
+                            }
+                        )
+                    try:
+                        sfm2.flaw.update(flaw["id"], data={"affects": updated_affects})
+                    except Exception as e:
+                        msg = e.response.json()
+                        logger.warning(f"Failed to update flaw: {e}: {msg}")
+                    console.print("Operation done.")
+                    ctx.exit()
+                click.echo("No affects were added to flaw.")
+
+            else:
+                console.print("Flaw is not missing any affect entries")
+
+        ctx.exit()
+
+    cprint(q, ctx=ctx)
 
 
 @queries_grp.command(
     name="components-contain-component",
     help="List Components containing Component.",
 )
-@click.argument("component_name", required=False)
-@click.option("--purl")
+@click.argument(
+    "component_name",
+    cls=GroupArgument,
+    required=False,
+    required_group=["component_name", "purl"],
+    mutually_exclusive_group=["purl"],
+)
+@click.option(
+    "--purl",
+    cls=GroupOption,
+    required_group=["component_name", "purl"],
+    mutually_exclusive_group=["component_name"],
+)
 @click.option("--type", "component_type", type=click.Choice(CorgiService.get_component_types()))
 @click.option("--version", "component_version")
 @click.option(
@@ -622,13 +645,11 @@ def get_component_contain_component(
     namespace,
     strict_name_search,
     verbose,
+    operation_status,
 ):
     """List components that contain component."""
     if verbose:
         ctx.obj["VERBOSE"] = verbose
-    if not component_name and not purl:
-        click.echo(ctx.get_help())
-        exit(0)
     if component_name:
         q = query_service.invoke(core_queries.components_containing_component_query, ctx.params)
         cprint(q, ctx=ctx)
@@ -643,8 +664,23 @@ def get_component_contain_component(
     name="product-manifest",
     help="Get Product manifest (includes Root Components and all dependencies).",
 )
-@click.argument("product_stream_name", required=False, shell_complete=get_product_stream_names)
-@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
+@click.argument(
+    "product_stream_name",
+    cls=GroupArgument,
+    required=False,
+    shell_complete=get_product_stream_names,
+    required_group=["ofuri", "product_stream_name"],
+    mutually_exclusive_group=["ofuri"],
+)
+@click.option(
+    "--ofuri",
+    "ofuri",
+    cls=GroupOption,
+    type=click.STRING,
+    shell_complete=get_product_stream_ofuris,
+    required_group=["ofuri", "product_stream_name"],
+    mutually_exclusive_group=["product_stream_name"],
+)
 @click.option(
     "--spdx-json",
     "spdx_json_format",
@@ -653,12 +689,9 @@ def get_component_contain_component(
     help="Generate spdx manifest (json).",
 )
 @click.pass_context
-def get_product_manifest_query(ctx, product_stream_name, ofuri, spdx_json_format):
+@progress_bar
+def get_product_manifest_query(ctx, product_stream_name, ofuri, spdx_json_format, operation_status):
     """List components of a specific product version."""
-    if not ofuri and not product_stream_name:
-        click.echo(ctx.get_help())
-        exit(0)
-
     if spdx_json_format:
         ctx.ensure_object(dict)
         ctx.obj["FORMAT"] = "json"  # TODO - investigate if we need yaml format.
@@ -675,8 +708,23 @@ def get_product_manifest_query(ctx, product_stream_name, ofuri, spdx_json_format
     name="product-components",
     help="List LATEST Root Components of Product.",
 )
-@click.argument("product_stream_name", required=False, shell_complete=get_product_stream_names)
-@click.option("--ofuri", "ofuri", type=click.STRING, shell_complete=get_product_stream_ofuris)
+@click.argument(
+    "product_stream_name",
+    cls=GroupArgument,
+    required=False,
+    shell_complete=get_product_stream_names,
+    required_group=["ofuri", "product_stream_name"],
+    mutually_exclusive_group=["ofuri"],
+)
+@click.option(
+    "--ofuri",
+    "ofuri",
+    cls=GroupOption,
+    type=click.STRING,
+    shell_complete=get_product_stream_ofuris,
+    required_group=["ofuri", "product_stream_name"],
+    mutually_exclusive_group=["product_stream_name"],
+)
 @query_params_options(
     entity="Component",
     endpoint_module=v1_components_list,
@@ -692,14 +740,14 @@ def get_product_manifest_query(ctx, product_stream_name, ofuri, spdx_json_format
     help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
 )  # noqa
 @click.pass_context
-def get_product_latest_components_query(ctx, product_stream_name, ofuri, verbose, **params):
+@progress_bar
+def get_product_latest_components_query(
+    ctx, product_stream_name, ofuri, verbose, operation_status, **params
+):
     """List components of a specific product version."""
     if verbose:
         ctx.obj["VERBOSE"] = verbose
         ctx.params.pop("verbose")
-    if not ofuri and not product_stream_name:
-        click.echo(ctx.get_help())
-        exit(0)
     if ofuri:
         params["ofuri"] = ofuri
     if product_stream_name:
@@ -717,8 +765,20 @@ def get_product_latest_components_query(ctx, product_stream_name, ofuri, verbose
     name="component-manifest",
     help="Get Component manifest.",
 )
-@click.option("--uuid", "component_uuid")
-@click.option("--purl", help="Component Purl (must be quoted).")
+@click.option(
+    "--uuid",
+    "component_uuid",
+    cls=GroupOption,
+    required_group=["component_uuid", "purl"],
+    mutually_exclusive_group=["purl"],
+)
+@click.option(
+    "--purl",
+    cls=GroupOption,
+    required_group=["component_uuid", "purl"],
+    mutually_exclusive_group=["component_uuid"],
+    help="Component Purl (must be quoted).",
+)
 @click.option(
     "--spdx-json",
     "spdx_json_format",
@@ -727,11 +787,9 @@ def get_product_latest_components_query(ctx, product_stream_name, ofuri, verbose
     help="Generate spdx manifest (json).",
 )
 @click.pass_context
-def retrieve_component_manifest(ctx, component_uuid, purl, spdx_json_format):
+@progress_bar
+def retrieve_component_manifest(ctx, component_uuid, purl, spdx_json_format, operation_status):
     """Retrieve Component manifest."""
-    if not component_uuid and not purl:
-        click.echo(ctx.get_help())
-        exit(0)
     if spdx_json_format:
         ctx.ensure_object(dict)
         ctx.obj["FORMAT"] = "json"
@@ -747,7 +805,7 @@ def retrieve_component_manifest(ctx, component_uuid, purl, spdx_json_format):
     name="components-affected-by-flaw",
     help="List Components affected by Flaw.",
 )
-@click.argument("cve_id", required=False, type=click.STRING, shell_complete=get_cve_ids)
+@click.argument("cve_id", required=True, type=click.STRING, shell_complete=get_cve_ids)
 @click.option(
     "--affectedness",
     help="Filter by Affect affectedness.",
@@ -779,12 +837,16 @@ def retrieve_component_manifest(ctx, component_uuid, purl, spdx_json_format):
 @click.pass_context
 @progress_bar
 def components_affected_by_specific_cve_query(
-    ctx, cve_id, affectedness, affect_resolution, affect_impact, component_type, namespace
+    ctx,
+    cve_id,
+    affectedness,
+    affect_resolution,
+    affect_impact,
+    component_type,
+    namespace,
+    operation_status,
 ):
     """List components affected by specific CVE."""
-    if not cve_id:
-        click.echo(ctx.get_help())
-        exit(0)
     q = query_service.invoke(core_queries.components_affected_by_specific_cve_query, ctx.params)
     cprint(q, ctx=ctx)
 
@@ -793,14 +855,11 @@ def components_affected_by_specific_cve_query(
     name="products-affected-by-flaw",
     help="List Products affected by Flaw.",
 )
-@click.argument("cve_id", required=False, type=click.STRING, shell_complete=get_cve_ids)
+@click.argument("cve_id", required=True, type=click.STRING, shell_complete=get_cve_ids)
 @click.pass_context
 @progress_bar
-def product_versions_affected_by_cve_query(ctx, cve_id):
+def product_versions_affected_by_cve_query(ctx, cve_id, operation_status):
     """List Products affected by a CVE."""
-    if not cve_id:
-        click.echo(ctx.get_help())
-        exit(0)
     q = query_service.invoke(
         core_queries.products_versions_affected_by_specific_cve_query, ctx.params
     )
@@ -808,8 +867,19 @@ def product_versions_affected_by_cve_query(ctx, cve_id):
 
 
 @queries_grp.command(name="component-flaws", help="List Flaws affecting a Component.")
-@click.argument("component_name", required=False)
-@click.option("--purl")
+@click.argument(
+    "component_name",
+    cls=GroupArgument,
+    required=False,
+    required_group=["component_name", "purl"],
+    mutually_exclusive_group=["purl"],
+)
+@click.option(
+    "--purl",
+    cls=GroupOption,
+    required_group=["component_name", "purl"],
+    mutually_exclusive_group=["component_name"],
+)
 @click.option(
     "--flaw-impact",
     "flaw_impact",
@@ -858,12 +928,9 @@ def cves_for_specific_component_query(
     affect_resolution,
     affect_impact,
     strict_name_search,
+    operation_status,
 ):
     """List flaws of a specific component."""
-    if not purl and not component_name:
-        click.echo(ctx.get_help())
-        exit(0)
-
     q = query_service.invoke(core_queries.cves_for_specific_component_query, ctx.params)
     cprint(q, ctx=ctx)
 
@@ -876,9 +943,17 @@ def cves_for_specific_component_query(
     "product_version_name",
     required=False,
     type=click.STRING,
+    cls=GroupArgument,
     shell_complete=get_product_version_names,
+    required_group=["ofuri", "product_version_name"],
+    mutually_exclusive_group=["ofuri"],
 )
-@click.option("--ofuri")
+@click.option(
+    "--ofuri",
+    cls=GroupOption,
+    required_group=["ofuri", "product_version_name"],
+    mutually_exclusive_group=["product_version_name"],
+)
 @click.option(
     "--flaw-impact",
     "flaw_impact",
@@ -927,10 +1002,8 @@ def cves_for_specific_product_query(
     affect_impact,
     affect_resolution,
     strict_name_search,
+    operation_status,
 ):
     """List flaws of a specific product."""
-    if not product_version_name and not ofuri:
-        click.echo(ctx.get_help())
-        exit(0)
     q = query_service.invoke(core_queries.cves_for_specific_product_query, ctx.params)
     cprint(q, ctx=ctx)

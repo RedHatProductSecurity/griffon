@@ -15,7 +15,7 @@ from osidb_bindings.bindings.python_client.api.osidb import (
 from osidb_bindings.bindings.python_client.models import FlawReference
 from requests import HTTPError
 
-from griffon import OSIDB_API_URL, OSIDBService, progress_bar
+from griffon import OSIDB_SERVER_URL, OSIDBService, progress_bar
 from griffon.commands.entities.helpers import (
     abort_if_false,
     filter_request_fields,
@@ -24,12 +24,13 @@ from griffon.commands.entities.helpers import (
     query_params_options,
     request_body_options,
 )
+from griffon.exceptions import GriffonException
 from griffon.output import console, cprint
 
 logger = logging.getLogger("griffon")
 
 
-@click.group(help=f"{OSIDB_API_URL}/osidb/api/v1/flaws/<id>/references", name="references")
+@click.group(help=f"{OSIDB_SERVER_URL}/osidb/api/v1/flaws/<id>/references", name="references")
 @click.pass_context
 def flaw_references(ctx):
     """OSIDB Flaw References."""
@@ -110,7 +111,7 @@ def list_flaw_references(ctx, flaw_id, **params):
 def create_flaw_reference(ctx, flaw_id, **params):
     request_body_type = getattr(osidb_api_v1_flaws_references_create, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for Flaw Reference create. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -137,7 +138,7 @@ def create_flaw_reference(ctx, flaw_id, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             "Failed to create Flaw Reference. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."
@@ -158,7 +159,7 @@ def create_flaw_reference(ctx, flaw_id, **params):
 def update_flaw_reference(ctx, flaw_id, reference_uuid, **params):
     request_body_type = getattr(osidb_api_v1_flaws_references_update, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
-        raise click.ClickException(
+        raise GriffonException(
             "No request body template for Flaw Reference update. "
             "Is correct version of osidb-bindings installed?"
         )
@@ -175,7 +176,7 @@ def update_flaw_reference(ctx, flaw_id, reference_uuid, **params):
     except Exception as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to fetch Flaw Reference with ID '{reference_uuid}'. "
             "Flaw or Flaw Reference either does not exist or you have insufficient permissions. "
             "Consider running griffon with -v option for verbose error log."
@@ -195,7 +196,7 @@ def update_flaw_reference(ctx, flaw_id, reference_uuid, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to update Flaw Reference with ID '{reference_uuid}'. "
             "You might have insufficient permission or you've supplied malformed data. "
             "Consider running griffon with -v option for verbose error log."
@@ -226,7 +227,7 @@ def delete_flaw_reference(ctx, flaw_id, reference_uuid, **params):
     except HTTPError as e:
         if ctx.obj["VERBOSE"]:
             console.log(e, e.response.json())
-        raise click.ClickException(
+        raise GriffonException(
             f"Failed to delete Flaw Reference {reference_uuid}. "
             "It either does not exist or you have insufficient permissions."
         )

@@ -6,7 +6,7 @@ import logging
 
 import click
 
-from griffon import OSIDB_API_URL, OSIDBService
+from griffon import OSIDB_SERVER_URL, OSIDBService
 from griffon.output import cprint
 
 logger = logging.getLogger("griffon")
@@ -31,4 +31,4 @@ def osidb_status(ctx):
 
 @manage_grp.command(name="api_doc")
 def osidb_api_docs():
-    click.launch(f"{OSIDB_API_URL}/osidb/api/v1/schema/swagger-ui/")
+    click.launch(f"{OSIDB_SERVER_URL}/osidb/api/v1/schema/swagger-ui/")
