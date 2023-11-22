@@ -5,14 +5,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-### changed
-* existing --search-upstreams changed to --search-all-upstreams in 
+### Changed
+* existing --search-upstreams changed to --search-all-upstreams in
   service products-contain-component
+* OSIDB_API_URL environment variable changed to OSIDB_SERVER_URL
+* CORGI_API_URL environment variable changed to CORGI_SERVER_URL
+
 ### Added
 * --search-provides in service products-contain-component which
   will search name of components that are provide dependencies
 * --search-upstreams in service products-contain-component which
   will search name of components that are upstream dependencies
+* example plugin introduced
+
+### Fixed
+* standardized progress bar accross whole Griffon which fixes
+  no_progress_bar functionality
 
 ## [0.3.8] - 2023-10-18
 ### Added
@@ -76,6 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.20] - 2023-08-11
 ### Changed
 * make 'new' default for -a (when generating affects)
+
 ### Added
 * --no-upstream-affects which will exclude upstream components when generating affects
 
@@ -121,19 +130,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.10] - 2023-06-30
 ### Changed
 * return components in active product streams for products-contains-component operation
+
 ### Added
 * --include-inactive-product-streams option for products-contains-component operation
-* 
+
 ## [0.2.9] - 2023-06-29
 ### Changed
 * pin osidb-bindings 3.3.0
 * update crypto python module
-* fix generation of affects 
+* fix generation of affects
 
 ## [0.2.8] - 2023-06-28
 ### Added
 - CRUD operations for OSIDB entities Flaw Comment (create, retreive, list),
   Flaw Reference (create, retrieve, list, update, delete)
+
 ## [0.2.7] - 2023-06-14
 ### Changed
 - ensure we choose latest version of component using products-contains-component
@@ -142,13 +153,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.6] - 2023-05-29
 ### Added
 - add terminal --width flag
+
 ### Changed
 - bumped python requests module in tests, dev and lint requirements to address vuln
 
 ## [0.2.5] - 2023-05-26
 ### Added
 - minimal middleware support to products-contains-component, requires Requires GRIFFON_MIDDLEWARE_CLI to be set.
- 
+
 ### Changed
 - bumped python requests module to address vuln
 - fixed products-contains-component when used with --purl
@@ -156,9 +168,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.4] - 2023-05-25
 ### Added
 - add --no-wrap flag
+
 ### Changed
 - enhanced error handling when retrieving product streams and manifests
-- fixed regex display 
+- fixed regex display
 
 ## [0.2.3] - 2023-05-24
 ### Changed
@@ -166,8 +179,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.2] - 2023-05-24
 ### Changed
-- fix --search-upstreams 
+- fix --search-upstreams
 - add summary count of sources
+
 ### Added
 - bugzilla bzowner plugin
 
@@ -192,6 +206,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - allow -v at the end of CLI invoke
 - prefer nvr for component name in text output
+
 ### Added
 - added entities component-registry components tree which displays dependency tree
 
@@ -208,6 +223,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - deactivate progress bar when performing entity CRUD
 - enabled community searching when using --search-all
+
 ### Added
 - added --search-redhat
 
@@ -258,6 +274,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - simple griffon plugins semgrep
 - products, product-versions, product-variants, channels to corgi entities
+
 ### Changed
 - minor plugin enhancements
 - minor docs updates
@@ -272,6 +289,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - enable OSIDB local development instances to be used with Griffon
 - added editor option to .griffonrc
+
 ### Added
 - CRUD operations for OSIDB entitites. Flaws (create, update, get, list),
   Affects (create, update, delete, get, list), Trackers (get, list)
@@ -292,6 +310,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.8] - 2023-03-31
 ### Changed
 - shortern sha256 versions in service product-components
+
 ### Added
 - added type,latest and download_url to service component-summary operation
 
