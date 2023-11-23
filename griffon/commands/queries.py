@@ -404,7 +404,9 @@ def get_product_contain_component(
     # TODO: interim hack for middleware
     if component_name and MIDDLEWARE_CLI and not no_middleware:
         operation_status.update("searching deptopia middleware.")
-        mw_command = [MIDDLEWARE_CLI, component_name, "-e", "maven", "--json"]
+
+        # Use split for users who runs middleware via python
+        mw_command = [*MIDDLEWARE_CLI.split(), component_name, "-e", "maven", "--json"]
         if strict_name_search:
             mw_command.append("-s")
         proc = subprocess.run(
