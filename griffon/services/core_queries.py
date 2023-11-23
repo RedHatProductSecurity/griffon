@@ -12,7 +12,7 @@ from typing import Any, Dict, List
 from component_registry_bindings.bindings.python_client.models import Component
 
 from griffon import (
-    COMMUNITY_COMPONENTS_API_URL,
+    COMMUNITY_COMPONENTS_SERVER_URL,
     CORGI_SERVER_URL,
     OSIDB_SERVER_URL,
     CommunityComponentService,
@@ -931,7 +931,7 @@ class cves_for_specific_component_query:
                             "link_affect": f"{OSIDB_SERVER_URL}/osidb/api/v1/affects/{affect.uuid}",  # noqa
                             "link_cve": f"{OSIDB_SERVER_URL}/osidb/api/v1/flaws/{flaw.cve_id}",  # noqa
                             "link_component": f"{CORGI_SERVER_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
-                            "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
+                            "link_community_component": f"{COMMUNITY_COMPONENTS_SERVER_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
                             "flaw_cve_id": flaw.cve_id,
                             "title": flaw.title,
                             "flaw_resolution": flaw.resolution,
@@ -1020,7 +1020,7 @@ class cves_for_specific_product_query:
                             "link_affect": f"{OSIDB_SERVER_URL}/osidb/api/v1/affects/{affect.uuid}",  # noqa
                             "link_cve": f"{OSIDB_SERVER_URL}/osidb/api/v1/flaws/{flaw.cve_id}",  # noqa
                             "link_component": f"{CORGI_SERVER_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
-                            "link_community_component": f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
+                            "link_community_component": f"{COMMUNITY_COMPONENTS_SERVER_URL}/api/v1/components?name={affect.ps_component}&latest_components_by_streams=True",  # noqa
                             "flaw_cve_id": flaw.cve_id,
                             "title": flaw.title,
                             "flaw_state": flaw.state,

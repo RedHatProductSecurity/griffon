@@ -67,7 +67,7 @@ export CORGI_SERVER_URL="https://<INSERT COMPONENT REGISTRY API URL>"
 
 and the following is set to enable searching community components:
 ```commandline
-export COMMUNITY_COMPONENTS_API_URL="https://component-registry.fedoraproject.org"
+export COMMUNITY_COMPONENTS_SERVER_URL="https://component-registry.fedoraproject.org"
 ```
 
 Your system must be properly authorised to access all these systems.

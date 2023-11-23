@@ -29,9 +29,11 @@ OSIDB_USERNAME = os.getenv("OSIDB_USERNAME", "")
 OSIDB_PASSWORD = os.getenv("OSIDB_PASSWORD", "")
 OSIDB_AUTH_METHOD = os.getenv("OSIDB_AUTH_METHOD", "kerberos")
 
+# TODO: Deprecate COMMUNITY_COMPONENTS_API_URL completely in the next version or two
 # required to enable --search-community
-COMMUNITY_COMPONENTS_API_URL = os.getenv(
-    "COMMUNITY_COMPONENTS_API_URL", "https://component-registry.fedoraproject.org"
+COMMUNITY_COMPONENTS_SERVER_URL = os.getenv(
+    "COMMUNITY_COMPONENTS_SERVER_URL",
+    os.getenv("COMMUNITY_COMPONENTS_API_URL", "https://component-registry.fedoraproject.org"),
 )
 
 # TODO: temporary hack required to enable searching of middleware
@@ -58,10 +60,20 @@ def check_envvars():
                 f"switch to the new environment variable.{Style.RESET}"
             )
         )
-
     if "CORGI_SERVER_URL" not in os.environ and "CORGI_API_URL" not in os.environ:
         print("Must set CORGI_SERVER_URL environment variable.")
         exit(1)
+
+    # TODO: Deprecate COMMUNITY_COMPONENTS_API_URL completely in the next version or two
+    if "COMMUNITY_COMPONENTS_API_URL" in os.environ:
+        print(
+            (
+                f"{Style.BOLD}{Color.YELLOW}WARNING: COMMUNITY_COMPONENTS_API_URL "
+                "will be deprecated in the next version of Griffon in favour of "
+                "COMMUNITY_COMPONENTS_SERVER_URL, please switch to the new environment "
+                f"variable.{Style.RESET}"
+            )
+        )
 
     # TODO: Deprecate OSIDB_API_URL completely in the next version or two
     if "OSIDB_API_URL" in os.environ:
@@ -294,10 +306,10 @@ class CommunityComponentService:
         """init corgi session"""
         try:
             return component_registry_bindings.new_session(
-                component_registry_server_uri=COMMUNITY_COMPONENTS_API_URL,
+                component_registry_server_uri=COMMUNITY_COMPONENTS_SERVER_URL,
             )
         except:  # noqa
-            console.log(f"{COMMUNITY_COMPONENTS_API_URL} is not accessible.")
+            console.log(f"{COMMUNITY_COMPONENTS_SERVER_URL } is not accessible.")
             exit(1)
 
     @staticmethod
