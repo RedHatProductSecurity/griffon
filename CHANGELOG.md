@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   service products-contain-component
 * OSIDB_API_URL environment variable changed to OSIDB_SERVER_URL
 * CORGI_API_URL environment variable changed to CORGI_SERVER_URL
+* COMMUNITY_COMPONENTS_API_URL environment variable changed to
+  COMMUNITY_COMPONENTS_SERVER_URL
 * Migrated from setup.py to pyproject.toml
 
 ### Added
