@@ -27,30 +27,33 @@ class BaseGroupParameter:
     """
 
     def handle_parse_result(self, ctx, opts, args):
-        if self.mutually_exclusive_group:
-            if opts.get(self.name) is None:
-                pass  # skip check for not supplied click.Arguments
-            elif self.name in opts and any(
-                opt in opts for opt in self.mutually_exclusive_group if opts.get(opt) is not None
-            ):
-                raise GriffonUsageError(
-                    (
-                        f"{Style.BOLD}{self.name} cannot be used with "
-                        f"{', '.join(self.mutually_exclusive_group)}.{Style.RESET}"
-                    ),
-                    ctx=ctx,
-                )
+        if not ctx.resilient_parsing:
+            if self.mutually_exclusive_group:
+                if opts.get(self.name) is None:
+                    pass  # skip check for not supplied click.Arguments
+                elif self.name in opts and any(
+                    opt in opts
+                    for opt in self.mutually_exclusive_group
+                    if opts.get(opt) is not None
+                ):
+                    raise GriffonUsageError(
+                        (
+                            f"{Style.BOLD}{self.name} cannot be used with "
+                            f"{', '.join(self.mutually_exclusive_group)}.{Style.RESET}"
+                        ),
+                        ctx=ctx,
+                    )
 
-        if self.required_group:
-            group_set = set(
-                opt for opt in opts if opt in self.required_group and opts.get(opt) is not None
-            )
-            if not any(group_set):
-                raise GriffonUsageError(
-                    f"{Style.BOLD}At least one of {', '.join(self.required_group)} "
-                    f"is required.{Style.RESET}",
-                    ctx=ctx,
+            if self.required_group:
+                group_set = set(
+                    opt for opt in opts if opt in self.required_group and opts.get(opt) is not None
                 )
+                if not any(group_set):
+                    raise GriffonUsageError(
+                        f"{Style.BOLD}At least one of {', '.join(self.required_group)} "
+                        f"is required.{Style.RESET}",
+                        ctx=ctx,
+                    )
 
         return super().handle_parse_result(ctx, opts, args)
 

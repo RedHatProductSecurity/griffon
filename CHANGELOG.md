@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 * standardized progress bar accross whole Griffon which fixes
   no_progress_bar functionality
+* fixed tab autocompletion for mutually exclusive and one of
+  option/argument groups
 
 ## [0.3.8] - 2023-10-18
 ### Added
