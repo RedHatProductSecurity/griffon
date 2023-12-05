@@ -362,8 +362,7 @@ class products_containing_component_query:
                 search_provides_params["active_streams"] = "True"
             search_provides_params["latest_components_by_streams"] = "True"
             status.update("searching latest provided child component(s).")
-            # latest_components_cnt = self.corgi_session.components.count(**search_provides_params)
-            latest_components_cnt = 0
+            latest_components_cnt = self.corgi_session.components.count(**search_provides_params)
             status.update(f"found {latest_components_cnt} latest provides component(s).")
             latest_components = self.corgi_session.components.retrieve_list_iterator_async(
                 **search_provides_params

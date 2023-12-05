@@ -383,7 +383,7 @@ def get_product_contain_component(
         and not search_provides
         and not search_upstreams
     ):
-        ctx.params["search_latest"] = True
+        ctx.params["search_provides"] = True
 
     params = copy.deepcopy(ctx.params)
     params.pop("verbose")
