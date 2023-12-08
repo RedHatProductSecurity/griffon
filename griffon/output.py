@@ -8,6 +8,9 @@ import logging
 import re
 
 import click
+from component_registry_bindings.bindings.python_client.types import (
+    ComponentRegistryModel,
+)
 from packageurl import PackageURL
 from rich.console import Console
 from rich.text import Text
@@ -29,25 +32,38 @@ class DEST(enum.Enum):
     FILE = "file"
 
 
+def raw_json_transform_related(data: dict, name):
+    """normalise ralated data which were piggy-backed to data"""
+    transformed = []
+    related_data = data.get(name)
+    if related_data is not None:
+        if isinstance(related_data, list):
+            transformed = [
+                item.to_dict() if isinstance(item, ComponentRegistryModel) else item
+                for item in related_data
+            ]
+
+    return transformed
+
+
 def raw_json_transform(data, show_count: bool) -> dict:
     """normalise all data to dict"""
     if type(data) is list:
         results = []
-        for d in data:
-            if type(d) is dict:
-                results.append(d)
-            else:
-                results.append(d.to_dict())
+        for item in data:
+            transformed = item if type(item) is dict else item.to_dict()
+            for related_data in ("upstreams", "sources"):
+                transformed[related_data] = raw_json_transform_related(transformed, related_data)
+            results.append(transformed)
         output = {
             "results": results,
         }
         if show_count:
             output["count"] = len(results)  # type: ignore
     else:
-        if type(data) is dict:
-            output = data
-        else:
-            output = data.to_dict()
+        transformed = data if type(data) is dict else data.to_dict()
+        for related_data in ("upstreams", "sources"):
+            transformed[related_data] = raw_json_transform_related(transformed, related_data)
     return output
 
 
@@ -274,7 +290,7 @@ def generate_affects(
                 for nvr in result_tree[pv][ps][component_name].keys():
                     if result_tree[pv][ps][component_name][nvr]["sources"]:
                         source_names = [
-                            source.name
+                            source["name"]
                             for source in result_tree[pv][ps][component_name][nvr]["sources"]
                             if source.namespace == "REDHAT"
                         ]
@@ -413,7 +429,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source.name
+                                                source["name"]
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "upstreams"
                                                 ]
@@ -439,7 +455,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source.name
+                                                source["name"]
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "sources"
                                                 ]
@@ -503,7 +519,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source.name
+                                                source["name"]
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "upstreams"
                                                 ]
@@ -530,7 +546,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source.name
+                                                source["name"]
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "sources"
                                                 ]
@@ -598,7 +614,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source.name
+                                                source["name"]
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "upstreams"
                                                 ]
@@ -620,7 +636,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source.name
+                                                source["name"]
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "sources"
                                                 ]
@@ -684,7 +700,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source.nvr
+                                                source["nvr"]
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "upstreams"
                                                 ]
@@ -706,7 +722,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                source.nvr
+                                                source["nvr"]
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "sources"
                                                 ]
