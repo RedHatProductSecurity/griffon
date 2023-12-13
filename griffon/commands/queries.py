@@ -404,7 +404,17 @@ def get_product_contain_component(
     # TODO: interim hack for middleware
     if component_name and MIDDLEWARE_CLI and not no_middleware:
         operation_status.update("searching deptopia middleware.")
-        mw_command = [MIDDLEWARE_CLI, component_name, "-e", "maven", "--json"]
+
+        # Use split for users who runs middleware via python
+        mw_command = [
+            *MIDDLEWARE_CLI.split(),
+            component_name,
+            "-e",
+            "maven",
+            "-b",
+            "maven",
+            "--json",
+        ]
         if strict_name_search:
             mw_command.append("-s")
         proc = subprocess.run(
@@ -419,39 +429,39 @@ def get_product_contain_component(
             # if search_all:
             #     mw_components.extend(mw_json["deps"])
             for build in mw_components:
-                if build["build_type"] == "maven":
-                    component = {
-                        "product_versions": [{"name": build["ps_module"]}],
-                        "product_streams": [
-                            {
-                                "name": build["ps_update_stream"],
-                                "product_versions": [{"name": build["ps_module"]}],
-                            }
-                        ],
-                        "product_active": True,
-                        "type": build["build_type"],
-                        "name": build["build_name"],
-                        "nvr": build["build_nvr"],
-                        "upstreams": [],
-                        "sources": [],
-                        "software_build": {
-                            "build_id": build["build_id"],
-                            "source": build["build_repo"],
-                        },
-                    }
-                    if "sources" in build:
-                        for deps in build["sources"]:
-                            for dep in deps["dependencies"]:
-                                components = []
-                                components.append(
-                                    {
-                                        "name": dep.get("name"),
-                                        "nvr": dep.get("nvr"),
-                                        "type": dep.get("type"),
-                                    }
-                                )
-                                component["sources"] = components
-                    q.append(component)
+                component = {
+                    "product_versions": [{"name": build["ps_module"]}],
+                    "product_streams": [
+                        {
+                            "name": build["ps_update_stream"],
+                            "product_versions": [{"name": build["ps_module"]}],
+                            "active": True,  # assume all product streams as active
+                        }
+                    ],
+                    "product_active": True,
+                    "type": build["build_type"],
+                    "name": build["build_name"],
+                    "nvr": build["build_nvr"],
+                    "upstreams": [],
+                    "sources": [],
+                    "software_build": {
+                        "build_id": build["build_id"],
+                        "source": build["build_repo"],
+                    },
+                }
+                if "sources" in build:
+                    for deps in build["sources"]:
+                        for dep in deps["dependencies"]:
+                            components = []
+                            components.append(
+                                {
+                                    "name": dep.get("name"),
+                                    "nvr": dep.get("nvr"),
+                                    "type": dep.get("type"),
+                                }
+                            )
+                            component["sources"] = components
+                q.append(component)
         except Exception:
             logger.warning("problem accessing deptopia.")
 

@@ -33,7 +33,7 @@ from component_registry_bindings.bindings.python_client.models import (
 )
 
 from griffon import (
-    COMMUNITY_COMPONENTS_API_URL,
+    COMMUNITY_COMPONENTS_SERVER_URL,
     CORGI_SERVER_URL,
     CommunityComponentService,
     progress_bar,
@@ -65,7 +65,7 @@ def commmunity_components_grp(ctx):
 # COMPONENTS
 
 
-@commmunity_components_grp.group(help=f"{COMMUNITY_COMPONENTS_API_URL}/api/v1/components")
+@commmunity_components_grp.group(help=f"{COMMUNITY_COMPONENTS_SERVER_URL}/api/v1/components")
 @click.pass_context
 def components(ctx):
     """Corgi Components."""

@@ -8,6 +8,7 @@ import click
 import click_completion
 
 from griffon import (
+    check_envvars,
     config_logging,
     get_config_option,
     list_config_sections,
@@ -133,6 +134,8 @@ def cli(
     ctx, debug, format, verbose, no_progress_bar, no_color, no_wrap, terminal_width, profile, editor
 ):
     """Red Hat product security CLI"""
+
+    check_envvars()
 
     if ctx.invoked_subcommand is None:
         click.echo(ctx.parent.get_help())
