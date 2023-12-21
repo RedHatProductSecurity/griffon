@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * COMMUNITY_COMPONENTS_API_URL environment variable changed to
   COMMUNITY_COMPONENTS_SERVER_URL
 * Migrated from setup.py to pyproject.toml
+* searched names regex escaped by default
 
 ### Added
 * --search-provides in service products-contain-component which
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * example plugin introduced
 * osidb-bindings and component-registry-bindings dependency versions
   are now pinned in pyproject.toml
+* -r option for regex name search without escaping the searched string
 
 ### Fixed
 * standardized progress bar accross whole Griffon which fixes

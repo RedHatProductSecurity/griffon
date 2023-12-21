@@ -7,6 +7,7 @@
 """
 import copy
 import logging
+import re
 import subprocess
 from json import loads
 
@@ -92,9 +93,11 @@ queries_grp.add_command(generate_license_report)
 @click.option(
     "-s",
     "strict_name_search",
+    cls=GroupOption,
     is_flag=True,
     default=False,
     help="Strict search, exact match of name.",
+    mutually_exclusive_group=["regex_name_search"],
 )
 @click.option(
     "--all",
@@ -110,9 +113,20 @@ queries_grp.add_command(generate_license_report)
     default=get_config_option("default", "verbosity", 0),
     help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
 )  # noqa
+@click.option(
+    "-r",
+    "regex_name_search",
+    cls=GroupOption,
+    is_flag=True,
+    default=False,
+    help="Regex search.",
+    mutually_exclusive_group=["strict_name_search"],
+)
 @click.pass_context
 @progress_bar
-def get_product_summary(ctx, product_stream_name, strict_name_search, all, verbose):
+def get_product_summary(
+    ctx, product_stream_name, strict_name_search, all, verbose, regex_name_search
+):
     """get product stream."""
     if verbose:
         ctx.obj["VERBOSE"] = verbose
@@ -182,9 +196,11 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
 @click.option(
     "-s",
     "strict_name_search",
+    cls=GroupOption,
     is_flag=True,
     default=False,
     help="Strict search, exact match of component name.",
+    mutually_exclusive_group=["regex_search"],
 )
 @click.option(
     "--generate-affects",
@@ -334,7 +350,16 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     count=True,
     default=get_config_option("default", "verbosity", 0),
     help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
-)  # noqa
+)
+@click.option(
+    "-r",
+    "regex_name_search",
+    cls=GroupOption,
+    is_flag=True,
+    default=False,
+    help="Regex search.",
+    mutually_exclusive_group=["strict_name_search"],
+)
 @click.pass_context
 @progress_bar
 def get_product_contain_component(
@@ -366,6 +391,7 @@ def get_product_contain_component(
     output_type_filter,
     verbose,
     operation_status,
+    regex_name_search,
 ):
     # with console_status(ctx) as operation_status:
     """List products of a latest component."""
@@ -408,7 +434,7 @@ def get_product_contain_component(
         # Use split for users who runs middleware via python
         mw_command = [
             *MIDDLEWARE_CLI.split(),
-            component_name,
+            re.escape(component_name),
             "-e",
             "maven",
             "-b",
@@ -631,9 +657,11 @@ def get_product_contain_component(
 @click.option(
     "-s",
     "strict_name_search",
+    cls=GroupOption,
     is_flag=True,
     default=False,
     help="Strict search, exact match of component name.",
+    mutually_exclusive_group=["regex_name_search"],
 )
 @click.option(
     "-v",
@@ -641,7 +669,16 @@ def get_product_contain_component(
     count=True,
     default=get_config_option("default", "verbosity", 0),
     help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
-)  # noqa
+)
+@click.option(
+    "-r",
+    "regex_name_search",
+    cls=GroupOption,
+    is_flag=True,
+    default=False,
+    help="Regex search.",
+    mutually_exclusive_group=["strict_name_search"],
+)
 @click.pass_context
 @progress_bar
 def get_component_contain_component(
@@ -655,6 +692,7 @@ def get_component_contain_component(
     strict_name_search,
     verbose,
     operation_status,
+    regex_name_search,
 ):
     """List components that contain component."""
     if verbose:
