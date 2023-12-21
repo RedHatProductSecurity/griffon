@@ -125,7 +125,7 @@ queries_grp.add_command(generate_license_report)
 @click.pass_context
 @progress_bar
 def get_product_summary(
-    ctx, product_stream_name, strict_name_search, all, verbose, regex_name_search
+    ctx, product_stream_name, strict_name_search, all, verbose, regex_name_search, operation_status
 ):
     """get product stream."""
     if verbose:
