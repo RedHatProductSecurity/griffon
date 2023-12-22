@@ -28,7 +28,14 @@ class product_stream_summary:
 
     name = "product_stream_summary"
     description = "retrieve product_stream summary"
-    allowed_params = ["strict_name_search", "all", "product_stream_name", "ofuri", "verbose"]
+    allowed_params = [
+        "strict_name_search",
+        "all",
+        "product_stream_name",
+        "ofuri",
+        "verbose",
+        "regex_name_search",
+    ]
 
     def __init__(self, params: dict) -> None:
         self.corgi_session = CorgiService.create_session()
@@ -37,18 +44,25 @@ class product_stream_summary:
         self.ofuri = self.params.get("ofuri")
         self.strict_name_search = self.params.get("strict_name_search", None)
         self.all = self.params.get("all", None)
+        self.regex_name_search = self.params.get("regex_name_search")
 
     def execute(self, status=None) -> List[Dict[str, Any]]:
         cond = {}
+
+        product_stream_name = (
+            re.escape(self.product_stream_name)
+            if not self.regex_name_search
+            else self.product_stream_name
+        )
 
         if self.ofuri:
             cond["ofuri"] = self.ofuri
         elif not self.strict_name_search:
             if not self.all:
-                cond["re_name"] = self.product_stream_name
+                cond["re_name"] = product_stream_name
         else:
             if not self.all:
-                cond["name"] = self.product_stream_name
+                cond["name"] = product_stream_name
 
         # TODO - corgi bindings need to support ofuri in product_streams
         product_streams = self.corgi_session.product_streams.retrieve_list(
@@ -184,6 +198,7 @@ class products_containing_specific_component_query:
         "include_inactive_product_streams",
         "include_product_stream_excluded_components",
         "output_type_filter",
+        "regex_name_search",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -277,6 +292,7 @@ class products_containing_component_query:
         "include_inactive_product_streams",
         "include_product_stream_excluded_components",
         "output_type_filter",
+        "regex_name_search",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -298,6 +314,7 @@ class products_containing_component_query:
         self.no_community = self.params.get("no_community")
         self.search_provides = self.params.get("search_provides")
         self.search_upstreams = self.params.get("search_upstreams")
+        self.regex_name_search = self.params.get("regex_name_search")
         if not self.no_community:
             self.community_session = CommunityComponentService.create_session()
         self.include_inactive_product_streams = self.params.get("include_inactive_product_streams")
@@ -309,12 +326,17 @@ class products_containing_component_query:
             "limit": 50,
             "include_fields": "purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components",  # noqa
         }
+
+        component_name = (
+            re.escape(self.component_name) if not self.regex_name_search else self.component_name
+        )
+
         if self.search_latest:
             search_latest_params = copy.deepcopy(params)
             if not (self.strict_name_search):
-                search_latest_params["re_name"] = self.component_name
+                search_latest_params["re_name"] = component_name
             else:
-                search_latest_params["name"] = self.component_name
+                search_latest_params["name"] = component_name
             if self.ns:
                 search_latest_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
@@ -353,9 +375,9 @@ class products_containing_component_query:
         if self.search_provides:
             search_provides_params = copy.deepcopy(params)
             if not (self.strict_name_search):
-                search_provides_params["re_provides_name"] = self.component_name
+                search_provides_params["re_provides_name"] = component_name
             else:
-                search_provides_params["provides_name"] = self.component_name
+                search_provides_params["provides_name"] = component_name
             if self.ns:
                 search_provides_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
@@ -396,9 +418,9 @@ class products_containing_component_query:
             search_upstreams_params = copy.deepcopy(params)
             search_upstreams_params["latest_components_by_streams"] = "True"
             if not (self.strict_name_search):
-                search_upstreams_params["re_upstreams_name"] = self.component_name
+                search_upstreams_params["re_upstreams_name"] = component_name
             else:
-                search_upstreams_params["upstreams_name"] = self.component_name
+                search_upstreams_params["upstreams_name"] = component_name
             if self.ns:
                 search_upstreams_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
@@ -445,7 +467,7 @@ class products_containing_component_query:
         if self.search_related_url:
             search_related_url_params = copy.deepcopy(params)
             # Note: related_url filter has no concept of strict
-            search_related_url_params["related_url"] = self.component_name
+            search_related_url_params["related_url"] = component_name
             if self.ns:
                 search_related_url_params["namespace"] = self.ns
             if self.component_type:
@@ -493,9 +515,9 @@ class products_containing_component_query:
         if self.search_all:
             search_all_params = copy.deepcopy(params)
             if not (self.strict_name_search):
-                search_all_params["re_name"] = self.component_name
+                search_all_params["re_name"] = component_name
             else:
-                search_all_params["name"] = self.component_name
+                search_all_params["name"] = component_name
             if self.component_type:
                 search_all_params["type"] = self.component_type
             if self.ns:
@@ -546,9 +568,9 @@ class products_containing_component_query:
             search_all_roots_params = copy.deepcopy(params)
             search_all_roots_params["root_components"] = "True"
             if not (self.strict_name_search):
-                search_all_roots_params["re_name"] = self.component_name
+                search_all_roots_params["re_name"] = component_name
             else:
-                search_all_roots_params["name"] = self.component_name
+                search_all_roots_params["name"] = component_name
             if self.ns:
                 search_all_roots_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
@@ -580,9 +602,9 @@ class products_containing_component_query:
             search_all_upstreams_params = copy.deepcopy(params)
             search_all_upstreams_params["namespace"] = "UPSTREAM"
             if not (self.strict_name_search):
-                search_all_upstreams_params["re_name"] = self.component_name
+                search_all_upstreams_params["re_name"] = component_name
             else:
-                search_all_upstreams_params["name"] = self.component_name
+                search_all_upstreams_params["name"] = component_name
             if self.component_type:
                 search_all_upstreams_params["type"] = self.component_type
             if not (self.include_inactive_product_streams):
@@ -627,17 +649,17 @@ class products_containing_component_query:
             patterns = [
                 # binutils
                 re.compile(
-                    f"(devtoolset\\-[0-9]+\\-|mingw\\-|gcc\\-toolset\\-[0-9]+\\-)?{self.component_name}[0-9\\.]*$",  # noqa
+                    f"(devtoolset\\-[0-9]+\\-|mingw\\-|gcc\\-toolset\\-[0-9]+\\-)?{component_name}[0-9\\.]*$",  # noqa
                     flags=flags,
                 ),
                 # compat-* style
-                re.compile(f"(compat\\-)?{self.component_name}[0-9\\.]*(\\-[0-9]+)?$", flags=flags),
+                re.compile(f"(compat\\-)?{component_name}[0-9\\.]*(\\-[0-9]+)?$", flags=flags),
                 # kernel
-                re.compile(f"^{self.component_name}(\\-rt)?$", flags=flags),
+                re.compile(f"^{component_name}(\\-rt)?$", flags=flags),
                 # qemu
-                re.compile(f"^{self.component_name}(\\-kvm(\\-rhev|\\-ma)?)?$", flags=flags),
+                re.compile(f"^{component_name}(\\-kvm(\\-rhev|\\-ma)?)?$", flags=flags),
                 # webkit
-                re.compile(f"^{self.component_name}([0-9])?(gtk)?([0-9])?$", flags=flags),
+                re.compile(f"^{component_name}([0-9])?(gtk)?([0-9])?$", flags=flags),
             ]
 
             filtered_results = []
@@ -664,9 +686,9 @@ class products_containing_component_query:
         if self.search_community:
             search_community_params = copy.deepcopy(params)
             if not (self.strict_name_search):
-                search_community_params["re_name"] = self.component_name
+                search_community_params["re_name"] = component_name
             else:
-                search_community_params["name"] = self.component_name
+                search_community_params["name"] = component_name
             if self.ns:
                 search_community_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
@@ -749,6 +771,7 @@ class components_containing_component_query:
         "namespace",
         "strict_name_search",
         "verbose",
+        "regex_name_search",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -760,13 +783,18 @@ class components_containing_component_query:
         self.component_arch = self.params.get("component_arch")
         self.namespace = self.params.get("namespace")
         self.strict_name_search = self.params.get("strict_name_search")
+        self.regex_name_search = self.params.get("regex_name_search")
 
     def execute(self, status=None) -> List[Dict[str, Any]]:
+        component_name = (
+            re.escape(self.component_name) if not self.regex_name_search else self.component_name
+        )
+
         cond = {}
         if not self.strict_name_search:
-            cond["re_name"] = self.component_name
+            cond["re_name"] = component_name
         else:
-            cond["name"] = self.component_name
+            cond["name"] = component_name
         if self.component_version:
             cond["version"] = self.component_version
         if self.component_arch:
