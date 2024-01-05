@@ -55,7 +55,7 @@ def affect_cvss(ctx):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_affect_cvss(ctx, affect_id, cvss_uuid, **params):
     params = multivalue_params_to_csv(params)
 
@@ -81,7 +81,7 @@ def get_affect_cvss(ctx, affect_id, cvss_uuid, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def list_affect_cvss(ctx, affect_id, **params):
     # TODO: handle pagination
     # TODO: handle output
@@ -104,6 +104,7 @@ def list_affect_cvss(ctx, affect_id, **params):
     exclude=["uuid", "created_dt"],
 )
 @click.pass_context
+@progress_bar()
 def create_affect_cvss(ctx, affect_id, **params):
     request_body_type = getattr(osidb_api_v1_affects_cvss_scores_create, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
@@ -152,6 +153,7 @@ def create_affect_cvss(ctx, affect_id, **params):
 @click.option("--uuid", "cvss_uuid", help="CVSS UUID.", required=True)
 @request_body_options(endpoint_module=osidb_api_v1_affects_cvss_scores_update, exclude=["uuid"])
 @click.pass_context
+@progress_bar()
 def update_affect_cvss(ctx, affect_id, cvss_uuid, **params):
     request_body_type = getattr(osidb_api_v1_affects_cvss_scores_update, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
@@ -216,6 +218,7 @@ def update_affect_cvss(ctx, affect_id, cvss_uuid, **params):
     prompt="Are you sure you want to delete affect CVSS?",
 )
 @click.pass_context
+@progress_bar()
 def delete_affect_cvss(ctx, affect_id, cvss_uuid, **params):
     session = OSIDBService.create_session()
     try:

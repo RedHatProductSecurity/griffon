@@ -48,7 +48,7 @@ def affects(ctx):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def list_affects(ctx, **params):
     # TODO: handle pagination
     # TODO: handle output
@@ -72,7 +72,7 @@ def list_affects(ctx, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_affect(ctx, affect_uuid, **params):
     """
     For parameter reference see:
@@ -89,6 +89,7 @@ def get_affect(ctx, affect_uuid, **params):
 @click.option("--uuid", "affect_uuid", help="Affect UUID.", required=True)
 @request_body_options(endpoint_module=osidb_api_v1_affects_update, exclude=["uuid"])
 @click.pass_context
+@progress_bar()
 def update_affect(ctx, affect_uuid, **params):
     request_body_type = getattr(osidb_api_v1_affects_update, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
@@ -141,6 +142,7 @@ def update_affect(ctx, affect_uuid, **params):
     exclude=["uuid", "created_dt", "updated_dt"],
 )
 @click.pass_context
+@progress_bar()
 def create_affect(ctx, **params):
     request_body_type = getattr(osidb_api_v1_affects_create, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
@@ -189,6 +191,7 @@ def create_affect(ctx, **params):
     prompt="Are you sure you delete affect?",
 )
 @click.pass_context
+@progress_bar()
 def delete_affect(ctx, affect_uuid, **params):
     session = OSIDBService.create_session()
     try:

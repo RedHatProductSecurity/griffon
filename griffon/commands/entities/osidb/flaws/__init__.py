@@ -52,7 +52,7 @@ def flaws(ctx):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def list_flaws(ctx, **params):
     # TODO: handle output
     session = OSIDBService.create_session()
@@ -80,7 +80,7 @@ def list_flaws(ctx, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_flaw(ctx, flaw_id, **params):
     params = multivalue_params_to_csv(params)
 
@@ -154,6 +154,7 @@ def update_flaw(ctx, flaw_id, **params):
     exclude=["uuid", "trackers", "created_dt", "updated_dt"],
 )
 @click.pass_context
+@progress_bar()
 def create_flaw(ctx, **params):
     request_body_type = getattr(osidb_api_v1_flaws_create, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:

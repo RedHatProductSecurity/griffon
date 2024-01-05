@@ -59,7 +59,7 @@ def flaw_package_versions(ctx):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_flaw_package_version(ctx, flaw_id, package_version_uuid, **params):
     params = multivalue_params_to_csv(params)
 
@@ -87,7 +87,7 @@ def get_flaw_package_version(ctx, flaw_id, package_version_uuid, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def list_flaw_package_versions(ctx, flaw_id, **params):
     # TODO: handle pagination
     # TODO: handle output
@@ -110,6 +110,7 @@ def list_flaw_package_versions(ctx, flaw_id, **params):
     exclude=["uuid", "created_dt"],
 )
 @click.pass_context
+@progress_bar()
 def create_flaw_package_version(ctx, flaw_id, **params):
     request_body_type = getattr(
         osidb_api_v1_flaws_package_versions_create, "REQUEST_BODY_TYPE", None
@@ -160,6 +161,7 @@ def create_flaw_package_version(ctx, flaw_id, **params):
 @click.option("--uuid", "package_version_uuid", help="Package Version UUID.", required=True)
 @request_body_options(endpoint_module=osidb_api_v1_flaws_package_versions_update, exclude=["uuid"])
 @click.pass_context
+@progress_bar()
 def update_flaw_package_version(ctx, flaw_id, package_version_uuid, **params):
     request_body_type = getattr(
         osidb_api_v1_flaws_package_versions_update, "REQUEST_BODY_TYPE", None
@@ -227,6 +229,7 @@ def update_flaw_package_version(ctx, flaw_id, package_version_uuid, **params):
     prompt="Are you sure you want to delete Flaw Package Version?",
 )
 @click.pass_context
+@progress_bar()
 def delete_flaw_package_version(ctx, flaw_id, package_versions_uuid, **params):
     session = OSIDBService.create_session()
     try:

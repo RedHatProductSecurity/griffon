@@ -88,7 +88,7 @@ def components(ctx):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def list_components(ctx, strict_name_search, component_name, **params):
     is_params_empty = [False for v in params.values() if v]
     if not component_name and not is_params_empty:
@@ -121,7 +121,7 @@ def list_components(ctx, strict_name_search, component_name, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_component(ctx, component_id, purl, **params):
     is_params_empty = [False for v in params.values() if v]
     if not component_id and not purl and not is_params_empty:
@@ -169,7 +169,7 @@ def get_component(ctx, component_id, purl, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_component_summary(ctx, component_name, strict_name_search, **params):
     """Get Component summary."""
     is_params_empty = [False for v in params.values() if v]
@@ -231,7 +231,7 @@ def get_component_summary(ctx, component_name, strict_name_search, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_component_provides(ctx, component_uuid, purl, **params):
     """Retrieve all Components provided by a Component."""
     is_params_empty = [False for v in params.values() if v]
@@ -271,7 +271,7 @@ def get_component_provides(ctx, component_uuid, purl, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_component_sources(ctx, component_uuid, purl, **params):
     """Retrieve all Components that contain Component."""
     is_params_empty = [False for v in params.values() if v]
@@ -310,7 +310,7 @@ def get_component_sources(ctx, component_uuid, purl, **params):
     help="Generate spdx manifest (json).",
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_component_manifest(ctx, component_uuid, purl, spdx_json_format):
     """Retrieve Component manifest."""
     if not component_uuid and not purl:
@@ -391,7 +391,7 @@ def list_product_streams(ctx, product_stream_name, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_product_stream(ctx, product_stream_name, inactive, ofuri, **params):
     """Retrieve Product Stream."""
     is_params_empty = [False for v in params.values() if v]
@@ -423,7 +423,8 @@ def get_product_stream(ctx, product_stream_name, inactive, ofuri, **params):
     },
 )
 @click.pass_context
-def get_product_stream_components(ctx, product_stream_name, ofuri, **params):
+@progress_bar(is_updatable=True)
+def get_product_stream_components(ctx, product_stream_name, ofuri, operation_status, **params):
     """Retrieve Product Stream latest Components."""
     if not ofuri and not product_stream_name:
         click.echo(ctx.get_help())
@@ -439,6 +440,8 @@ def get_product_stream_components(ctx, product_stream_name, ofuri, **params):
         params["ofuri"] = ps["ofuri"]
     if ofuri:
         params["ofuri"] = ofuri
+
+    operation_status.stop()
     ctx.invoke(list_components, **params)
 
 
@@ -458,7 +461,7 @@ def get_product_stream_components(ctx, product_stream_name, ofuri, **params):
     help="Generate spdx manifest (json).",
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_product_stream_manifest(ctx, product_stream_name, ofuri, spdx_json_format):
     """Retrieve Product Stream manifest."""
     if not ofuri and not product_stream_name:
@@ -527,7 +530,7 @@ def list_software_builds(ctx, software_build_name, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_software_build(ctx, software_build_name, **params):
     """Retrieve SoftwareBuild."""
     is_params_empty = [False for v in params.values() if v]
@@ -560,7 +563,7 @@ def products(ctx):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def list_products(ctx, product_name, **params):
     """Retrieve a list of Software Builds."""
     session = CommunityComponentService.create_session()
@@ -587,7 +590,7 @@ def list_products(ctx, product_name, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_product(ctx, product_name, ofuri, **params):
     """Retrieve Product."""
     is_params_empty = [False for v in params.values() if v]
@@ -622,7 +625,7 @@ def product_versions(ctx):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def list_product_versions(ctx, product_version_name, **params):
     """Retrieve a list of Product Versions."""
     session = CommunityComponentService.create_session()
@@ -652,7 +655,7 @@ def list_product_versions(ctx, product_version_name, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_product_version(ctx, product_version_name, ofuri, **params):
     """Retrieve ProductVersion."""
     is_params_empty = [False for v in params.values() if v]
@@ -687,7 +690,7 @@ def product_variants(ctx):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def list_product_variants(ctx, product_variant_name, **params):
     """Retrieve a list of Product Variants."""
     session = CommunityComponentService.create_session()
@@ -717,7 +720,7 @@ def list_product_variants(ctx, product_variant_name, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_product_variant(ctx, product_variant_name, ofuri, **params):
     """Retrieve ProductVariant."""
     is_params_empty = [False for v in params.values() if v]
@@ -750,7 +753,7 @@ def channels(ctx):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def list_channels(ctx, channel_name, **params):
     """Retrieve a list of Channels."""
     session = CommunityComponentService.create_session()
@@ -777,7 +780,7 @@ def list_channels(ctx, channel_name, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_channel(ctx, channel_name, ofuri, **params):
     """Retrieve ProductVariant."""
     is_params_empty = [False for v in params.values() if v]
