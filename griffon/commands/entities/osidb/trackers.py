@@ -62,7 +62,7 @@ def list_trackers(ctx, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_tracker(ctx, tracker_uuid, **params):
     params = multivalue_params_to_csv(params)
 

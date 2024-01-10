@@ -61,9 +61,9 @@ def raw_json_transform(data, show_count: bool) -> dict:
         if show_count:
             output["count"] = len(results)  # type: ignore
     else:
-        transformed = data if type(data) is dict else data.to_dict()
+        output = data if type(data) is dict else data.to_dict()
         for related_data in ("upstreams", "sources"):
-            transformed[related_data] = raw_json_transform_related(transformed, related_data)
+            output[related_data] = raw_json_transform_related(output, related_data)
     return output
 
 

@@ -123,9 +123,9 @@ queries_grp.add_command(generate_license_report)
     mutually_exclusive_group=["strict_name_search"],
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_product_summary(
-    ctx, product_stream_name, strict_name_search, all, verbose, regex_name_search, operation_status
+    ctx, product_stream_name, strict_name_search, all, verbose, regex_name_search
 ):
     """get product stream."""
     if verbose:
@@ -155,7 +155,8 @@ def get_product_summary(
     help="Strict search, exact match of name.",
 )
 @click.pass_context
-def retrieve_component_summary(ctx, component_name, strict_name_search):
+@progress_bar()
+def retrieve_component_summary(ctx, component_name, strict_name_search, operation_status):
     """Get Component summary."""
     if not component_name:
         click.echo(ctx.get_help())
@@ -163,6 +164,8 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     cond = {}
     if component_name:
         cond["component_name"] = component_name
+
+    operation_status.stop()
     ctx.invoke(get_component_summary, **cond)
 
 
@@ -361,7 +364,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     mutually_exclusive_group=["strict_name_search"],
 )
 @click.pass_context
-@progress_bar
+@progress_bar(is_updatable=True)
 def get_product_contain_component(
     ctx,
     component_name,
@@ -680,7 +683,7 @@ def get_product_contain_component(
     mutually_exclusive_group=["strict_name_search"],
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_component_contain_component(
     ctx,
     component_name,
@@ -691,7 +694,6 @@ def get_component_contain_component(
     namespace,
     strict_name_search,
     verbose,
-    operation_status,
     regex_name_search,
 ):
     """List components that contain component."""
@@ -736,7 +738,7 @@ def get_component_contain_component(
     help="Generate spdx manifest (json).",
 )
 @click.pass_context
-@progress_bar
+@progress_bar(is_updatable=True)
 def get_product_manifest_query(ctx, product_stream_name, ofuri, spdx_json_format, operation_status):
     """List components of a specific product version."""
     if spdx_json_format:
@@ -748,6 +750,8 @@ def get_product_manifest_query(ctx, product_stream_name, ofuri, spdx_json_format
         cond["ofuri"] = ofuri
     if product_stream_name:
         cond["product_stream_name"] = product_stream_name
+
+    operation_status.stop()
     ctx.invoke(get_product_stream_manifest, **cond)
 
 
@@ -787,7 +791,7 @@ def get_product_manifest_query(ctx, product_stream_name, ofuri, spdx_json_format
     help="Verbose output, more detailed search results, can be used multiple times (e.g. -vvv).",
 )  # noqa
 @click.pass_context
-@progress_bar
+@progress_bar(is_updatable=True)
 def get_product_latest_components_query(
     ctx, product_stream_name, ofuri, verbose, operation_status, **params
 ):
@@ -805,6 +809,8 @@ def get_product_latest_components_query(
         )
         params["ofuri"] = ps["ofuri"]
         params["include_fields"] = "name,nvr,related_url,purl,version,release,type,software_build"
+
+    operation_status.stop()
     ctx.invoke(list_components, **params)
 
 
@@ -834,7 +840,7 @@ def get_product_latest_components_query(
     help="Generate spdx manifest (json).",
 )
 @click.pass_context
-@progress_bar
+@progress_bar(is_updatable=True)
 def retrieve_component_manifest(ctx, component_uuid, purl, spdx_json_format, operation_status):
     """Retrieve Component manifest."""
     if spdx_json_format:
@@ -845,6 +851,8 @@ def retrieve_component_manifest(ctx, component_uuid, purl, spdx_json_format, ope
         cond["uuid"] = component_uuid
     if purl:
         cond["purl"] = purl
+
+    operation_status.stop()
     ctx.invoke(get_component_manifest, **cond)
 
 
@@ -882,7 +890,7 @@ def retrieve_component_manifest(ctx, component_uuid, purl, spdx_json_format, ope
     help="filter by Component namespace.",
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def components_affected_by_specific_cve_query(
     ctx,
     cve_id,
@@ -891,7 +899,6 @@ def components_affected_by_specific_cve_query(
     affect_impact,
     component_type,
     namespace,
-    operation_status,
 ):
     """List components affected by specific CVE."""
     q = query_service.invoke(core_queries.components_affected_by_specific_cve_query, ctx.params)
@@ -904,8 +911,8 @@ def components_affected_by_specific_cve_query(
 )
 @click.argument("cve_id", required=True, type=click.STRING, shell_complete=get_cve_ids)
 @click.pass_context
-@progress_bar
-def product_versions_affected_by_cve_query(ctx, cve_id, operation_status):
+@progress_bar()
+def product_versions_affected_by_cve_query(ctx, cve_id):
     """List Products affected by a CVE."""
     q = query_service.invoke(
         core_queries.products_versions_affected_by_specific_cve_query, ctx.params
@@ -964,7 +971,7 @@ def product_versions_affected_by_cve_query(ctx, cve_id, operation_status):
     help="Strict search, exact match of component name.",
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def cves_for_specific_component_query(
     ctx,
     component_name,
@@ -975,7 +982,6 @@ def cves_for_specific_component_query(
     affect_resolution,
     affect_impact,
     strict_name_search,
-    operation_status,
 ):
     """List flaws of a specific component."""
     q = query_service.invoke(core_queries.cves_for_specific_component_query, ctx.params)
@@ -1038,7 +1044,7 @@ def cves_for_specific_component_query(
     help="Strict search, exact match of component name.",
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def cves_for_specific_product_query(
     ctx,
     product_version_name,
@@ -1049,7 +1055,6 @@ def cves_for_specific_product_query(
     affect_impact,
     affect_resolution,
     strict_name_search,
-    operation_status,
 ):
     """List flaws of a specific product."""
     q = query_service.invoke(core_queries.cves_for_specific_product_query, ctx.params)

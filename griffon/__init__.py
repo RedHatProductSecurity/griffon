@@ -361,7 +361,7 @@ class CommunityComponentService:
 
 
 @contextmanager
-def console_status(no_progress_bar):
+def console_status(no_progress_bar, initial_status=None):
     """updatable console status progress bar"""
 
     class DisabledStatusObject:
@@ -389,16 +389,50 @@ def console_status(no_progress_bar):
                 status=f"[magenta b]griffoning:[/magenta b] [bold]{status}[/bold]", *args, **kwargs
             )
 
+        def start(self):
+            self.status.start()
+
+        def stop(self):
+            self.status.stop()
+
     if no_progress_bar:
         yield DisabledStatusObject()
     else:
+        status = f": {initial_status}" if initial_status else ""
+
         with console.status(
-            "[magenta b]griffoning[/magenta b]", spinner="line"
+            f"[magenta b]griffoning[/magenta b]{status}", spinner="line"
         ) as operation_status:
             yield StatusObject(operation_status)
 
 
-def progress_bar(
+def progress_bar(is_updatable=False, initial_status=None):
+    """
+    progress bar decorator
+
+    :param updatable: allows/disallows updatable progress bar status, if set to `True`
+    decorated function needs to have `operation_status` parameter
+    """
+
+    def decorator(func=None):
+        if not func:
+            return partial(decorator)
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            obj: dict = args[0].obj
+            with console_status(obj.get("NO_PROGRESS_BAR"), initial_status) as operation_status:
+                if is_updatable:
+                    func(*args, operation_status=operation_status, **kwargs)
+                else:
+                    func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def progress_bar2(
     func=None,
 ):
     """progress bar decorator"""

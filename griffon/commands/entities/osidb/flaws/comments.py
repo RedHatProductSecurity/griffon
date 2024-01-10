@@ -53,7 +53,7 @@ def flaw_comments(ctx):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def get_flaw_comment(ctx, flaw_id, comment_uuid, **params):
     params = multivalue_params_to_csv(params)
 
@@ -79,7 +79,7 @@ def get_flaw_comment(ctx, flaw_id, comment_uuid, **params):
     },
 )
 @click.pass_context
-@progress_bar
+@progress_bar()
 def list_flaw_comments(ctx, flaw_id, **params):
     # TODO: handle pagination
     # TODO: handle output
@@ -102,6 +102,7 @@ def list_flaw_comments(ctx, flaw_id, **params):
     exclude=["uuid", "created_dt"],
 )
 @click.pass_context
+@progress_bar()
 def create_flaw_comment(ctx, flaw_id, **params):
     request_body_type = getattr(osidb_api_v1_flaws_comments_create, "REQUEST_BODY_TYPE", None)
     if request_body_type is None:
