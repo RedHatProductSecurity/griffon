@@ -87,6 +87,11 @@ export OSIDB_USERNAME="<your username>"
 export OSIDB_PASSWORD="<your password>"
 ```
 
+To disable verifying ssl certificates: 
+```commandline
+export GRIFFON_VERIFY_SSL="False"
+```
+
 ### Enable autocompletion
 Enable shell autocompletion by following these instructions for your specific shell.
 

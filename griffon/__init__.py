@@ -42,6 +42,7 @@ MIDDLEWARE_CLI = os.getenv("GRIFFON_MIDDLEWARE_CLI")
 GRIFFON_CONFIG_DIR = os.getenv("GRIFFON_API_URL", "~/.griffon")
 GRIFFON_RC_FILE = "~/.griffonrc"
 GRIFFON_DEFAULT_LOG_FILE = os.getenv("GRIFFON_DEFAULT_LOG_FILE", "~/.griffon/history.log")
+GRIFFON_VERIFY_SSL = os.getenv("GRIFFON_VERIFY_SSL", "True").lower() in ("true", "1", "t")
 
 logger = logging.getLogger("griffon")
 
@@ -138,6 +139,7 @@ class CorgiService:
         try:
             return component_registry_bindings.new_session(
                 component_registry_server_uri=CORGI_SERVER_URL,
+                verify_ssl=GRIFFON_VERIFY_SSL,
             )
         except:  # noqa
             console.log(f"{CORGI_SERVER_URL} is not accessible.")
@@ -204,7 +206,11 @@ class OSIDBService:
             if OSIDB_AUTH_METHOD == "credentials":
                 credentials["username"] = OSIDB_USERNAME
                 credentials["password"] = OSIDB_PASSWORD
-            return osidb_bindings.new_session(osidb_server_uri=OSIDB_SERVER_URL, **credentials)
+            return osidb_bindings.new_session(
+                osidb_server_uri=OSIDB_SERVER_URL,
+                verify_ssl=GRIFFON_VERIFY_SSL,
+                **credentials,
+            )
         except:  # noqa
             console.log(f"{OSIDB_SERVER_URL} is not accessible (or krb ticket has expired).")
             exit(1)
@@ -307,6 +313,7 @@ class CommunityComponentService:
         try:
             return component_registry_bindings.new_session(
                 component_registry_server_uri=COMMUNITY_COMPONENTS_SERVER_URL,
+                verify_ssl=GRIFFON_VERIFY_SSL,
             )
         except:  # noqa
             console.log(f"{COMMUNITY_COMPONENTS_SERVER_URL } is not accessible.")
