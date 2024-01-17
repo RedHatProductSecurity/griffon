@@ -363,6 +363,13 @@ def retrieve_component_summary(ctx, component_name, strict_name_search, operatio
     help="Regex search.",
     mutually_exclusive_group=["strict_name_search"],
 )
+@click.option(
+    "--include-container-roots",
+    "include_container_roots",
+    is_flag=True,
+    default=get_config_option("default", "include_container_roots", False),
+    help="Include OCI root components in output.",
+)
 @click.pass_context
 @progress_bar(is_updatable=True)
 def get_product_contain_component(
@@ -395,12 +402,13 @@ def get_product_contain_component(
     verbose,
     operation_status,
     regex_name_search,
+    include_container_roots,
 ):
     # with console_status(ctx) as operation_status:
     """List products of a latest component."""
     if verbose:
         ctx.obj["VERBOSE"] = verbose
-
+    ctx.obj["INCLUDE_CONTAINER_ROOTS"] = include_container_roots
     if (
         not search_latest
         and not search_all
@@ -419,6 +427,7 @@ def get_product_contain_component(
     params.pop("sfm2_flaw_id")
     params.pop("flaw_mode")
     params.pop("affect_mode")
+    params.pop("include_container_roots")
     if component_name:
         q = query_service.invoke(
             core_queries.products_containing_component_query, params, status=operation_status

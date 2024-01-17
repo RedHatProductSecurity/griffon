@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+* refactor output format of service products-contain-component (GRIF-209)
+* container roots are excluded by default (need to use --include-container-roots)
+
+### Added
+* --include-container_roots in service products-contain-component
+
 ## [0.4.2] - 2024-01-14
 ### Added
 * GRIFFON_VERIFY_SSL environment variable
