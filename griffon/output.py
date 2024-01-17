@@ -206,14 +206,7 @@ def generate_normalised_results(
 ):
     normalised_results = list()
     if "results" in output:
-        # ensure unique result set
-        seen = set()
-        results = []
-        for obj in output["results"]:
-            if obj["purl"] not in seen:
-                seen.add(obj["purl"])
-                results.append(obj)
-        for item in results:
+        for item in output["results"]:
             for ps in item["product_streams"]:
                 # only include component from active product stream
                 if ps.get("active") or include_inactive_product_streams:
