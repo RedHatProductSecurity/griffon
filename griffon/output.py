@@ -630,19 +630,21 @@ def text_output_products_contain_component(
                                 if not (result_tree[pv][ps][cn][nvr]["upstreams"]) and not (
                                     result_tree[pv][ps][cn][nvr]["sources"]
                                 ):
-                                    try:
-                                        child_dep_names = re.sub(
-                                            re.escape(search_component_name),
-                                            f"[b]{search_component_name}[/b]",
-                                            ", ".join(provides_components),
-                                        )
-                                    except re.error:
-                                        pass
-
+                                    child_dep_names = ""
+                                    if provides_components:
+                                        try:
+                                            child_dep_names = re.sub(
+                                                re.escape(search_component_name),
+                                                f"[b]{search_component_name}[/b]",
+                                                ", ".join(provides_components),
+                                            )
+                                            child_dep_names = f"[{child_dep_names}]"
+                                        except re.error:
+                                            pass
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
                                         dep,
-                                        f"[{child_dep_names}]",
+                                        child_dep_names,
                                         no_wrap=no_wrap,
                                     )
             if (
@@ -780,19 +782,22 @@ def text_output_products_contain_component(
                                 if not (result_tree[pv][ps][cn][nvr]["upstreams"]) and not (
                                     result_tree[pv][ps][cn][nvr]["sources"]
                                 ):
-                                    try:
-                                        child_dep_names = re.sub(
-                                            re.escape(search_component_name),
-                                            f"[b]{search_component_name}[/b]",
-                                            ", ".join(provides_components),
-                                        )
-                                    except re.error:
-                                        pass
+                                    child_dep_names = ""
+                                    if provides_components:
+                                        try:
+                                            child_dep_names = re.sub(
+                                                re.escape(search_component_name),
+                                                f"[b]{search_component_name}[/b]",
+                                                ", ".join(provides_components),
+                                            )
+                                            child_dep_names = f"[{child_dep_names}]"
+                                        except re.error:
+                                            pass
 
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
                                         dep,
-                                        f"[{child_dep_names}]",
+                                        child_dep_names,
                                         f"[i][grey]{related_url}[/grey][/i]",
                                         f"[i][grey]{build_source_url}[/grey][/i]",
                                         width=1000,
@@ -900,19 +905,22 @@ def text_output_products_contain_component(
                                 if not (result_tree[pv][ps][cn][nvr]["upstreams"]) and not (
                                     result_tree[pv][ps][cn][nvr]["sources"]
                                 ):
-                                    try:
-                                        child_dep_names = re.sub(
-                                            re.escape(search_component_name),
-                                            f"[b]{search_component_name}[/b]",
-                                            ", ".join(provides_components),
-                                        )
-                                    except re.error:
-                                        pass
+                                    child_dep_names = ""
+                                    if provides_components:
+                                        try:
+                                            child_dep_names = re.sub(
+                                                re.escape(search_component_name),
+                                                f"[b]{search_component_name}[/b]",
+                                                ", ".join(provides_components),
+                                            )
+                                            child_dep_names = f"[{child_dep_names}]"
+                                        except re.error:
+                                            pass
 
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
                                         dep,
-                                        f"[{child_dep_names}]",
+                                        child_dep_names,
                                         f"[i][grey]{related_url}[/grey][/i]",
                                         f"[i][grey]{build_source_url}[/grey][/i]",
                                         width=1000,
@@ -1020,19 +1028,22 @@ def text_output_products_contain_component(
                                 if not (result_tree[pv][ps][cn][nvr]["upstreams"]) and not (
                                     result_tree[pv][ps][cn][nvr]["sources"]
                                 ):
-                                    try:
-                                        child_dep_names = re.sub(
-                                            re.escape(search_component_name),
-                                            f"[b]{search_component_name}[/b]",
-                                            ", ".join(provides_components),
-                                        )
-                                    except re.error:
-                                        pass
+                                    child_dep_names = ""
+                                    if provides_components:
+                                        try:
+                                            child_dep_names = re.sub(
+                                                re.escape(search_component_name),
+                                                f"[b]{search_component_name}[/b]",
+                                                ", ".join(provides_components),
+                                            )
+                                            child_dep_names = f"[{child_dep_names}]"
+                                        except re.error:
+                                            pass
 
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
                                         dep,
-                                        f"[{child_dep_names}]",
+                                        child_dep_names,
                                         f"[i][grey]{related_url}[/grey][/i]",
                                         f"[i][grey]{build_source_url}[/grey][/i]",
                                         width=10000,
