@@ -199,6 +199,7 @@ class products_containing_specific_component_query:
         "include_product_stream_excluded_components",
         "output_type_filter",
         "regex_name_search",
+        "exclude_unreleased",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -303,6 +304,7 @@ class products_containing_component_query:
         "include_product_stream_excluded_components",
         "output_type_filter",
         "regex_name_search",
+        "exclude_unreleased",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -328,6 +330,7 @@ class products_containing_component_query:
         if not self.no_community:
             self.community_session = CommunityComponentService.create_session()
         self.include_inactive_product_streams = self.params.get("include_inactive_product_streams")
+        self.exclude_unreleased = self.params.get("exclude_unreleased")
 
     def execute(self, status=None) -> List[Dict[str, Any]]:
         status.update("searching component-registry.")
@@ -351,6 +354,8 @@ class products_containing_component_query:
                 search_latest_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_latest_params["active_streams"] = "True"
+            if self.exclude_unreleased:
+                search_latest_params["released_components"] = "True"
             search_latest_params["root_components"] = "True"
             search_latest_params["latest_components_by_streams"] = "True"
             status.update("searching latest root component(s).")
@@ -400,6 +405,9 @@ class products_containing_component_query:
                 search_provides_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_provides_params["active_streams"] = "True"
+            if self.exclude_unreleased:
+                search_provides_params["released_components"] = "True"
+            search_provides_params["root_components"] = "True"
             search_provides_params["latest_components_by_streams"] = "True"
             status.update("searching latest provided child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_provides_params)
@@ -451,7 +459,8 @@ class products_containing_component_query:
                 search_upstreams_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_upstreams_params["active_streams"] = "True"
-            search_upstreams_params["released_components"] = "True"
+            if self.exclude_unreleased:
+                search_upstreams_params["released_components"] = "True"
             search_upstreams_params["latest_components_by_streams"] = "True"
             status.update("searching latest upstreams child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_upstreams_params)
@@ -501,6 +510,8 @@ class products_containing_component_query:
                 search_related_url_params["type"] = self.component_type
             if not (self.include_inactive_product_streams):
                 search_related_url_params["active_streams"] = "True"
+            if self.exclude_unreleased:
+                search_related_url_params["released_components"] = "True"
             search_related_url_params["released_components"] = "True"
             related_url_components_cnt = self.corgi_session.components.count(
                 **search_related_url_params, max_results=10000
@@ -539,7 +550,8 @@ class products_containing_component_query:
                 search_all_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_all_params["active_streams"] = "True"
-            search_all_params["released_components"] = "True"
+            if self.exclude_unreleased:
+                search_all_params["released_components"] = "True"
             all_components_cnt = self.corgi_session.components.count(**search_all_params)
             status.update(f"found {all_components_cnt} all component(s).")
             # TODO: remove max_results
@@ -577,7 +589,8 @@ class products_containing_component_query:
                 search_all_roots_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_all_roots_params["active_streams"] = "True"
-            search_all_roots_params["released_components"] = "True"
+            if self.exclude_unreleased:
+                search_all_roots_params["released_components"] = "True"
             all_src_components_cnt = self.corgi_session.components.count(**search_all_roots_params)
             status.update(f"found {all_src_components_cnt} all root component(s).")
             all_src_components = self.corgi_session.components.retrieve_list_iterator_async(
@@ -611,6 +624,8 @@ class products_containing_component_query:
                 search_all_upstreams_params["type"] = self.component_type
             if not (self.include_inactive_product_streams):
                 search_all_upstreams_params["active_streams"] = "True"
+            if self.exclude_unreleased:
+                search_all_upstreams_params["released_components"] = "True"
             upstream_components_cnt = self.corgi_session.components.count(
                 **search_all_upstreams_params
             )
@@ -698,6 +713,8 @@ class products_containing_component_query:
                 search_community_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_community_params["active_streams"] = "True"
+            if self.exclude_unreleased:
+                search_community_params["released_components"] = "True"
             all_community_components_cnt = self.community_session.components.count(
                 **search_community_params
             )

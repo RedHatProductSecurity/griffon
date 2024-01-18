@@ -21,6 +21,7 @@ exclude_components = -container-source
     -testlib 
     -repolib
 include_container_roots = False
+exclude_unreleased = False
 
 # profile sections (use with --profile {profile} flag)
 [cloud]

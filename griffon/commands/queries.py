@@ -370,6 +370,13 @@ def retrieve_component_summary(ctx, component_name, strict_name_search, operatio
     default=get_config_option("default", "include_container_roots", False),
     help="Include OCI root components in output.",
 )
+@click.option(
+    "--exclude-unreleased",
+    "exclude_unreleased",
+    is_flag=True,
+    default=get_config_option("default", "exclude_unreleased", False),
+    help="Exclude unreleased components.",
+)
 @click.pass_context
 @progress_bar(is_updatable=True)
 def get_product_contain_component(
@@ -403,6 +410,7 @@ def get_product_contain_component(
     operation_status,
     regex_name_search,
     include_container_roots,
+    exclude_unreleased,
 ):
     # with console_status(ctx) as operation_status:
     """List products of a latest component."""
