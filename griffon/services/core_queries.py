@@ -199,6 +199,7 @@ class products_containing_specific_component_query:
         "include_product_stream_excluded_components",
         "output_type_filter",
         "regex_name_search",
+        "exclude_unreleased",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -215,51 +216,61 @@ class products_containing_specific_component_query:
 
 def async_retrieve_sources(self, purl):
     params = {
-        "limit": 200,
+        "limit": 120,
         "root_components": "True",
-        "released_components": "True",
         "provides": purl,
-        "include_fields": "type,nvr,purl,name,namespace,download_url,related_url",
+        "include_fields": "type,nvr,purl,name,version,namespace,download_url,related_url",
     }
-    # TODO: remove cnt and max_result and cnt > 10000 on next stage-> prod deployment
-    cnt = self.components.count(**params)
-    if cnt == 0:
-        return []
     try:
-        if cnt > 10000:
-            return list(self.components.retrieve_list_iterator_async(max_results=5000, **params))
-        return list(self.components.retrieve_list_iterator_async(max_results=10000, **params))
+        return list(self.components.retrieve_list_iterator_async(**params, max_results=5000))
     except Exception as e:
-        logger.warning(f"{type(e).__name__} - problem retrieving all of {purl} {cnt} sources.")
+        logger.warning(f"{type(e).__name__} - problem retrieving {purl} sources.")
         return []
 
 
 def async_retrieve_upstreams(self, purl):
     params = {
-        "limit": 200,
+        "limit": 120,
         "root_components": "True",
         "upstreams": purl,
-        "include_fields": "type,nvr,purl,name,namespace,download_url,related_url",
+        "include_fields": "type,nvr,purl,name,version,namespace,download_url,related_url",
     }
-    # TODO: remove cnt and max_result and cnt > 10000 on next stage-> prod deployment
-    cnt = self.components.count(**params)
-    if cnt == 0:
-        return []
     try:
-        if cnt > 10000:
-            return list(self.components.retrieve_list_iterator_async(max_results=5000, **params))
-        return list(self.components.retrieve_list_iterator_async(max_results=10000, **params))
+        return list(self.components.retrieve_list_iterator_async(**params, max_results=5000))
     except Exception as e:
-        logger.warning(f"{type(e).__name__} - problem retrieving all of {purl} {cnt} upstreams.")
+        logger.warning(f"{type(e).__name__} - problem retrieving {purl} upstreams.")
         return []
 
 
-def process_component(session, c):
+def async_retrieve_provides(self, urlparams, purl):
+    params = {
+        "limit": 120,
+        "sources": purl,
+        "include_fields": "type,arch,nvr,purl,version,name,namespace,download_url,related_url",
+    }
+    if "name" in urlparams:
+        params["name"] = urlparams["name"]
+    if "provides_name" in urlparams:
+        params["name"] = urlparams["provides_name"]
+    if "re_name" in urlparams:
+        params["re_name"] = urlparams["re_name"]
+    if "re_provides_name" in urlparams:
+        params["re_name"] = urlparams["re_provides_name"]
+    if "namespace" in urlparams:
+        params["namespace"] = urlparams["namespace"]
+    try:
+        return list(self.components.retrieve_list_iterator_async(**params, max_results=5000))
+    except Exception as e:
+        logger.warning(f"{type(e).__name__} - problem retrieving {purl} provides.")
+        return []
+
+
+def process_component(session, urlparams, c):
     """perform any neccessary sub retrievals."""
-    # only process provided components
-    if c.software_build is None:
+    if c.sources:
         c.sources = async_retrieve_sources(session, c.purl)
-        c.upstreams = async_retrieve_upstreams(session, c.purl)
+    c.upstreams = async_retrieve_upstreams(session, c.purl)
+    c.provides = async_retrieve_provides(session, urlparams, c.purl)
     return c
 
 
@@ -293,6 +304,7 @@ class products_containing_component_query:
         "include_product_stream_excluded_components",
         "output_type_filter",
         "regex_name_search",
+        "exclude_unreleased",
     ]
 
     def __init__(self, params: dict) -> None:
@@ -318,6 +330,7 @@ class products_containing_component_query:
         if not self.no_community:
             self.community_session = CommunityComponentService.create_session()
         self.include_inactive_product_streams = self.params.get("include_inactive_product_streams")
+        self.exclude_unreleased = self.params.get("exclude_unreleased")
 
     def execute(self, status=None) -> List[Dict[str, Any]]:
         status.update("searching component-registry.")
@@ -341,17 +354,23 @@ class products_containing_component_query:
                 search_latest_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_latest_params["active_streams"] = "True"
+            if self.exclude_unreleased:
+                search_latest_params["released_components"] = "True"
             search_latest_params["root_components"] = "True"
             search_latest_params["latest_components_by_streams"] = "True"
             status.update("searching latest root component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_latest_params)
             status.update(f"found {latest_components_cnt} latest component(s).")
             latest_components = self.corgi_session.components.retrieve_list_iterator_async(
-                **search_latest_params
+                **search_latest_params, max_results=10000
             )
             status.update(f"found {latest_components_cnt} latest root component(s).")  # noqa
-            for c in latest_components:
-                results.append(c)
+            with multiprocessing.Pool() as pool:
+                for processed_component in pool.map(
+                    partial(process_component, self.corgi_session, search_latest_params),
+                    latest_components,
+                ):
+                    results.append(processed_component)
 
             if not self.no_community:
                 status.update("searching latest community root component(s).")
@@ -363,14 +382,18 @@ class products_containing_component_query:
                 )
                 latest_community_components = (
                     self.community_session.components.retrieve_list_iterator_async(
-                        **search_latest_params
+                        **search_latest_params, max_results=10000
                     )
                 )
                 status.update(
-                    f"found {community_component_cnt} latest community root component(s), retrieving sources & upstreams."  # noqa
+                    f"found {community_component_cnt} latest community root component(s)- retrieving children, sources & upstreams."  # noqa
                 )
-                for c in latest_community_components:
-                    results.append(c)
+                with multiprocessing.Pool() as pool:
+                    for processed_component in pool.map(
+                        partial(process_component, self.corgi_session, search_latest_params),
+                        latest_community_components,
+                    ):
+                        results.append(processed_component)
 
         if self.search_provides:
             search_provides_params = copy.deepcopy(params)
@@ -382,18 +405,24 @@ class products_containing_component_query:
                 search_provides_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_provides_params["active_streams"] = "True"
+            if self.exclude_unreleased:
+                search_provides_params["released_components"] = "True"
             search_provides_params["latest_components_by_streams"] = "True"
             status.update("searching latest provided child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_provides_params)
             status.update(f"found {latest_components_cnt} latest provides component(s).")
             latest_components = self.corgi_session.components.retrieve_list_iterator_async(
-                **search_provides_params
+                **search_provides_params, max_results=10000
             )
             status.update(
-                f"found {latest_components_cnt} latest provides child component(s), retrieving sources & upstreams."  # noqa
+                f"found {latest_components_cnt} latest provides child component(s)- retrieving children, sources & upstreams."  # noqa
             )
-            for c in latest_components:
-                results.append(c)
+            with multiprocessing.Pool() as pool:
+                for processed_component in pool.map(
+                    partial(process_component, self.corgi_session, search_provides_params),
+                    latest_components,
+                ):
+                    results.append(processed_component)
 
             if not self.no_community:
                 status.update("searching latest community provided child component(s).")
@@ -405,14 +434,18 @@ class products_containing_component_query:
                 )
                 latest_community_components = (
                     self.community_session.components.retrieve_list_iterator_async(
-                        **search_provides_params
+                        **search_provides_params, max_results=10000
                     )
                 )
                 status.update(
-                    f"found {community_component_cnt} latest community provided child component(s), retrieving sources & upstreams."  # noqa
+                    f"found {community_component_cnt} latest community provided child component(s)- retrieving children, sources & upstreams."  # noqa
                 )
-                for c in latest_community_components:
-                    results.append(c)
+                with multiprocessing.Pool() as pool:
+                    for processed_component in pool.map(
+                        partial(process_component, self.corgi_session, search_provides_params),
+                        latest_community_components,
+                    ):
+                        results.append(processed_component)
 
         if self.search_upstreams:
             search_upstreams_params = copy.deepcopy(params)
@@ -425,20 +458,22 @@ class products_containing_component_query:
                 search_upstreams_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_upstreams_params["active_streams"] = "True"
-            search_upstreams_params["released_components"] = "True"
+            if self.exclude_unreleased:
+                search_upstreams_params["released_components"] = "True"
             search_upstreams_params["latest_components_by_streams"] = "True"
             status.update("searching latest upstreams child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_upstreams_params)
             status.update(f"found {latest_components_cnt} latest component(s).")
             latest_components = self.corgi_session.components.retrieve_list_iterator_async(
-                **search_upstreams_params
+                **search_upstreams_params, max_results=10000
             )
             with multiprocessing.Pool() as pool:
                 status.update(
-                    f"found {latest_components_cnt} latest upstreams child component(s), retrieving sources & upstreams."  # noqa
+                    f"found {latest_components_cnt} latest upstreams child component(s)- retrieving children, sources & upstreams."  # noqa
                 )
                 for processed_component in pool.map(
-                    partial(process_component, self.corgi_session), latest_components
+                    partial(process_component, self.corgi_session, search_upstreams_params),
+                    latest_components,
                 ):
                     results.append(processed_component)
             if not self.no_community:
@@ -451,15 +486,15 @@ class products_containing_component_query:
                 )
                 latest_community_components = (
                     self.community_session.components.retrieve_list_iterator_async(
-                        **search_upstreams_params
+                        **search_upstreams_params, max_results=10000
                     )
                 )
                 with multiprocessing.Pool() as pool:
                     status.update(
-                        f"found {community_component_cnt} latest community provided child component(s), retrieving sources & upstreams."  # noqa
+                        f"found {community_component_cnt} latest community provided child component(s)- retrieving children, sources & upstreams."  # noqa
                     )
                     for processed_component in pool.map(
-                        partial(process_component, self.community_session),
+                        partial(process_component, self.community_session, search_upstreams_params),
                         latest_community_components,
                     ):
                         results.append(processed_component)
@@ -474,22 +509,19 @@ class products_containing_component_query:
                 search_related_url_params["type"] = self.component_type
             if not (self.include_inactive_product_streams):
                 search_related_url_params["active_streams"] = "True"
+            if self.exclude_unreleased:
+                search_related_url_params["released_components"] = "True"
             search_related_url_params["released_components"] = "True"
             related_url_components_cnt = self.corgi_session.components.count(
-                **search_related_url_params
+                **search_related_url_params, max_results=10000
             )
             status.update(f"found {related_url_components_cnt} related url component(s).")
             related_url_components = self.corgi_session.components.retrieve_list_iterator_async(
                 **search_related_url_params
             )
-            with multiprocessing.Pool() as pool:
-                status.update(
-                    f"found {related_url_components_cnt} related url component(s), retrieving sources & upstreams."  # noqa
-                )
-                for processed_component in pool.map(
-                    partial(process_component, self.corgi_session), related_url_components
-                ):
-                    results.append(processed_component)
+            for c in related_url_components:
+                results.append(c)
+
             if not self.no_community:
                 latest_community_url_components_cnt = self.community_session.components.count(
                     **search_related_url_params
@@ -499,18 +531,11 @@ class products_containing_component_query:
                 )
                 latest_community_url_components = (
                     self.community_session.components.retrieve_list_iterator_async(
-                        **search_related_url_params
+                        **search_related_url_params, max_results=10000
                     )
                 )
-                with multiprocessing.Pool() as pool:
-                    status.update(
-                        f"found {latest_community_url_components_cnt} related url community component(s), retrieving sources & upstreams."  # noqa
-                    )
-                    for processed_component in pool.map(
-                        partial(process_component, self.community_session),
-                        latest_community_url_components,
-                    ):
-                        results.append(processed_component)
+                for c in latest_community_url_components:
+                    results.append(c)
 
         if self.search_all:
             search_all_params = copy.deepcopy(params)
@@ -524,7 +549,8 @@ class products_containing_component_query:
                 search_all_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_all_params["active_streams"] = "True"
-            search_all_params["released_components"] = "True"
+            if self.exclude_unreleased:
+                search_all_params["released_components"] = "True"
             all_components_cnt = self.corgi_session.components.count(**search_all_params)
             status.update(f"found {all_components_cnt} all component(s).")
             # TODO: remove max_results
@@ -532,14 +558,8 @@ class products_containing_component_query:
                 **search_all_params, max_results=10000
             )
             status.update(f"found {all_components_cnt} all component(s).")
-            with multiprocessing.Pool() as pool:
-                status.update(
-                    f"found {all_components_cnt} all component(s), retrieving sources & upstreams."  # noqa
-                )
-                for processed_component in pool.map(
-                    partial(process_component, self.corgi_session), all_components
-                ):
-                    results.append(processed_component)
+            for c in all_components:
+                results.append(c)
 
             if not self.no_community:
                 all_community_components_cnt = self.community_session.components.count(
@@ -554,15 +574,8 @@ class products_containing_component_query:
                         **search_all_params, max_results=10000
                     )
                 )
-                with multiprocessing.Pool() as pool:
-                    status.update(
-                        f"found {all_community_components_cnt} community all component(s), retrieving sources & upstreams."  # noqa
-                    )
-                    for processed_component in pool.map(
-                        partial(process_component, self.community_session),
-                        all_community_components,
-                    ):
-                        results.append(processed_component)
+                for c in all_community_components:
+                    results.append(c)
 
         if self.search_all_roots:
             search_all_roots_params = copy.deepcopy(params)
@@ -575,11 +588,12 @@ class products_containing_component_query:
                 search_all_roots_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_all_roots_params["active_streams"] = "True"
-            search_all_roots_params["released_components"] = "True"
+            if self.exclude_unreleased:
+                search_all_roots_params["released_components"] = "True"
             all_src_components_cnt = self.corgi_session.components.count(**search_all_roots_params)
             status.update(f"found {all_src_components_cnt} all root component(s).")
             all_src_components = self.corgi_session.components.retrieve_list_iterator_async(
-                **search_all_roots_params
+                **search_all_roots_params, max_results=10000
             )
             for c in all_src_components:
                 results.append(c)
@@ -589,7 +603,7 @@ class products_containing_component_query:
                 )
                 all_src_community_components = (
                     self.community_session.components.retrieve_list_iterator_async(
-                        **search_all_roots_params
+                        **search_all_roots_params, max_results=10000
                     )
                 )
                 status.update(
@@ -609,17 +623,20 @@ class products_containing_component_query:
                 search_all_upstreams_params["type"] = self.component_type
             if not (self.include_inactive_product_streams):
                 search_all_upstreams_params["active_streams"] = "True"
+            if self.exclude_unreleased:
+                search_all_upstreams_params["released_components"] = "True"
             upstream_components_cnt = self.corgi_session.components.count(
                 **search_all_upstreams_params
             )
             status.update(f"found {upstream_components_cnt} upstream component(s).")
             upstream_components = self.corgi_session.components.retrieve_list_iterator_async(
-                **search_all_upstreams_params
+                **search_all_upstreams_params, max_results=10000
             )
             with multiprocessing.Pool() as pool:
                 status.update(f"found {upstream_components_cnt} upstream component(s).")
                 for processed_component in pool.map(
-                    partial(process_component, self.corgi_session), upstream_components
+                    partial(process_component, self.corgi_session, search_all_upstreams_params),
+                    upstream_components,
                 ):
                     results.append(processed_component)
             if not self.no_community:
@@ -631,15 +648,17 @@ class products_containing_component_query:
                 )
                 commmunity_upstream_components = (
                     self.community_session.components.retrieve_list_iterator_async(
-                        **search_all_upstreams_params
+                        **search_all_upstreams_params, max_results=10000
                     )
                 )
                 with multiprocessing.Pool() as pool:
                     status.update(
-                        f"found {commmunity_upstream_components_cnt} community upstream component(s), retrieving sources & upstreams."  # noqa
+                        f"found {commmunity_upstream_components_cnt} community upstream component(s)- retrieving children, sources & upstreams."  # noqa
                     )
                     for processed_component in pool.map(
-                        partial(process_component, self.community_session),
+                        partial(
+                            process_component, self.community_session, search_all_upstreams_params
+                        ),
                         commmunity_upstream_components,
                     ):
                         results.append(processed_component)
@@ -693,6 +712,8 @@ class products_containing_component_query:
                 search_community_params["namespace"] = self.ns
             if not (self.include_inactive_product_streams):
                 search_community_params["active_streams"] = "True"
+            if self.exclude_unreleased:
+                search_community_params["released_components"] = "True"
             all_community_components_cnt = self.community_session.components.count(
                 **search_community_params
             )
@@ -706,10 +727,11 @@ class products_containing_component_query:
             )
             with multiprocessing.Pool() as pool:
                 status.update(
-                    f"found {all_community_components_cnt} community all component(s), retrieving sources & upstreams."  # noqa
+                    f"found {all_community_components_cnt} community all component(s)- retrieving children, sources & upstreams."  # noqa
                 )
                 for processed_component in pool.map(
-                    partial(process_component, self.community_session), all_community_components
+                    partial(process_component, self.community_session, search_community_params),
+                    all_community_components,
                 ):
                     results.append(processed_component)
 
