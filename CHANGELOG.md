@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 * refactor output format of service products-contain-component (GRIF-209)
 * container roots are excluded by default (need to use --include-container-roots)
+* when using -r highlight matched term
 
 ### Added
 * --include-container_roots in service products-contain-component

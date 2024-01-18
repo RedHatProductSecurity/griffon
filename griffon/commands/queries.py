@@ -417,6 +417,7 @@ def get_product_contain_component(
     if verbose:
         ctx.obj["VERBOSE"] = verbose
     ctx.obj["INCLUDE_CONTAINER_ROOTS"] = include_container_roots
+    ctx.obj["REGEX_NAME_SEARCH"] = regex_name_search
     if (
         not search_latest
         and not search_all

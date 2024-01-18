@@ -403,6 +403,10 @@ def process_product_color(build_type: str) -> str:
     return "magenta"
 
 
+def highlight_search_term(search_pattern, text_value):
+    return re.sub(search_pattern, "[b]\\g<0>[/b]", text_value)
+
+
 def text_output_products_contain_component(
     ctx,
     output,
@@ -410,7 +414,13 @@ def text_output_products_contain_component(
     exclude_components,
     no_wrap=False,
 ):
-    search_component_name = ctx.params["component_name"]
+    logger.info(ctx.obj["REGEX_NAME_SEARCH"])
+    # if -r option used we need to escape it
+    search_component_name = (
+        re.escape(ctx.params["component_name"])
+        if not ctx.obj["REGEX_NAME_SEARCH"]
+        else ctx.params["component_name"]
+    )
 
     # handle single component
     if ctx.params["purl"]:
@@ -470,10 +480,8 @@ def text_output_products_contain_component(
                                 dep_name = nvr
                                 # highlight search term
                                 try:
-                                    dep_name = re.sub(
-                                        re.escape(search_component_name),
-                                        f"[b]{search_component_name}[/b]",
-                                        dep_name,
+                                    dep_name = highlight_search_term(
+                                        search_component_name, dep_name
                                     )
                                 except re.error:
                                     pass
@@ -541,10 +549,8 @@ def text_output_products_contain_component(
                                 # dep_name = nvr
                                 dep_name = nvr
                                 try:
-                                    dep_name = re.sub(
-                                        re.escape(search_component_name),
-                                        f"[b]{search_component_name}[/b]",
-                                        dep_name,
+                                    dep_name = highlight_search_term(
+                                        search_component_name, dep_name
                                     )
                                 except re.error:
                                     pass
@@ -552,9 +558,8 @@ def text_output_products_contain_component(
                                 related_url = result_tree[pv][ps][cn][nvr].get("related_url")
                                 try:
                                     if result_tree[pv][ps][cn][nvr]["related_url"]:
-                                        related_url = re.sub(
-                                            re.escape(search_component_name),
-                                            f"[b]{search_component_name}[/b]",
+                                        related_url = highlight_search_term(
+                                            search_component_name,
                                             result_tree[pv][ps][cn][nvr]["related_url"],
                                         )
                                 except re.error:
@@ -645,9 +650,8 @@ def text_output_products_contain_component(
                                     child_dep_names = ""
                                     if provides_components:
                                         try:
-                                            child_dep_names = re.sub(
-                                                re.escape(search_component_name),
-                                                f"[b]{search_component_name}[/b]",
+                                            child_dep_names = highlight_search_term(
+                                                search_component_name,
                                                 ", ".join(provides_components),
                                             )
                                             child_dep_names = f"[{child_dep_names}]"
@@ -677,9 +681,8 @@ def text_output_products_contain_component(
                                 # highlight search term
                                 dep_name = nvr
                                 try:
-                                    dep_name = re.sub(
-                                        re.escape(search_component_name),
-                                        f"[b]{search_component_name}[/b]",
+                                    dep_name = highlight_search_term(
+                                        search_component_name,
                                         dep_name,
                                     )
                                 except re.error:
@@ -688,11 +691,11 @@ def text_output_products_contain_component(
                                 related_url = result_tree[pv][ps][cn][nvr].get("related_url")
                                 try:
                                     if result_tree[pv][ps][cn][nvr]["related_url"]:
-                                        related_url = re.sub(
-                                            re.escape(search_component_name),
-                                            f"[b]{search_component_name}[/b]",
+                                        related_url = highlight_search_term(
+                                            search_component_name,
                                             result_tree[pv][ps][cn][nvr]["related_url"],
                                         )
+
                                 except re.error:
                                     pass
                                 build_source_url = ""
@@ -797,9 +800,8 @@ def text_output_products_contain_component(
                                     child_dep_names = ""
                                     if provides_components:
                                         try:
-                                            child_dep_names = re.sub(
-                                                re.escape(search_component_name),
-                                                f"[b]{search_component_name}[/b]",
+                                            child_dep_names = highlight_search_term(
+                                                search_component_name,
                                                 ", ".join(provides_components),
                                             )
                                             child_dep_names = f"[{child_dep_names}]"
@@ -833,9 +835,8 @@ def text_output_products_contain_component(
                                 # highlight search term
                                 dep_name = nvr
                                 try:
-                                    dep_name = re.sub(
-                                        re.escape(search_component_name),
-                                        f"[b]{search_component_name}[/b]",
+                                    dep_name = highlight_search_term(
+                                        search_component_name,
                                         dep_name,
                                     )
                                 except re.error:
@@ -844,9 +845,8 @@ def text_output_products_contain_component(
                                 related_url = result_tree[pv][ps][cn][nvr].get("related_url")
                                 try:
                                     if result_tree[pv][ps][cn][nvr]["related_url"]:
-                                        related_url = re.sub(
-                                            re.escape(search_component_name),
-                                            f"[b]{search_component_name}[/b]",
+                                        related_url = highlight_search_term(
+                                            search_component_name,
                                             result_tree[pv][ps][cn][nvr]["related_url"],
                                         )
                                 except re.error:
@@ -920,9 +920,8 @@ def text_output_products_contain_component(
                                     child_dep_names = ""
                                     if provides_components:
                                         try:
-                                            child_dep_names = re.sub(
-                                                re.escape(search_component_name),
-                                                f"[b]{search_component_name}[/b]",
+                                            child_dep_names = highlight_search_term(
+                                                search_component_name,
                                                 ", ".join(provides_components),
                                             )
                                             child_dep_names = f"[{child_dep_names}]"
@@ -956,9 +955,8 @@ def text_output_products_contain_component(
                                 # highlight search term
                                 dep_name = result_tree[pv][ps][cn][nvr]["purl"]
                                 try:
-                                    dep_name = re.sub(
-                                        re.escape(search_component_name),
-                                        f"[b]{search_component_name}[/b]",
+                                    dep_name = highlight_search_term(
+                                        search_component_name,
                                         dep_name,
                                     )
                                 except re.error:
@@ -967,9 +965,8 @@ def text_output_products_contain_component(
                                 related_url = result_tree[pv][ps][cn][nvr].get("related_url")
                                 try:
                                     if result_tree[pv][ps][cn][nvr]["related_url"]:
-                                        related_url = re.sub(
-                                            re.escape(search_component_name),
-                                            f"[b]{search_component_name}[/b]",
+                                        related_url = highlight_search_term(
+                                            search_component_name,
                                             result_tree[pv][ps][cn][nvr]["related_url"],
                                         )
                                 except re.error:
@@ -1043,9 +1040,8 @@ def text_output_products_contain_component(
                                     child_dep_names = ""
                                     if provides_components:
                                         try:
-                                            child_dep_names = re.sub(
-                                                re.escape(search_component_name),
-                                                f"[b]{search_component_name}[/b]",
+                                            child_dep_names = highlight_search_term(
+                                                search_component_name,
                                                 ", ".join(provides_components),
                                             )
                                             child_dep_names = f"[{child_dep_names}]"
