@@ -265,10 +265,9 @@ def retrieve_component_summary(ctx, component_name, strict_name_search, operatio
     help=f"Search related url {Style.BOLD}(enabled by default){Style.RESET}.",
 )
 @click.option(
-    "--filter-rh-naming",
-    is_flag=True,
-    default=False,
-    help="Filter rh naming.",
+    "--filter-rh-naming/--no-filter-rh-naming",
+    default=get_config_option("default", "filter_rh_naming", True),
+    help="Do not filter RH naming.",
 )
 @click.option(
     "--search-all",

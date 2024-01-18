@@ -22,6 +22,7 @@ exclude_components = -container-source
     -repolib
 include_container_roots = False
 exclude_unreleased = False
+filter_rh_naming = True
 
 # profile sections (use with --profile {profile} flag)
 [cloud]
