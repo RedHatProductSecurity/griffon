@@ -216,7 +216,7 @@ class products_containing_specific_component_query:
 
 def async_retrieve_sources(self, purl):
     params = {
-        "limit": 200,
+        "limit": 120,
         "root_components": "True",
         "provides": purl,
         "include_fields": "type,nvr,purl,name,version,namespace,download_url,related_url",
@@ -230,7 +230,7 @@ def async_retrieve_sources(self, purl):
 
 def async_retrieve_upstreams(self, purl):
     params = {
-        "limit": 200,
+        "limit": 120,
         "root_components": "True",
         "upstreams": purl,
         "include_fields": "type,nvr,purl,name,version,namespace,download_url,related_url",
@@ -244,7 +244,7 @@ def async_retrieve_upstreams(self, purl):
 
 def async_retrieve_provides(self, urlparams, purl):
     params = {
-        "limit": 200,
+        "limit": 120,
         "sources": purl,
         "include_fields": "type,arch,nvr,purl,version,name,namespace,download_url,related_url",
     }
@@ -336,7 +336,7 @@ class products_containing_component_query:
         status.update("searching component-registry.")
         results = []
         params = {
-            "limit": 120,
+            "limit": 50,
             "include_fields": "purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components",  # noqa
         }
 
@@ -407,7 +407,6 @@ class products_containing_component_query:
                 search_provides_params["active_streams"] = "True"
             if self.exclude_unreleased:
                 search_provides_params["released_components"] = "True"
-            search_provides_params["root_components"] = "True"
             search_provides_params["latest_components_by_streams"] = "True"
             status.update("searching latest provided child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_provides_params)
