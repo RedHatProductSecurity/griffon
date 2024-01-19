@@ -415,7 +415,6 @@ def get_product_contain_component(
     """List products of a latest component."""
     if verbose:
         ctx.obj["VERBOSE"] = verbose
-    ctx.obj["INCLUDE_CONTAINER_ROOTS"] = include_container_roots
     ctx.obj["REGEX_NAME_SEARCH"] = regex_name_search
     if (
         not search_latest
@@ -435,7 +434,6 @@ def get_product_contain_component(
     params.pop("sfm2_flaw_id")
     params.pop("flaw_mode")
     params.pop("affect_mode")
-    params.pop("include_container_roots")
     if component_name:
         q = query_service.invoke(
             core_queries.products_containing_component_query, params, status=operation_status

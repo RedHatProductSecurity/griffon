@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 * --filter-rh-naming enabled by default (GRIF-121)
+* --include-root-containers filters on the query (not the output)
 
 ### Added
  * --filter-rh-naming default value can be set via .griffonrc 
