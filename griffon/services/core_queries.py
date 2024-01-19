@@ -199,6 +199,7 @@ class products_containing_specific_component_query:
         "include_product_stream_excluded_components",
         "output_type_filter",
         "regex_name_search",
+        "include_container_roots",
         "exclude_unreleased",
     ]
 
@@ -304,6 +305,7 @@ class products_containing_component_query:
         "include_product_stream_excluded_components",
         "output_type_filter",
         "regex_name_search",
+        "include_container_roots",
         "exclude_unreleased",
     ]
 
@@ -330,6 +332,7 @@ class products_containing_component_query:
         if not self.no_community:
             self.community_session = CommunityComponentService.create_session()
         self.include_inactive_product_streams = self.params.get("include_inactive_product_streams")
+        self.include_container_roots = self.params.get("include_container_roots")
         self.exclude_unreleased = self.params.get("exclude_unreleased")
 
     def execute(self, status=None) -> List[Dict[str, Any]]:
@@ -356,6 +359,8 @@ class products_containing_component_query:
                 search_latest_params["active_streams"] = "True"
             if self.exclude_unreleased:
                 search_latest_params["released_components"] = "True"
+            if not self.include_container_roots:
+                search_latest_params["type"] = "RPM"
             search_latest_params["root_components"] = "True"
             search_latest_params["latest_components_by_streams"] = "True"
             status.update("searching latest root component(s).")
@@ -407,6 +412,9 @@ class products_containing_component_query:
                 search_provides_params["active_streams"] = "True"
             if self.exclude_unreleased:
                 search_provides_params["released_components"] = "True"
+            if not self.include_container_roots:
+                logger.info("search only RPM")
+                search_provides_params["type"] = "RPM"
             search_provides_params["latest_components_by_streams"] = "True"
             status.update("searching latest provided child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_provides_params)
@@ -460,6 +468,8 @@ class products_containing_component_query:
                 search_upstreams_params["active_streams"] = "True"
             if self.exclude_unreleased:
                 search_upstreams_params["released_components"] = "True"
+            if not self.include_container_roots:
+                search_upstreams_params["type"] = "RPM"
             search_upstreams_params["latest_components_by_streams"] = "True"
             status.update("searching latest upstreams child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_upstreams_params)
@@ -511,6 +521,8 @@ class products_containing_component_query:
                 search_related_url_params["active_streams"] = "True"
             if self.exclude_unreleased:
                 search_related_url_params["released_components"] = "True"
+            if not self.include_container_roots:
+                search_related_url_params["type"] = "RPM"
             search_related_url_params["released_components"] = "True"
             related_url_components_cnt = self.corgi_session.components.count(
                 **search_related_url_params, max_results=10000
@@ -551,6 +563,8 @@ class products_containing_component_query:
                 search_all_params["active_streams"] = "True"
             if self.exclude_unreleased:
                 search_all_params["released_components"] = "True"
+            if not self.include_container_roots:
+                search_all_params["type"] = "RPM"
             all_components_cnt = self.corgi_session.components.count(**search_all_params)
             status.update(f"found {all_components_cnt} all component(s).")
             # TODO: remove max_results
@@ -590,6 +604,8 @@ class products_containing_component_query:
                 search_all_roots_params["active_streams"] = "True"
             if self.exclude_unreleased:
                 search_all_roots_params["released_components"] = "True"
+            if not self.include_container_roots:
+                search_all_roots_params["type"] = "RPM"
             all_src_components_cnt = self.corgi_session.components.count(**search_all_roots_params)
             status.update(f"found {all_src_components_cnt} all root component(s).")
             all_src_components = self.corgi_session.components.retrieve_list_iterator_async(
@@ -625,6 +641,8 @@ class products_containing_component_query:
                 search_all_upstreams_params["active_streams"] = "True"
             if self.exclude_unreleased:
                 search_all_upstreams_params["released_components"] = "True"
+            if not self.include_container_roots:
+                search_all_upstreams_params["type"] = "RPM"
             upstream_components_cnt = self.corgi_session.components.count(
                 **search_all_upstreams_params
             )
