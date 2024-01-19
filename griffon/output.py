@@ -414,7 +414,6 @@ def text_output_products_contain_component(
     exclude_components,
     no_wrap=False,
 ):
-    logger.info(ctx.obj["REGEX_NAME_SEARCH"])
     # if -r option used we need to escape it
     search_component_name = (
         re.escape(ctx.params["component_name"])

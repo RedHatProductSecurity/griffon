@@ -413,7 +413,6 @@ class products_containing_component_query:
             if self.exclude_unreleased:
                 search_provides_params["released_components"] = "True"
             if not self.include_container_roots:
-                logger.info("search only RPM")
                 search_provides_params["type"] = "RPM"
             search_provides_params["latest_components_by_streams"] = "True"
             status.update("searching latest provided child component(s).")
