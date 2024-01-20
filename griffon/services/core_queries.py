@@ -521,11 +521,11 @@ class products_containing_component_query:
                 search_related_url_params["type"] = "RPM"
             search_related_url_params["released_components"] = "True"
             related_url_components_cnt = self.corgi_session.components.count(
-                **search_related_url_params, max_results=10000
+                **search_related_url_params,
             )
             status.update(f"found {related_url_components_cnt} related url component(s).")
             related_url_components = self.corgi_session.components.retrieve_list_iterator_async(
-                **search_related_url_params
+                **search_related_url_params, max_results=10000
             )
             for c in related_url_components:
                 results.append(c)
@@ -767,6 +767,7 @@ class components_containing_specific_component_query:
         "namespace",
         "strict_name_search",
         "verbose",
+        "regex_name_search",
     ]
 
     def __init__(self, params: dict):

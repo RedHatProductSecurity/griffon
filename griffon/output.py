@@ -414,12 +414,6 @@ def text_output_products_contain_component(
     exclude_components,
     no_wrap=False,
 ):
-    # if -r option used we need to escape it
-    search_component_name = (
-        re.escape(ctx.params["component_name"])
-        if not ctx.obj["REGEX_NAME_SEARCH"]
-        else ctx.params["component_name"]
-    )
 
     # handle single component
     if ctx.params["purl"]:
@@ -430,6 +424,13 @@ def text_output_products_contain_component(
                 no_wrap=no_wrap,
             )
         ctx.exit()
+
+    # if -r option used we need to escape it
+    search_component_name = (
+        re.escape(ctx.params["component_name"])
+        if not ctx.obj["REGEX_NAME_SEARCH"]
+        else ctx.params["component_name"]
+    )
 
     # handle multiple components
     if "results" in output and output["count"] > 0:
