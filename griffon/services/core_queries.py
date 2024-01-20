@@ -220,7 +220,7 @@ def async_retrieve_sources(self, purl):
         "limit": 120,
         "root_components": "True",
         "provides": purl,
-        "include_fields": "type,nvr,purl,name,version,namespace,download_url,related_url",
+        "include_fields": "type,arch,nvr,purl,name,version,namespace,download_url,related_url",
     }
     try:
         return list(self.components.retrieve_list_iterator_async(**params, max_results=5000))
@@ -234,7 +234,7 @@ def async_retrieve_upstreams(self, purl):
         "limit": 120,
         "root_components": "True",
         "upstreams": purl,
-        "include_fields": "type,nvr,purl,name,version,namespace,download_url,related_url",
+        "include_fields": "type,arch,nvr,purl,name,version,namespace,download_url,related_url",
     }
     try:
         return list(self.components.retrieve_list_iterator_async(**params, max_results=5000))
