@@ -155,8 +155,7 @@ def get_product_summary(
     help="Strict search, exact match of name.",
 )
 @click.pass_context
-@progress_bar()
-def retrieve_component_summary(ctx, component_name, strict_name_search, operation_status):
+def retrieve_component_summary(ctx, component_name, strict_name_search):
     """Get Component summary."""
     if not component_name:
         click.echo(ctx.get_help())
@@ -164,8 +163,6 @@ def retrieve_component_summary(ctx, component_name, strict_name_search, operatio
     cond = {}
     if component_name:
         cond["component_name"] = component_name
-
-    operation_status.stop()
     ctx.invoke(get_component_summary, **cond)
 
 
