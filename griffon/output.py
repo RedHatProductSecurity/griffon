@@ -492,8 +492,8 @@ def text_output_products_contain_component(
                                 )
                                 for upstream_component_name in upstream_component_names:
                                     console.print(
-                                        Text(pv, style="bright_red b"),
-                                        upstream_component_name,
+                                        Text(pv, style=f"{product_color} b"),
+                                        f"[yellow1]{upstream_component_name}[/yellow1]",
                                         no_wrap=no_wrap,
                                     )
                             if result_tree[pv][ps][cn][nvr]["sources"]:
@@ -511,8 +511,8 @@ def text_output_products_contain_component(
                                 )
                                 for source_component_name in source_component_names:
                                     console.print(
-                                        Text(pv, style="bright_red b"),
-                                        source_component_name,
+                                        Text(pv, style=f"{product_color} b"),
+                                        f"[pale_turquoise1]{source_component_name}[/pale_turquoise1]",
                                         no_wrap=no_wrap,
                                     )
                             if not (result_tree[pv][ps][cn][nvr]["upstreams"]) and not (
@@ -522,6 +522,7 @@ def text_output_products_contain_component(
                                     Text(pv, style=f"{product_color} b"),
                                     dep,
                                     no_wrap=no_wrap,
+                                    width=10000,
                                 )
             if (
                 ctx.obj["VERBOSE"] == 1
@@ -591,15 +592,13 @@ def text_output_products_contain_component(
                                     )
                                 )
                                 if len(upstream_component_names) > 0:
-                                    upstream_component_name = (
-                                        f"[cyan]{upstream_component_names[0]}[/cyan]"
-                                    )
+                                    upstream_component_name = upstream_component_names[0]
                                     if len(upstream_component_names) > 1:
-                                        upstream_component_name = f"[cyan]{upstream_component_names[0]} and {len(upstream_component_names) - 1} more[/cyan]"  # noqa
+                                        upstream_component_name = f"{upstream_component_names[0]} and {len(upstream_component_names) - 1} more"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
-                                        upstream_component_name,
-                                        dep,
+                                        f"[yellow1]{upstream_component_name}[/yellow1]",
+                                        f"[{dep}]",
                                         no_wrap=no_wrap,
                                     )
                             if result_tree[pv][ps][cn][nvr]["sources"]:
@@ -616,15 +615,13 @@ def text_output_products_contain_component(
                                     )
                                 )
                                 if len(source_component_names) > 0:
-                                    source_component_name = (
-                                        f"[red]{source_component_names[0]}[/red]"
-                                    )
+                                    source_component_name = source_component_names[0]
                                     if len(source_component_names) > 1:
-                                        source_component_name = f"[red]{source_component_names[0]} and {len(source_component_names) - 1} more[/red]"  # noqa
+                                        source_component_name = f"[bright_yellow]{source_component_names[0]} and {len(source_component_names) - 1} more[/bright_yellow]"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
-                                        source_component_name,
-                                        dep,
+                                        f"[pale_turquoise1]{source_component_name}[/pale_turquoise1]",
+                                        f"[{dep}]",
                                         no_wrap=no_wrap,
                                     )
                             if not (result_tree[pv][ps][cn][nvr]["upstreams"]) and not (
@@ -645,6 +642,7 @@ def text_output_products_contain_component(
                                     dep,
                                     child_dep_names,
                                     no_wrap=no_wrap,
+                                    width=10000,
                                 )
             if (
                 ctx.obj["VERBOSE"] == 2
@@ -727,15 +725,13 @@ def text_output_products_contain_component(
                                     )
                                 )
                                 if len(upstream_component_names) > 0:
-                                    upstream_component_name = (
-                                        f"[cyan]{upstream_component_names[0]}[/cyan]"
-                                    )
+                                    upstream_component_name = upstream_component_names[0]
                                     if len(upstream_component_names) > 1:
-                                        upstream_component_name = f"[cyan]{upstream_component_names[0]} and {len(upstream_component_names) - 1} more[/cyan]"  # noqa
+                                        upstream_component_name = f"{upstream_component_names[0]} and {len(upstream_component_names) - 1} more"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
-                                        upstream_component_name,
-                                        dep,
+                                        f"[yellow1]{upstream_component_name}[/yellow1]",
+                                        f"[{dep}]",
                                         f"[grey]{related_url}[/grey]",
                                         no_wrap=no_wrap,
                                     )
@@ -753,15 +749,13 @@ def text_output_products_contain_component(
                                     )
                                 )
                                 if len(source_component_names) > 0:
-                                    source_component_name = (
-                                        f"[red]{source_component_names[0]}[/red]"
-                                    )
+                                    source_component_name = source_component_names[0]
                                     if len(source_component_names) > 1:
                                         source_component_name = f"[red]{source_component_names[0]} and {len(source_component_names) - 1} more[/red]"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
-                                        source_component_name,
-                                        dep,
+                                        f"[pale_turquoise1]{source_component_name}[/pale_turquoise1]",
+                                        f"[{dep}]",
                                         f"[grey]{related_url}[/grey]",
                                         no_wrap=no_wrap,
                                     )
@@ -785,7 +779,7 @@ def text_output_products_contain_component(
                                     child_dep_names,
                                     f"[i][grey]{related_url}[/grey][/i]",
                                     f"[i][grey]{build_source_url}[/grey][/i]",
-                                    width=1000,
+                                    width=10000,
                                     no_wrap=no_wrap,
                                 )
             if (
@@ -841,15 +835,13 @@ def text_output_products_contain_component(
                                     )
                                 )
                                 if len(upstream_component_names) > 0:
-                                    upstream_component_name = (
-                                        f"[cyan]{upstream_component_names[0]}[/cyan]"
-                                    )
+                                    upstream_component_name = upstream_component_names[0]
                                     if len(upstream_component_names) > 1:
-                                        upstream_component_name = f"[cyan]{upstream_component_names[0]} and {len(upstream_component_names) - 1} more[/cyan]"  # noqa
+                                        upstream_component_name = f"{upstream_component_names[0]} and {len(upstream_component_names) - 1} more"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
-                                        upstream_component_name,
-                                        dep,
+                                        f"[yellow1]{upstream_component_name}[/yellow1]",
+                                        f"[{dep}]",
                                         f"[grey]{related_url}[/grey]",
                                         no_wrap=no_wrap,
                                     )
@@ -867,15 +859,13 @@ def text_output_products_contain_component(
                                     )
                                 )
                                 if len(source_component_names) > 0:
-                                    source_component_name = (
-                                        f"[red]{source_component_names[0]}[/red]"
-                                    )
+                                    source_component_name = source_component_names[0]
                                     if len(source_component_names) > 1:
                                         source_component_name = f"[red]{source_component_names[0]} and {len(source_component_names) - 1} more[/red]"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
-                                        source_component_name,
-                                        dep,
+                                        f"[pale_turquoise1]{source_component_name}[/pale_turquoise1]",
+                                        f"[{dep}]",
                                         f"[grey]{related_url}[/grey]",
                                         no_wrap=no_wrap,
                                     )
@@ -899,7 +889,7 @@ def text_output_products_contain_component(
                                     child_dep_names,
                                     f"[i][grey]{related_url}[/grey][/i]",
                                     f"[i][grey]{build_source_url}[/grey][/i]",
-                                    width=1000,
+                                    width=10000,
                                     no_wrap=no_wrap,
                                 )
             if (
@@ -953,15 +943,13 @@ def text_output_products_contain_component(
                                     )
                                 )
                                 if len(upstream_component_names) > 0:
-                                    upstream_component_name = (
-                                        f"[cyan]{upstream_component_names[0]}[/cyan]"
-                                    )
+                                    upstream_component_name = upstream_component_names[0]
                                     if len(upstream_component_names) > 1:
-                                        upstream_component_name = f"[cyan]{upstream_component_names[0]} and {len(upstream_component_names) - 1} more[/cyan]"  # noqa
+                                        upstream_component_name = f"{upstream_component_names[0]} and {len(upstream_component_names) - 1} more"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b u"),
-                                        upstream_component_name,
-                                        dep,
+                                        f"[yellow1]{upstream_component_name}[/yellow1]",
+                                        f"[{dep}]",
                                         f"[grey]{related_url}[/grey]",
                                         f"[grey]{build_source_url}[/grey]",
                                         no_wrap=no_wrap,
@@ -980,15 +968,13 @@ def text_output_products_contain_component(
                                     )
                                 )
                                 if len(source_component_names) > 0:
-                                    source_component_name = (
-                                        f"[red]{source_component_names[0]}[/red]"
-                                    )
+                                    source_component_name = source_component_names[0]
                                     if len(source_component_names) > 1:
-                                        source_component_name = f"[red]{source_component_names[0]} and {len(source_component_names) - 1} more[/red]"  # noqa
+                                        source_component_name = f"{source_component_names[0]} and {len(source_component_names) - 1} more"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b u"),
-                                        source_component_name,
-                                        dep,
+                                        f"[pale_turquoise1]{source_component_name}[/pale_turquoise1]",
+                                        f"[{dep}]",
                                         f"[grey]{related_url}[/grey]",
                                         f"[grey]{build_source_url}[/grey]",
                                         no_wrap=no_wrap,
