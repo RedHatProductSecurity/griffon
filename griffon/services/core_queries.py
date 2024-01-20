@@ -191,7 +191,6 @@ class products_containing_specific_component_query:
         "search_community",
         "search_upstreams",
         "filter_rh_naming",
-        "search_redhat",
         "no_community",
         "no_middleware",
         "no_upstream_affects",
@@ -294,7 +293,6 @@ class products_containing_component_query:
         "search_all_roots",
         "search_all_upstreams",
         "search_related_url",
-        "search_redhat",
         "search_community",
         "search_upstreams",
         "filter_rh_naming",
@@ -321,7 +319,6 @@ class products_containing_component_query:
         self.search_all = self.params.get("search_all")
         self.search_all_roots = self.params.get("search_all_roots")
         self.search_related_url = self.params.get("search_related_url")
-        self.search_redhat = self.params.get("search_redhat")
         self.search_community = self.params.get("search_community")
         self.search_all_upstreams = self.params.get("search_all_upstreams")
         self.filter_rh_naming = self.params.get("filter_rh_naming")

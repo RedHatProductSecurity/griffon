@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+* removed --search-redhat on service products-contain-component
+
 ## [0.5.1] - 2024-01-19
 ### Changed
 * --filter-rh-naming enabled by default (GRIF-121)
