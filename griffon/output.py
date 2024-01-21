@@ -234,6 +234,7 @@ def generate_normalised_results(
                             "product_version": ps["product_versions"][0]["name"],
                             "product_stream": ps.get("name"),
                             "product_stream_active": ps.get("active"),
+                            "product_stream_relations": ps.get("relations"),
                             "namespace": item.get("namespace"),
                             "name": item.get("name"),
                             "nvr": item.get("nvr"),
@@ -388,18 +389,32 @@ def generate_affects(
     return affects
 
 
-def process_product_color(build_type: str) -> str:
-    """return color used for product, currently only based on component build type"""
-    if build_type == "APP_INTERFACE":
-        return "blue"
-    if build_type == "CENTOS":
-        return "cyan"
-    if build_type == "PNC":
-        return "red"
-    if build_type == "KOJI":
-        return "yellow"
-    if build_type == "PYXIS":
-        return "green"
+def process_component_color(namespace: str, build_type: str) -> str:
+    """return color used for component, currently only based on component build type"""
+    if namespace:
+        if namespace == "UPSTREAM":
+            return "u"
+    if build_type:
+        if build_type == "PYXIS":
+            return "green"
+    return "grey93"
+
+
+def process_product_color(relations: str, build_type: str) -> str:
+    """return color used for product, currently only based on relations"""
+    if relations:
+        relations_types = [relation["type"] for relation in relations]
+        if "APP_INTERFACE" in relations_types:
+            return "blue"
+    if build_type:
+        if build_type == "PYXIS":
+            return "green"
+        if build_type == "PNC":
+            return "red"
+        if build_type == "KOJI":
+            return "yellow"
+        if build_type == "CENTOS":
+            return "yellow"
     return "magenta"
 
 
@@ -471,7 +486,12 @@ def text_output_products_contain_component(
                             # select the latest nvr (from sorted list)
                             nvr = list(result_tree[pv][ps][cn].keys())[-1]
                             product_color = process_product_color(
-                                result_tree[pv][ps][cn][nvr]["build_type"]
+                                result_tree[pv][ps][cn][nvr]["product_stream_relations"],
+                                result_tree[pv][ps][cn][nvr]["build_type"],
+                            )
+                            root_component_color = process_component_color(
+                                result_tree[pv][ps][cn][nvr]["namespace"],
+                                result_tree[pv][ps][cn][nvr]["build_type"],
                             )
                             dep_name = nvr
                             # highlight search term
@@ -479,7 +499,7 @@ def text_output_products_contain_component(
                                 dep_name = highlight_search_term(search_component_name, dep_name)
                             except re.error:
                                 pass
-                            dep = f"[grey93]{dep_name}[/grey93]"  # noqa
+                            dep = f"[{root_component_color}]{dep_name}[/{root_component_color}]"  # noqa
                             if result_tree[pv][ps][cn][nvr]["upstreams"]:
                                 upstream_component_names = sorted(
                                     list(
@@ -494,7 +514,7 @@ def text_output_products_contain_component(
                                 for upstream_component_name in upstream_component_names:
                                     console.print(
                                         Text(pv, style=f"{product_color} b"),
-                                        f"[yellow1]{upstream_component_name}[/yellow1]",
+                                        f"[pale_turquoise1]{upstream_component_name}[/pale_turquoise1]",  # noqa
                                         no_wrap=no_wrap,
                                     )
                             if result_tree[pv][ps][cn][nvr]["sources"]:
@@ -534,16 +554,20 @@ def text_output_products_contain_component(
                             # select the latest nvr (from sorted list)
                             nvr = list(result_tree[pv][ps][cn].keys())[-1]
                             product_color = process_product_color(
-                                result_tree[pv][ps][cn][nvr]["build_type"]
+                                result_tree[pv][ps][cn][nvr]["product_stream_relations"],
+                                result_tree[pv][ps][cn][nvr]["build_type"],
+                            )
+                            root_component_color = process_component_color(
+                                result_tree[pv][ps][cn][nvr]["namespace"],
+                                result_tree[pv][ps][cn][nvr]["build_type"],
                             )
                             # highlight search term
-                            # dep_name = nvr
                             dep_name = nvr
                             try:
                                 dep_name = highlight_search_term(search_component_name, dep_name)
                             except re.error:
                                 pass
-                            dep = f"[grey93]{dep_name} ({result_tree[pv][ps][cn][nvr]['type']})[/grey93]"  # noqa
+                            dep = f"[{root_component_color}]{dep_name} ({result_tree[pv][ps][cn][nvr]['type']})[/{root_component_color}]"  # noqa
                             related_url = result_tree[pv][ps][cn][nvr].get("related_url")
                             try:
                                 if result_tree[pv][ps][cn][nvr]["related_url"]:
@@ -598,7 +622,7 @@ def text_output_products_contain_component(
                                         upstream_component_name = f"{upstream_component_names[0]} and {len(upstream_component_names) - 1} more"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
-                                        f"[yellow1]{upstream_component_name}[/yellow1]",
+                                        f"[pale_turquoise1]{upstream_component_name}[/pale_turquoise1]",  # noqa
                                         f"[{dep}]",
                                         no_wrap=no_wrap,
                                     )
@@ -618,7 +642,7 @@ def text_output_products_contain_component(
                                 if len(source_component_names) > 0:
                                     source_component_name = source_component_names[0]
                                     if len(source_component_names) > 1:
-                                        source_component_name = f"[bright_yellow]{source_component_names[0]} and {len(source_component_names) - 1} more[/bright_yellow]"  # noqa
+                                        source_component_name = f"{source_component_names[0]} and {len(source_component_names) - 1} more]"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
                                         f"[pale_turquoise1]{source_component_name}[/pale_turquoise1]",  # noqa
@@ -654,7 +678,12 @@ def text_output_products_contain_component(
                             # select the latest nvr (from sorted list)
                             nvr = list(result_tree[pv][ps][cn].keys())[-1]
                             product_color = process_product_color(
-                                result_tree[pv][ps][cn][nvr]["build_type"]
+                                result_tree[pv][ps][cn][nvr]["product_stream_relations"],
+                                result_tree[pv][ps][cn][nvr]["build_type"],
+                            )
+                            root_component_color = process_component_color(
+                                result_tree[pv][ps][cn][nvr]["namespace"],
+                                result_tree[pv][ps][cn][nvr]["build_type"],
                             )
                             # highlight search term
                             dep_name = nvr
@@ -665,7 +694,7 @@ def text_output_products_contain_component(
                                 )
                             except re.error:
                                 pass
-                            dep = f"[grey93]{dep_name} ({result_tree[pv][ps][cn][nvr]['type']}:{result_tree[pv][ps][cn][nvr]['arch']})[/grey93]"  # noqa
+                            dep = f"[{root_component_color}]{dep_name} ({result_tree[pv][ps][cn][nvr]['type']}:{result_tree[pv][ps][cn][nvr]['arch']})[/{root_component_color}]"  # noqa
                             related_url = result_tree[pv][ps][cn][nvr].get("related_url")
                             try:
                                 if result_tree[pv][ps][cn][nvr]["related_url"]:
@@ -731,7 +760,7 @@ def text_output_products_contain_component(
                                         upstream_component_name = f"{upstream_component_names[0]} and {len(upstream_component_names) - 1} more"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
-                                        f"[yellow1]{upstream_component_name}[/yellow1]",
+                                        f"[pale_turquoise1]{upstream_component_name}[/pale_turquoise1]",  # noqa
                                         f"[{dep}]",
                                         f"[grey]{related_url}[/grey]",
                                         no_wrap=no_wrap,
@@ -752,7 +781,7 @@ def text_output_products_contain_component(
                                 if len(source_component_names) > 0:
                                     source_component_name = source_component_names[0]
                                     if len(source_component_names) > 1:
-                                        source_component_name = f"[red]{source_component_names[0]} and {len(source_component_names) - 1} more[/red]"  # noqa
+                                        source_component_name = f"{source_component_names[0]} and {len(source_component_names) - 1} more"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
                                         f"[pale_turquoise1]{source_component_name}[/pale_turquoise1]",  # noqa
@@ -792,7 +821,12 @@ def text_output_products_contain_component(
                             # select the latest nvr (from sorted list)
                             nvr = list(result_tree[pv][ps][cn].keys())[-1]
                             product_color = process_product_color(
-                                result_tree[pv][ps][cn][nvr]["build_type"]
+                                result_tree[pv][ps][cn][nvr]["product_stream_relations"],
+                                result_tree[pv][ps][cn][nvr]["build_type"],
+                            )
+                            root_component_color = process_component_color(
+                                result_tree[pv][ps][cn][nvr]["namespace"],
+                                result_tree[pv][ps][cn][nvr]["build_type"],
                             )
                             # highlight search term
                             dep_name = nvr
@@ -803,7 +837,7 @@ def text_output_products_contain_component(
                                 )
                             except re.error:
                                 pass
-                            dep = f"[grey93]{dep_name} ({result_tree[pv][ps][cn][nvr]['type']}:{result_tree[pv][ps][cn][nvr]['arch']})[/grey93]"  # noqa
+                            dep = f"[{root_component_color}]{dep_name} ({result_tree[pv][ps][cn][nvr]['type']}:{result_tree[pv][ps][cn][nvr]['arch']})[/{root_component_color}]"  # noqa
                             related_url = result_tree[pv][ps][cn][nvr].get("related_url")
                             try:
                                 if result_tree[pv][ps][cn][nvr]["related_url"]:
@@ -841,7 +875,7 @@ def text_output_products_contain_component(
                                         upstream_component_name = f"{upstream_component_names[0]} and {len(upstream_component_names) - 1} more"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
-                                        f"[yellow1]{upstream_component_name}[/yellow1]",
+                                        f"[pale_turquoise1]{upstream_component_name}[/pale_turquoise1]",  # noqa
                                         f"[{dep}]",
                                         f"[grey]{related_url}[/grey]",
                                         no_wrap=no_wrap,
@@ -862,7 +896,7 @@ def text_output_products_contain_component(
                                 if len(source_component_names) > 0:
                                     source_component_name = source_component_names[0]
                                     if len(source_component_names) > 1:
-                                        source_component_name = f"[red]{source_component_names[0]} and {len(source_component_names) - 1} more[/red]"  # noqa
+                                        source_component_name = f"{source_component_names[0]} and {len(source_component_names) - 1} more"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b"),
                                         f"[pale_turquoise1]{source_component_name}[/pale_turquoise1]",  # noqa
@@ -902,7 +936,12 @@ def text_output_products_contain_component(
                             # select the latest nvr (from sorted list)
                             nvr = list(result_tree[pv][ps][cn].keys())[-1]
                             product_color = process_product_color(
-                                result_tree[pv][ps][cn][nvr]["build_type"]
+                                result_tree[pv][ps][cn][nvr]["product_stream_relations"],
+                                result_tree[pv][ps][cn][nvr]["build_type"],
+                            )
+                            root_component_color = process_component_color(
+                                result_tree[pv][ps][cn][nvr]["namespace"],
+                                result_tree[pv][ps][cn][nvr]["build_type"],
                             )
                             # highlight search term
                             dep_name = result_tree[pv][ps][cn][nvr]["purl"]
@@ -913,7 +952,7 @@ def text_output_products_contain_component(
                                 )
                             except re.error:
                                 pass
-                            dep = f"[grey93]{dep_name}[/grey93]"  # noqa
+                            dep = f"[{root_component_color}]{dep_name}[/{root_component_color}]"  # noqa
                             related_url = result_tree[pv][ps][cn][nvr].get("related_url")
                             try:
                                 if result_tree[pv][ps][cn][nvr]["related_url"]:
@@ -949,7 +988,7 @@ def text_output_products_contain_component(
                                         upstream_component_name = f"{upstream_component_names[0]} and {len(upstream_component_names) - 1} more"  # noqa
                                     console.print(
                                         Text(ps, style=f"{product_color} b u"),
-                                        f"[yellow1]{upstream_component_name}[/yellow1]",
+                                        f"[pale_turquoise1]{upstream_component_name}[/pale_turquoise1]",  # noqa
                                         f"[{dep}]",
                                         f"[grey]{related_url}[/grey]",
                                         f"[grey]{build_source_url}[/grey]",

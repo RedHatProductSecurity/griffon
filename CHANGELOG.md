@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 * removed --search-redhat on service products-contain-component
+* several minor output fixes
 
 ## [0.5.1] - 2024-01-19
 ### Changed

@@ -219,10 +219,10 @@ def async_retrieve_sources(self, purl):
         "limit": 120,
         "root_components": "True",
         "provides": purl,
-        "include_fields": "type,arch,nvr,purl,name,version,namespace,download_url,related_url",
+        "include_fields": "type,arch,nvr,purl,name,version,namespace",
     }
     try:
-        return list(self.components.retrieve_list_iterator_async(**params, max_results=5000))
+        return list(self.components.retrieve_list_iterator_async(**params))
     except Exception as e:
         logger.warning(f"{type(e).__name__} - problem retrieving {purl} sources.")
         return []
@@ -233,7 +233,7 @@ def async_retrieve_upstreams(self, purl):
         "limit": 120,
         "root_components": "True",
         "upstreams": purl,
-        "include_fields": "type,arch,nvr,purl,name,version,namespace,download_url,related_url",
+        "include_fields": "type,arch,nvr,purl,name,version,namespace",
     }
     try:
         return list(self.components.retrieve_list_iterator_async(**params, max_results=5000))
@@ -246,7 +246,7 @@ def async_retrieve_provides(self, urlparams, purl):
     params = {
         "limit": 120,
         "sources": purl,
-        "include_fields": "type,arch,nvr,purl,version,name,namespace,download_url,related_url",
+        "include_fields": "type,arch,nvr,purl,version,name,namespace",
     }
     if "name" in urlparams:
         params["name"] = urlparams["name"]
@@ -267,8 +267,7 @@ def async_retrieve_provides(self, urlparams, purl):
 
 def process_component(session, urlparams, c):
     """perform any neccessary sub retrievals."""
-    if c.sources:
-        c.sources = async_retrieve_sources(session, c.purl)
+    c.sources = async_retrieve_sources(session, c.purl)
     c.upstreams = async_retrieve_upstreams(session, c.purl)
     c.provides = async_retrieve_provides(session, urlparams, c.purl)
     return c
@@ -418,6 +417,7 @@ class products_containing_component_query:
             latest_components = self.corgi_session.components.retrieve_list_iterator_async(
                 **search_provides_params, max_results=10000
             )
+
             status.update(
                 f"found {latest_components_cnt} latest provides child component(s)- retrieving children, sources & upstreams."  # noqa
             )
@@ -427,7 +427,6 @@ class products_containing_component_query:
                     latest_components,
                 ):
                     results.append(processed_component)
-
             if not self.no_community:
                 status.update("searching latest community provided child component(s).")
                 community_component_cnt = self.community_session.components.count(
@@ -696,6 +695,7 @@ class products_containing_component_query:
             ]
 
             filtered_results = []
+
             for result in results:
                 is_matched = False
                 for p in patterns:
@@ -703,6 +703,7 @@ class products_containing_component_query:
                         break
                     if type(result) == Component:
                         m = p.match(result.name)
+                        logger.debug(f"rh naming filtered {result.name}")
                         if m:
                             filtered_results.append(result)
                             is_matched = True
