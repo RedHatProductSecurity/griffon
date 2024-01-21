@@ -155,8 +155,7 @@ def get_product_summary(
     help="Strict search, exact match of name.",
 )
 @click.pass_context
-@progress_bar()
-def retrieve_component_summary(ctx, component_name, strict_name_search, operation_status):
+def retrieve_component_summary(ctx, component_name, strict_name_search):
     """Get Component summary."""
     if not component_name:
         click.echo(ctx.get_help())
@@ -164,8 +163,6 @@ def retrieve_component_summary(ctx, component_name, strict_name_search, operatio
     cond = {}
     if component_name:
         cond["component_name"] = component_name
-
-    operation_status.stop()
     ctx.invoke(get_component_summary, **cond)
 
 
@@ -274,7 +271,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search, operatio
     "search_all",
     is_flag=True,
     default=False,
-    help="Search all Components and dependencies.",
+    help="Flat search for all Components.",
 )
 @click.option(
     "--search-all-roots",
@@ -282,13 +279,6 @@ def retrieve_component_summary(ctx, component_name, strict_name_search, operatio
     is_flag=True,
     default=False,
     help="Search all ROOT Components and dependencies.",
-)
-@click.option(
-    "--search-redhat",
-    "search_redhat",
-    is_flag=True,
-    default=False,
-    help="Search all Red Hat root Components and dependencies.",
 )
 @click.option(
     "--search-community",
@@ -302,7 +292,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search, operatio
     "search_all_upstreams",
     is_flag=True,
     default=False,
-    help="Search for Components by upstream.",
+    help="Flat search for all Components by upstream.",
 )
 @click.option(
     "--no-community",
@@ -396,7 +386,6 @@ def get_product_contain_component(
     filter_rh_naming,
     search_all,
     search_all_roots,
-    search_redhat,
     search_community,
     search_all_upstreams,
     no_community,
@@ -423,7 +412,6 @@ def get_product_contain_component(
         and not search_related_url
         and not search_community
         and not search_all_upstreams
-        and not search_redhat
         and not search_provides
         and not search_upstreams
     ):

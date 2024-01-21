@@ -191,7 +191,6 @@ class products_containing_specific_component_query:
         "search_community",
         "search_upstreams",
         "filter_rh_naming",
-        "search_redhat",
         "no_community",
         "no_middleware",
         "no_upstream_affects",
@@ -220,10 +219,10 @@ def async_retrieve_sources(self, purl):
         "limit": 120,
         "root_components": "True",
         "provides": purl,
-        "include_fields": "type,nvr,purl,name,version,namespace,download_url,related_url",
+        "include_fields": "type,arch,nvr,purl,name,version,namespace",
     }
     try:
-        return list(self.components.retrieve_list_iterator_async(**params, max_results=5000))
+        return list(self.components.retrieve_list_iterator_async(**params))
     except Exception as e:
         logger.warning(f"{type(e).__name__} - problem retrieving {purl} sources.")
         return []
@@ -234,7 +233,7 @@ def async_retrieve_upstreams(self, purl):
         "limit": 120,
         "root_components": "True",
         "upstreams": purl,
-        "include_fields": "type,nvr,purl,name,version,namespace,download_url,related_url",
+        "include_fields": "type,arch,nvr,purl,name,version,namespace",
     }
     try:
         return list(self.components.retrieve_list_iterator_async(**params, max_results=5000))
@@ -247,7 +246,7 @@ def async_retrieve_provides(self, urlparams, purl):
     params = {
         "limit": 120,
         "sources": purl,
-        "include_fields": "type,arch,nvr,purl,version,name,namespace,download_url,related_url",
+        "include_fields": "type,arch,nvr,purl,version,name,namespace",
     }
     if "name" in urlparams:
         params["name"] = urlparams["name"]
@@ -268,8 +267,7 @@ def async_retrieve_provides(self, urlparams, purl):
 
 def process_component(session, urlparams, c):
     """perform any neccessary sub retrievals."""
-    if c.sources:
-        c.sources = async_retrieve_sources(session, c.purl)
+    c.sources = async_retrieve_sources(session, c.purl)
     c.upstreams = async_retrieve_upstreams(session, c.purl)
     c.provides = async_retrieve_provides(session, urlparams, c.purl)
     return c
@@ -294,7 +292,6 @@ class products_containing_component_query:
         "search_all_roots",
         "search_all_upstreams",
         "search_related_url",
-        "search_redhat",
         "search_community",
         "search_upstreams",
         "filter_rh_naming",
@@ -321,7 +318,6 @@ class products_containing_component_query:
         self.search_all = self.params.get("search_all")
         self.search_all_roots = self.params.get("search_all_roots")
         self.search_related_url = self.params.get("search_related_url")
-        self.search_redhat = self.params.get("search_redhat")
         self.search_community = self.params.get("search_community")
         self.search_all_upstreams = self.params.get("search_all_upstreams")
         self.filter_rh_naming = self.params.get("filter_rh_naming")
@@ -340,7 +336,7 @@ class products_containing_component_query:
         results = []
         params = {
             "limit": 50,
-            "include_fields": "purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components",  # noqa
+            "include_fields": "purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components,product_streams.relations",  # noqa
         }
 
         component_name = (
@@ -395,7 +391,7 @@ class products_containing_component_query:
                 )
                 with multiprocessing.Pool() as pool:
                     for processed_component in pool.map(
-                        partial(process_component, self.corgi_session, search_latest_params),
+                        partial(process_component, self.community_session, search_latest_params),
                         latest_community_components,
                     ):
                         results.append(processed_component)
@@ -421,6 +417,7 @@ class products_containing_component_query:
             latest_components = self.corgi_session.components.retrieve_list_iterator_async(
                 **search_provides_params, max_results=10000
             )
+
             status.update(
                 f"found {latest_components_cnt} latest provides child component(s)- retrieving children, sources & upstreams."  # noqa
             )
@@ -430,7 +427,6 @@ class products_containing_component_query:
                     latest_components,
                 ):
                     results.append(processed_component)
-
             if not self.no_community:
                 status.update("searching latest community provided child component(s).")
                 community_component_cnt = self.community_session.components.count(
@@ -449,7 +445,7 @@ class products_containing_component_query:
                 )
                 with multiprocessing.Pool() as pool:
                     for processed_component in pool.map(
-                        partial(process_component, self.corgi_session, search_provides_params),
+                        partial(process_component, self.community_session, search_provides_params),
                         latest_community_components,
                     ):
                         results.append(processed_component)
@@ -524,11 +520,11 @@ class products_containing_component_query:
                 search_related_url_params["type"] = "RPM"
             search_related_url_params["released_components"] = "True"
             related_url_components_cnt = self.corgi_session.components.count(
-                **search_related_url_params, max_results=10000
+                **search_related_url_params,
             )
             status.update(f"found {related_url_components_cnt} related url component(s).")
             related_url_components = self.corgi_session.components.retrieve_list_iterator_async(
-                **search_related_url_params
+                **search_related_url_params, max_results=10000
             )
             for c in related_url_components:
                 results.append(c)
@@ -699,6 +695,7 @@ class products_containing_component_query:
             ]
 
             filtered_results = []
+
             for result in results:
                 is_matched = False
                 for p in patterns:
@@ -706,6 +703,7 @@ class products_containing_component_query:
                         break
                     if type(result) == Component:
                         m = p.match(result.name)
+                        logger.debug(f"rh naming filtered {result.name}")
                         if m:
                             filtered_results.append(result)
                             is_matched = True
@@ -770,6 +768,7 @@ class components_containing_specific_component_query:
         "namespace",
         "strict_name_search",
         "verbose",
+        "regex_name_search",
     ]
 
     def __init__(self, params: dict):
