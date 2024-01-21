@@ -337,7 +337,7 @@ class products_containing_component_query:
         results = []
         params = {
             "limit": 50,
-            "include_fields": "purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components",  # noqa
+            "include_fields": "purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components,product_streams.relations",  # noqa
         }
 
         component_name = (
@@ -392,7 +392,7 @@ class products_containing_component_query:
                 )
                 with multiprocessing.Pool() as pool:
                     for processed_component in pool.map(
-                        partial(process_component, self.corgi_session, search_latest_params),
+                        partial(process_component, self.community_session, search_latest_params),
                         latest_community_components,
                     ):
                         results.append(processed_component)
@@ -446,7 +446,7 @@ class products_containing_component_query:
                 )
                 with multiprocessing.Pool() as pool:
                     for processed_component in pool.map(
-                        partial(process_component, self.corgi_session, search_provides_params),
+                        partial(process_component, self.community_session, search_provides_params),
                         latest_community_components,
                     ):
                         results.append(processed_component)
