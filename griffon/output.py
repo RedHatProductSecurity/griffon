@@ -440,12 +440,7 @@ def text_output_products_contain_component(
             )
         ctx.exit()
 
-    # if -r option used we need to escape it
-    search_component_name = (
-        re.escape(ctx.params["component_name"])
-        if not ctx.obj["REGEX_NAME_SEARCH"]
-        else ctx.params["component_name"]
-    )
+    search_component_name = ctx.params["component_name"]
 
     # handle multiple components
     if "results" in output and output["count"] > 0:
