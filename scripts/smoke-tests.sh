@@ -81,3 +81,4 @@ griffon service component-flaws python-marshmallow --affectedness AFFECTED
 griffon service products-contain-component --search-all --search-upstreams -s libxml2 -a
 griffon service products-contain-component -s grep -v --search-all
 griffon service products-contain-component -r 'webkit.tk' -vv
+griffon service products-contain-component webkitgtk4-jsc --include-product-streams-excluded-components --include-inactive-product-streams --no-community --no-filter-rh-naming -vv
