@@ -339,9 +339,9 @@ class products_containing_component_query:
             "include_fields": "purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components,product_streams.relations",  # noqa
         }
 
-        component_name = (
-            re.escape(self.component_name) if not self.regex_name_search else self.component_name
-        )
+        component_name = self.component_name
+        if not self.strict_name_search and not self.regex_name_search:
+            component_name = re.escape(component_name)
 
         if self.search_latest:
             search_latest_params = copy.deepcopy(params)
@@ -427,6 +427,7 @@ class products_containing_component_query:
                     latest_components,
                 ):
                     results.append(processed_component)
+
             if not self.no_community:
                 status.update("searching latest community provided child component(s).")
                 community_component_cnt = self.community_session.components.count(

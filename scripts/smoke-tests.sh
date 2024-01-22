@@ -16,9 +16,10 @@ griffon service product-manifest ansible_automation_platform-2.2
 griffon service product-summary ansible_automation_platform-2.2
 griffon service products-affected-by-flaw CVE-2023-25166
 
-griffon --format text service products-contain-component "^webkitgtk(\d)$"
+griffon --format text service products-contain-component -r "^webkitgtk(\d)$"
 griffon --format text service components-affected-by-flaw CVE-2023-25166
-griffon --format text service products-contain-component nmap
+griffon --format text service products-contain-component -s nmap
+# should fail
 griffon service products-contain-component --purl "pkg:rpm/curl@7.29.0"
 
 griffon service products-contain-component webkitgtk --search-related-url --search-latest --search-all
@@ -81,3 +82,11 @@ griffon service component-flaws python-marshmallow --affectedness AFFECTED
 griffon service products-contain-component --search-all --search-upstreams -s libxml2 -a
 griffon service products-contain-component -s grep -v --search-all
 griffon service products-contain-component -r 'webkit.tk' -vv
+griffon service products-contain-component -r "webkitgtk(3|100)" --search-all
+griffon service products-contain-component webkitgtk4-jsc --include-product-streams-excluded-components --include-inactive-product-streams --no-community --no-filter-rh-naming -vv
+
+griffon service products-contain-component -s bind-libs-lite --search-all
+griffon service products-contain-component v2v-conversion-host-ansible  -vvv --include-container-roots --include-inactive-product-streams --include-product-streams-excluded-components --no-filter-rh-naming
+griffon service products-contain-component 'compat-sap-c++-12'
+griffon service products-contain-component -r 'compat-sap-c++-12'
+griffon service products-contain-component -s 'compat-sap-c++-12'
