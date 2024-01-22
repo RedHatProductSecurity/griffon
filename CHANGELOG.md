@@ -6,8 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## [0.5.2] - 2024-01-21
+## [0.5.3] - 2024-01-22
+### Fixed
+* fixed regex escaping logic for -r and -s
 
+## [0.5.2] - 2024-01-21
 ### Changed
 * removed --search-redhat on service products-contain-component
 * several minor output fixes
