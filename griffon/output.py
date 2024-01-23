@@ -810,8 +810,18 @@ def text_output_products_contain_component(
                                     width=10000,
                                     no_wrap=no_wrap,
                                 )
+
+            # TODO: this is a hack how to fallback to level 3 verbosity
+            # when using middleware CLI which does not have PURL stuff,
+            # delete once we stop using middleware CLI completely
+            middleware_cli_purl_verbose_level = (
+                ctx.obj["VERBOSE"] > 3
+                and ctx.obj["MIDDLEWARE_CLI"]
+                and not ctx.params["no_middleware"]
+            )
+
             if (
-                ctx.obj["VERBOSE"] == 3
+                ctx.obj["VERBOSE"] == 3 or middleware_cli_purl_verbose_level
             ):  # product_stream X root component nvr (type:arch) x child components [ nvr (type:arch)] x related_url x build_source_url # noqa
                 for pv in result_tree.keys():
                     for ps in result_tree[pv].keys():
@@ -926,7 +936,7 @@ def text_output_products_contain_component(
                                     no_wrap=no_wrap,
                                 )
             if (
-                ctx.obj["VERBOSE"] > 3
+                ctx.obj["VERBOSE"] > 3 and not middleware_cli_purl_verbose_level
             ):  # product_stream X root component purl x child components [ purl ] x related_url x build_source_url # noqa
                 for pv in result_tree.keys():
                     for ps in result_tree[pv].keys():
