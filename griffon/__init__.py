@@ -18,7 +18,7 @@ from rich.logging import RichHandler
 from griffon.helpers import Color, Style
 from griffon.output import console
 
-__version__ = "0.5.3"
+__version__ = "0.5.4"
 
 # TODO: Deprecate CORGI_API_URL completely in the next version or two
 CORGI_SERVER_URL = os.getenv("CORGI_SERVER_URL", os.getenv("CORGI_API_URL"))
