@@ -53,7 +53,10 @@ def raw_json_transform(data, show_count: bool) -> dict:
         for item in data:
             transformed = item if type(item) is dict else item.to_dict()
             for related_data in ("upstreams", "sources", "provides"):
-                transformed[related_data] = raw_json_transform_related(transformed, related_data)
+                if related_data in transformed:
+                    transformed[related_data] = raw_json_transform_related(
+                        transformed, related_data
+                    )
             results.append(transformed)
         output = {
             "results": results,
@@ -62,8 +65,9 @@ def raw_json_transform(data, show_count: bool) -> dict:
             output["count"] = len(results)  # type: ignore
     else:
         output = data if type(data) is dict else data.to_dict()
-        for related_data in ("upstreams", "sources"):
-            output[related_data] = raw_json_transform_related(output, related_data)
+        for related_data in ("upstreams", "sources", "provides"):
+            if related_data in output:
+                output[related_data] = raw_json_transform_related(output, related_data)
     return output
 
 
@@ -429,7 +433,6 @@ def text_output_products_contain_component(
     exclude_components,
     no_wrap=False,
 ):
-
     # handle single component
     if ctx.params["purl"]:
         ordered_results = sorted(output["results"], key=lambda d: d["ofuri"])
