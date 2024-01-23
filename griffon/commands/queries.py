@@ -436,6 +436,7 @@ def get_product_contain_component(
     # TODO: interim hack for middleware
     if component_name and MIDDLEWARE_CLI and not no_middleware:
         operation_status.update("searching deptopia middleware.")
+        ctx.obj["MIDDLEWARE_CLI"] = MIDDLEWARE_CLI
 
         # Use split for users who runs middleware via python
         mw_command = [
@@ -489,7 +490,9 @@ def get_product_contain_component(
                                 {
                                     "name": dep.get("name"),
                                     "nvr": dep.get("nvr"),
-                                    "type": dep.get("type"),
+                                    "type": dep.get("ecosystem"),
+                                    "version": dep.get("version"),
+                                    "arch": dep.get("arch"),
                                 }
                             )
                             component["sources"] = components

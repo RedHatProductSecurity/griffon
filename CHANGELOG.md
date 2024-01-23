@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Fixed
+* fixed searches with middleware CLI enabled (GRIF-221)
+
 
 ## [0.5.3] - 2024-01-22
 ### Fixed
@@ -21,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * --include-root-containers filters on the query (not the output)
 
 ### Added
- * --filter-rh-naming default value can be set via .griffonrc 
+ * --filter-rh-naming default value can be set via .griffonrc
    in default section(GRIG-121)
 
 

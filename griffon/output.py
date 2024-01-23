@@ -53,7 +53,10 @@ def raw_json_transform(data, show_count: bool) -> dict:
         for item in data:
             transformed = item if type(item) is dict else item.to_dict()
             for related_data in ("upstreams", "sources", "provides"):
-                transformed[related_data] = raw_json_transform_related(transformed, related_data)
+                if related_data in transformed:
+                    transformed[related_data] = raw_json_transform_related(
+                        transformed, related_data
+                    )
             results.append(transformed)
         output = {
             "results": results,
@@ -62,8 +65,9 @@ def raw_json_transform(data, show_count: bool) -> dict:
             output["count"] = len(results)  # type: ignore
     else:
         output = data if type(data) is dict else data.to_dict()
-        for related_data in ("upstreams", "sources"):
-            output[related_data] = raw_json_transform_related(output, related_data)
+        for related_data in ("upstreams", "sources", "provides"):
+            if related_data in output:
+                output[related_data] = raw_json_transform_related(output, related_data)
     return output
 
 
@@ -429,7 +433,6 @@ def text_output_products_contain_component(
     exclude_components,
     no_wrap=False,
 ):
-
     # handle single component
     if ctx.params["purl"]:
         ordered_results = sorted(output["results"], key=lambda d: d["ofuri"])
@@ -807,8 +810,18 @@ def text_output_products_contain_component(
                                     width=10000,
                                     no_wrap=no_wrap,
                                 )
+
+            # TODO: this is a hack how to fallback to level 3 verbosity
+            # when using middleware CLI which does not have PURL stuff,
+            # delete once we stop using middleware CLI completely
+            middleware_cli_purl_verbose_level = (
+                ctx.obj["VERBOSE"] > 3
+                and ctx.obj["MIDDLEWARE_CLI"]
+                and not ctx.params["no_middleware"]
+            )
+
             if (
-                ctx.obj["VERBOSE"] == 3
+                ctx.obj["VERBOSE"] == 3 or middleware_cli_purl_verbose_level
             ):  # product_stream X root component nvr (type:arch) x child components [ nvr (type:arch)] x related_url x build_source_url # noqa
                 for pv in result_tree.keys():
                     for ps in result_tree[pv].keys():
@@ -923,7 +936,7 @@ def text_output_products_contain_component(
                                     no_wrap=no_wrap,
                                 )
             if (
-                ctx.obj["VERBOSE"] > 3
+                ctx.obj["VERBOSE"] > 3 and not middleware_cli_purl_verbose_level
             ):  # product_stream X root component purl x child components [ purl ] x related_url x build_source_url # noqa
                 for pv in result_tree.keys():
                     for ps in result_tree[pv].keys():
