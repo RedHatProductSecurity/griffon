@@ -338,6 +338,13 @@ class products_containing_component_query:
             "limit": 50,
             "include_fields": "purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components,product_streams.relations",  # noqa
         }
+        if not (self.include_inactive_product_streams):
+            params["active_streams"] = "True"
+        if self.exclude_unreleased:
+            params["released_components"] = "True"
+        if not self.include_container_roots:
+            params["type"] = "RPM"
+            params["arch"] = "src"
 
         component_name = self.component_name
         if not self.strict_name_search and not self.regex_name_search:
@@ -351,12 +358,6 @@ class products_containing_component_query:
                 search_latest_params["name"] = component_name
             if self.ns:
                 search_latest_params["namespace"] = self.ns
-            if not (self.include_inactive_product_streams):
-                search_latest_params["active_streams"] = "True"
-            if self.exclude_unreleased:
-                search_latest_params["released_components"] = "True"
-            if not self.include_container_roots:
-                search_latest_params["type"] = "RPM"
             search_latest_params["root_components"] = "True"
             search_latest_params["latest_components_by_streams"] = "True"
             status.update("searching latest root component(s).")
@@ -404,12 +405,6 @@ class products_containing_component_query:
                 search_provides_params["provides_name"] = component_name
             if self.ns:
                 search_provides_params["namespace"] = self.ns
-            if not (self.include_inactive_product_streams):
-                search_provides_params["active_streams"] = "True"
-            if self.exclude_unreleased:
-                search_provides_params["released_components"] = "True"
-            if not self.include_container_roots:
-                search_provides_params["type"] = "RPM"
             search_provides_params["latest_components_by_streams"] = "True"
             status.update("searching latest provided child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_provides_params)
@@ -460,12 +455,6 @@ class products_containing_component_query:
                 search_upstreams_params["upstreams_name"] = component_name
             if self.ns:
                 search_upstreams_params["namespace"] = self.ns
-            if not (self.include_inactive_product_streams):
-                search_upstreams_params["active_streams"] = "True"
-            if self.exclude_unreleased:
-                search_upstreams_params["released_components"] = "True"
-            if not self.include_container_roots:
-                search_upstreams_params["type"] = "RPM"
             search_upstreams_params["latest_components_by_streams"] = "True"
             status.update("searching latest upstreams child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_upstreams_params)
@@ -513,13 +502,6 @@ class products_containing_component_query:
                 search_related_url_params["namespace"] = self.ns
             if self.component_type:
                 search_related_url_params["type"] = self.component_type
-            if not (self.include_inactive_product_streams):
-                search_related_url_params["active_streams"] = "True"
-            if self.exclude_unreleased:
-                search_related_url_params["released_components"] = "True"
-            if not self.include_container_roots:
-                search_related_url_params["type"] = "RPM"
-            search_related_url_params["released_components"] = "True"
             related_url_components_cnt = self.corgi_session.components.count(
                 **search_related_url_params,
             )
@@ -555,12 +537,6 @@ class products_containing_component_query:
                 search_all_params["type"] = self.component_type
             if self.ns:
                 search_all_params["namespace"] = self.ns
-            if not (self.include_inactive_product_streams):
-                search_all_params["active_streams"] = "True"
-            if self.exclude_unreleased:
-                search_all_params["released_components"] = "True"
-            if not self.include_container_roots:
-                search_all_params["type"] = "RPM"
             all_components_cnt = self.corgi_session.components.count(**search_all_params)
             status.update(f"found {all_components_cnt} all component(s).")
             # TODO: remove max_results
@@ -569,6 +545,8 @@ class products_containing_component_query:
             )
             status.update(f"found {all_components_cnt} all component(s).")
             for c in all_components:
+                c.upstreams = []
+                c.sources = []
                 results.append(c)
 
             if not self.no_community:
@@ -585,6 +563,8 @@ class products_containing_component_query:
                     )
                 )
                 for c in all_community_components:
+                    c.upstreams = []
+                    c.sources = []
                     results.append(c)
 
         if self.search_all_roots:
@@ -596,18 +576,14 @@ class products_containing_component_query:
                 search_all_roots_params["name"] = component_name
             if self.ns:
                 search_all_roots_params["namespace"] = self.ns
-            if not (self.include_inactive_product_streams):
-                search_all_roots_params["active_streams"] = "True"
-            if self.exclude_unreleased:
-                search_all_roots_params["released_components"] = "True"
-            if not self.include_container_roots:
-                search_all_roots_params["type"] = "RPM"
             all_src_components_cnt = self.corgi_session.components.count(**search_all_roots_params)
             status.update(f"found {all_src_components_cnt} all root component(s).")
             all_src_components = self.corgi_session.components.retrieve_list_iterator_async(
                 **search_all_roots_params, max_results=10000
             )
             for c in all_src_components:
+                c.upstreams = []
+                c.sources = []
                 results.append(c)
             if not self.no_community:
                 all_src_community_components_cnt = self.community_session.components.count(
@@ -622,6 +598,8 @@ class products_containing_component_query:
                     f"found {all_src_community_components_cnt} community all root component(s)."  # noqa
                 )
                 for c in all_src_community_components:
+                    c.upstreams = []
+                    c.sources = []
                     results.append(c)
 
         if self.search_all_upstreams:
@@ -633,12 +611,6 @@ class products_containing_component_query:
                 search_all_upstreams_params["name"] = component_name
             if self.component_type:
                 search_all_upstreams_params["type"] = self.component_type
-            if not (self.include_inactive_product_streams):
-                search_all_upstreams_params["active_streams"] = "True"
-            if self.exclude_unreleased:
-                search_all_upstreams_params["released_components"] = "True"
-            if not self.include_container_roots:
-                search_all_upstreams_params["type"] = "RPM"
             upstream_components_cnt = self.corgi_session.components.count(
                 **search_all_upstreams_params
             )
@@ -726,10 +698,6 @@ class products_containing_component_query:
                 search_community_params["name"] = component_name
             if self.ns:
                 search_community_params["namespace"] = self.ns
-            if not (self.include_inactive_product_streams):
-                search_community_params["active_streams"] = "True"
-            if self.exclude_unreleased:
-                search_community_params["released_components"] = "True"
             all_community_components_cnt = self.community_session.components.count(
                 **search_community_params
             )
