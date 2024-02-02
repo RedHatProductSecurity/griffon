@@ -6,10 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+* if default --search_provides finds no children then revert to --search-latest
+* pin osidb-bindings==3.6.0
+
 ## [0.5.4] - 2024-01-23
 ### Fixed
 * fixed searches with middleware CLI enabled (GRIF-221)
-
 
 ## [0.5.3] - 2024-01-22
 ### Fixed

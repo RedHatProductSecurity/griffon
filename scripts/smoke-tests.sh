@@ -88,5 +88,10 @@ griffon service products-contain-component webkitgtk4-jsc --include-product-stre
 griffon service products-contain-component -s bind-libs-lite --search-all
 griffon service products-contain-component v2v-conversion-host-ansible  -vvv --include-container-roots --include-inactive-product-streams --include-product-streams-excluded-components --no-filter-rh-naming
 griffon service products-contain-component 'compat-sap-c++-12'
-griffon service products-contain-component -r 'compat-sap-c++-12'
-griffon service products-contain-component -s 'compat-sap-c++-12'
+griffon service products-contain-component -r 'compat-sap-c\+\+-12'
+#griffon service products-contain-component -s 'compat-sap-c++-12'
+griffon service products-contain-component runc
+griffon service products-contain-component github.com/go-redis/redis/v8/internal/hscan      --include-container-roots --include-inactive-product-streams --no-filter-rh-naming --include-product-streams-excluded-components
+griffon service products-contain-component pdf-generator -vvv --include-container-roots
+griffon service products-contain-component -s wireshark -v
+griffon service products-contain-component "hypershift-cloudwatch-loggging" --include-container-roots
