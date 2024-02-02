@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.5.5] - 2024-02-02
 ### Changed
 * if default --search_provides finds no children then revert to --search-latest
 * pin osidb-bindings==3.6.0
