@@ -232,7 +232,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "search_latest",
     is_flag=True,
     default=False,
-    help=f"Search latest root Components.",
+    help="Search latest root Components.",
 )
 @click.option(
     "--search-provides",
@@ -240,7 +240,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     is_flag=True,
     default=False,
     help=(
-        f"Search dependencies returning their latest root (RPM:src,OCI:noarch) Components "
+        "Search dependencies returning their latest root (RPM:src,OCI:noarch) Components "
         f"{Style.BOLD}(enabled by default){Style.RESET}."
     ),
 )
@@ -249,19 +249,19 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "search_upstreams",
     is_flag=True,
     default=False,
-    help=(f"Search root (RPM:src,OCI:noarch) Components by upstreams children "),
+    help="Search root (RPM:src,OCI:noarch) Components by upstreams children ",
 )
 @click.option(
     "--search-related-url",
     "search_related_url",
     is_flag=True,
     default=False,
-    help=f"Search by related url.",
+    help="Search by related url.",
 )
 @click.option(
     "--filter-rh-naming/--no-filter-rh-naming",
     default=get_config_option("default", "filter_rh_naming", True),
-    help=f"rh-filter-naming is {Style.BOLD}enabled by default{Style.RESET}. Use --no-filter-rh-naming to disable.",
+    help="rh-filter-naming is enabled by default, to disable use --no-filter-rh-naming.",
 )
 @click.option(
     "--search-all",
