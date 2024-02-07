@@ -95,3 +95,5 @@ griffon service products-contain-component github.com/go-redis/redis/v8/internal
 griffon service products-contain-component pdf-generator -vvv --include-container-roots
 griffon service products-contain-component -s wireshark -v
 griffon service products-contain-component "hypershift-cloudwatch-loggging" --include-container-roots
+
+time griffon service products-contain-component desktop-file-utils -vv --no-filter-rh-naming --include-container-roots
