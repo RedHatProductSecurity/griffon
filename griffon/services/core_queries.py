@@ -22,6 +22,8 @@ from griffon import (
 
 logger = logging.getLogger("griffon")
 
+ITEM_BATCH = 50
+
 
 class product_stream_summary:
     """retrieve product_stream summary"""
@@ -216,7 +218,7 @@ class products_containing_specific_component_query:
 
 def async_retrieve_sources(self, purl):
     params = {
-        "limit": 120,
+        "limit": ITEM_BATCH,
         "root_components": "True",
         "provides": purl,
         "include_fields": "type,arch,nvr,purl,name,version,namespace",
@@ -230,7 +232,7 @@ def async_retrieve_sources(self, purl):
 
 def async_retrieve_upstreams(self, purl):
     params = {
-        "limit": 120,
+        "limit": ITEM_BATCH,
         "root_components": "True",
         "upstreams": purl,
         "include_fields": "type,arch,nvr,purl,name,version,namespace",
@@ -244,7 +246,7 @@ def async_retrieve_upstreams(self, purl):
 
 def async_retrieve_provides(self, urlparams, purl):
     params = {
-        "limit": 120,
+        "limit": ITEM_BATCH,
         "sources": purl,
         "include_fields": "type,arch,nvr,purl,version,name,namespace",
     }
@@ -335,7 +337,7 @@ class products_containing_component_query:
         status.update("searching component-registry.")
         results = []
         params = {
-            "limit": 50,
+            "limit": ITEM_BATCH,
             "include_fields": "purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components,product_streams.relations",  # noqa
         }
         if not (self.include_inactive_product_streams):
@@ -800,7 +802,7 @@ class components_containing_component_query:
             re.escape(self.component_name) if not self.regex_name_search else self.component_name
         )
 
-        cond = {}
+        cond = {"limit": ITEM_BATCH}
         if not self.strict_name_search:
             cond["re_name"] = component_name
         else:
