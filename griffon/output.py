@@ -17,6 +17,8 @@ from rich.console import Console
 from rich.text import Text
 from rich.tree import Tree
 
+from .helpers import natural_sort_key
+
 console = Console(color_system="auto")
 
 logger = logging.getLogger("griffon")
@@ -511,7 +513,9 @@ def text_output_products_contain_component(
                     for ps in result_tree[pv].keys():
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
-                            nvr = list(result_tree[pv][ps][cn].keys())[-1]
+                            nvr = sorted(
+                                list(result_tree[pv][ps][cn].keys()), key=natural_sort_key
+                            )[-1]
                             product_color = process_product_color(
                                 result_tree[pv][ps][cn][nvr]["product_stream_relations"],
                                 result_tree[pv][ps][cn][nvr]["build_type"],
@@ -579,7 +583,9 @@ def text_output_products_contain_component(
                     for ps in result_tree[pv].keys():
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
-                            nvr = list(result_tree[pv][ps][cn].keys())[-1]
+                            nvr = sorted(
+                                list(result_tree[pv][ps][cn].keys()), key=natural_sort_key
+                            )[-1]
                             product_color = process_product_color(
                                 result_tree[pv][ps][cn][nvr]["product_stream_relations"],
                                 result_tree[pv][ps][cn][nvr]["build_type"],
@@ -703,7 +709,9 @@ def text_output_products_contain_component(
                     for ps in result_tree[pv].keys():
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
-                            nvr = list(result_tree[pv][ps][cn].keys())[-1]
+                            nvr = sorted(
+                                list(result_tree[pv][ps][cn].keys()), key=natural_sort_key
+                            )[-1]
                             product_color = process_product_color(
                                 result_tree[pv][ps][cn][nvr]["product_stream_relations"],
                                 result_tree[pv][ps][cn][nvr]["build_type"],
@@ -856,7 +864,9 @@ def text_output_products_contain_component(
                     for ps in result_tree[pv].keys():
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
-                            nvr = list(result_tree[pv][ps][cn].keys())[-1]
+                            nvr = sorted(
+                                list(result_tree[pv][ps][cn].keys()), key=natural_sort_key
+                            )[-1]
                             product_color = process_product_color(
                                 result_tree[pv][ps][cn][nvr]["product_stream_relations"],
                                 result_tree[pv][ps][cn][nvr]["build_type"],
@@ -971,7 +981,9 @@ def text_output_products_contain_component(
                     for ps in result_tree[pv].keys():
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
-                            nvr = list(result_tree[pv][ps][cn].keys())[-1]
+                            nvr = sorted(
+                                list(result_tree[pv][ps][cn].keys()), key=natural_sort_key
+                            )[-1]
                             product_color = process_product_color(
                                 result_tree[pv][ps][cn][nvr]["product_stream_relations"],
                                 result_tree[pv][ps][cn][nvr]["build_type"],
