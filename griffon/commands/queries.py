@@ -232,7 +232,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "search_latest",
     is_flag=True,
     default=False,
-    help=f"Search root Components {Style.BOLD}(enabled by default){Style.RESET}.",
+    help="Search latest root Components.",
 )
 @click.option(
     "--search-provides",
@@ -240,7 +240,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     is_flag=True,
     default=False,
     help=(
-        f"Search root Components by provides children "
+        "Search dependencies returning their latest root (RPM:src,OCI:noarch) Components "
         f"{Style.BOLD}(enabled by default){Style.RESET}."
     ),
 )
@@ -249,36 +249,33 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "search_upstreams",
     is_flag=True,
     default=False,
-    help=(
-        f"Search root Components by upstreams children "
-        f"{Style.BOLD}(enabled by default){Style.RESET}."
-    ),
+    help="Search root (RPM:src,OCI:noarch) Components by upstreams children ",
 )
 @click.option(
     "--search-related-url",
     "search_related_url",
     is_flag=True,
     default=False,
-    help=f"Search related url {Style.BOLD}(enabled by default){Style.RESET}.",
+    help="Search by related url.",
 )
 @click.option(
     "--filter-rh-naming/--no-filter-rh-naming",
     default=get_config_option("default", "filter_rh_naming", True),
-    help="Do not filter RH naming.",
+    help="rh-filter-naming is enabled by default, to disable use --no-filter-rh-naming.",
 )
 @click.option(
     "--search-all",
     "search_all",
     is_flag=True,
     default=False,
-    help="Flat search for all Components.",
+    help="Flat search of all Components.",
 )
 @click.option(
     "--search-all-roots",
     "search_all_roots",
     is_flag=True,
     default=False,
-    help="Search all ROOT Components and dependencies.",
+    help="Search all root (RPM:src,OCI:noarch) Components.",
 )
 @click.option(
     "--search-community",
@@ -292,7 +289,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "search_all_upstreams",
     is_flag=True,
     default=False,
-    help="Flat search for all Components by upstream.",
+    help="Flat search for all upstream Components.",
 )
 @click.option(
     "--no-community",
@@ -334,7 +331,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "output_type_filter",
     type=click.Choice(CorgiService.get_component_types()),
     default=None,
-    help="Filter component type.",
+    help="Filter components by type from output.",
 )
 @click.option(
     "-v",
@@ -357,7 +354,7 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     "include_container_roots",
     is_flag=True,
     default=get_config_option("default", "include_container_roots", False),
-    help="Include OCI root components in output.",
+    help="Include all root (RPM:src,OCI:noarch) components in output.",
 )
 @click.option(
     "--exclude-unreleased",

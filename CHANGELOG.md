@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+* change verbosity level 0 to return component name on service products-contain-component
 
 ## [0.5.5] - 2024-02-02
 ### Changed

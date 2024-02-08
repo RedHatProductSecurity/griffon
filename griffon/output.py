@@ -491,7 +491,7 @@ def text_output_products_contain_component(
                                 result_tree[pv][ps][cn][nvr]["namespace"],
                                 result_tree[pv][ps][cn][nvr]["build_type"],
                             )
-                            dep_name = nvr
+                            dep_name = result_tree[pv][ps][cn][nvr]["name"]
                             # highlight search term
                             try:
                                 dep_name = highlight_search_term(search_component_name, dep_name)
@@ -502,7 +502,7 @@ def text_output_products_contain_component(
                                 upstream_component_names = sorted(
                                     list(
                                         [
-                                            f"{upstream['name']} {upstream['version']}"
+                                            f"{upstream['name']}"
                                             for upstream in result_tree[pv][ps][cn][nvr][
                                                 "upstreams"
                                             ]
@@ -520,7 +520,7 @@ def text_output_products_contain_component(
                                     list(
                                         set(
                                             [
-                                                f"{source['name']} {source['version']}"
+                                                f"{source['name']}"
                                                 for source in result_tree[pv][ps][cn][nvr][
                                                     "sources"
                                                 ]

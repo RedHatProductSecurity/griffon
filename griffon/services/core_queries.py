@@ -22,6 +22,8 @@ from griffon import (
 
 logger = logging.getLogger("griffon")
 
+ITEM_BATCH = 75
+
 
 class product_stream_summary:
     """retrieve product_stream summary"""
@@ -216,7 +218,7 @@ class products_containing_specific_component_query:
 
 def async_retrieve_sources(self, purl):
     params = {
-        "limit": 120,
+        "limit": ITEM_BATCH,
         "root_components": "True",
         "provides": purl,
         "include_fields": "type,arch,nvr,purl,name,version,namespace",
@@ -230,7 +232,7 @@ def async_retrieve_sources(self, purl):
 
 def async_retrieve_upstreams(self, purl):
     params = {
-        "limit": 120,
+        "limit": ITEM_BATCH,
         "root_components": "True",
         "upstreams": purl,
         "include_fields": "type,arch,nvr,purl,name,version,namespace",
@@ -244,7 +246,7 @@ def async_retrieve_upstreams(self, purl):
 
 def async_retrieve_provides(self, urlparams, purl):
     params = {
-        "limit": 120,
+        "limit": ITEM_BATCH,
         "sources": purl,
         "include_fields": "type,arch,nvr,purl,version,name,namespace",
     }
@@ -335,7 +337,7 @@ class products_containing_component_query:
         status.update("searching component-registry.")
         results = []
         params = {
-            "limit": 50,
+            "limit": ITEM_BATCH,
             "include_fields": "purl,type,name,related_url,namespace,software_build,nvr,release,version,arch,product_streams.product_versions,product_streams.name,product_streams.ofuri,product_streams.active,product_streams.exclude_components,product_streams.relations",  # noqa
         }
         if not (self.include_inactive_product_streams):
@@ -344,7 +346,10 @@ class products_containing_component_query:
             params["released_components"] = "True"
         if not (self.include_container_roots):
             params["type"] = "RPM"
-            params["arch"] = "src"
+        if self.ns:
+            params["namespace"] = self.ns
+        if self.component_type:
+            params["type"] = self.component_type
 
         component_name = self.component_name
         if not self.strict_name_search and not self.regex_name_search:
@@ -356,8 +361,6 @@ class products_containing_component_query:
                 search_provides_params["re_provides_name"] = component_name
             else:
                 search_provides_params["provides_name"] = component_name
-            if self.ns:
-                search_provides_params["namespace"] = self.ns
             search_provides_params["latest_components_by_streams"] = "True"
             status.update("searching latest provided child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_provides_params)
@@ -408,8 +411,6 @@ class products_containing_component_query:
                 search_latest_params["re_name"] = component_name
             else:
                 search_latest_params["name"] = component_name
-            if self.ns:
-                search_latest_params["namespace"] = self.ns
             search_latest_params["root_components"] = "True"
             search_latest_params["latest_components_by_streams"] = "True"
             status.update("searching latest root component(s).")
@@ -456,8 +457,6 @@ class products_containing_component_query:
                 search_upstreams_params["re_upstreams_name"] = component_name
             else:
                 search_upstreams_params["upstreams_name"] = component_name
-            if self.ns:
-                search_upstreams_params["namespace"] = self.ns
             search_upstreams_params["latest_components_by_streams"] = "True"
             status.update("searching latest upstreams child component(s).")
             latest_components_cnt = self.corgi_session.components.count(**search_upstreams_params)
@@ -501,10 +500,6 @@ class products_containing_component_query:
             search_related_url_params = copy.deepcopy(params)
             # Note: related_url filter has no concept of strict
             search_related_url_params["related_url"] = component_name
-            if self.ns:
-                search_related_url_params["namespace"] = self.ns
-            if self.component_type:
-                search_related_url_params["type"] = self.component_type
             related_url_components_cnt = self.corgi_session.components.count(
                 **search_related_url_params,
             )
@@ -536,10 +531,6 @@ class products_containing_component_query:
                 search_all_params["re_name"] = component_name
             else:
                 search_all_params["name"] = component_name
-            if self.component_type:
-                search_all_params["type"] = self.component_type
-            if self.ns:
-                search_all_params["namespace"] = self.ns
             all_components_cnt = self.corgi_session.components.count(**search_all_params)
             status.update(f"found {all_components_cnt} all component(s).")
             # TODO: remove max_results
@@ -577,8 +568,6 @@ class products_containing_component_query:
                 search_all_roots_params["re_name"] = component_name
             else:
                 search_all_roots_params["name"] = component_name
-            if self.ns:
-                search_all_roots_params["namespace"] = self.ns
             all_src_components_cnt = self.corgi_session.components.count(**search_all_roots_params)
             status.update(f"found {all_src_components_cnt} all root component(s).")
             all_src_components = self.corgi_session.components.retrieve_list_iterator_async(
@@ -612,8 +601,6 @@ class products_containing_component_query:
                 search_all_upstreams_params["re_name"] = component_name
             else:
                 search_all_upstreams_params["name"] = component_name
-            if self.component_type:
-                search_all_upstreams_params["type"] = self.component_type
             upstream_components_cnt = self.corgi_session.components.count(
                 **search_all_upstreams_params
             )
@@ -699,8 +686,6 @@ class products_containing_component_query:
                 search_community_params["re_name"] = component_name
             else:
                 search_community_params["name"] = component_name
-            if self.ns:
-                search_community_params["namespace"] = self.ns
             all_community_components_cnt = self.community_session.components.count(
                 **search_community_params
             )
@@ -800,7 +785,7 @@ class components_containing_component_query:
             re.escape(self.component_name) if not self.regex_name_search else self.component_name
         )
 
-        cond = {}
+        cond = {"limit": ITEM_BATCH}
         if not self.strict_name_search:
             cond["re_name"] = component_name
         else:
