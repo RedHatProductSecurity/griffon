@@ -2,6 +2,7 @@
     Gather up all of the messy 'presentation' logic into one place
 
 """
+
 import enum
 import json
 import logging
@@ -426,6 +427,30 @@ def highlight_search_term(search_pattern, text_value):
     return re.sub(search_pattern, "[b]\\g<0>[/b]", text_value)
 
 
+def rhel_br_deduplicate(result_tree: dict) -> dict:
+    """
+    if component exists for both rhel-X and rhel-br-X
+    product version and product stream keep only the rhel-X record
+
+    """
+    filtered_result_tree = result_tree
+    for pv in list(result_tree.keys()):
+        if pv.startswith("rhel-br"):
+            for ps in list(result_tree[pv].keys()):
+                for cn in list(result_tree[pv][ps].keys()):
+                    if cn in result_tree.get(pv.replace("rhel-br", "rhel"), {}).get(
+                        ps.replace("rhel-br", "rhel"), {}
+                    ):
+                        filtered_result_tree[pv][ps].pop(cn)
+
+                if not filtered_result_tree[pv][ps]:
+                    filtered_result_tree[pv].pop(ps)
+
+            if not filtered_result_tree[pv]:
+                filtered_result_tree.pop(pv)
+    return filtered_result_tree
+
+
 def text_output_products_contain_component(
     ctx,
     output,
@@ -459,6 +484,10 @@ def text_output_products_contain_component(
             ctx.params["include_product_stream_excluded_components"],
         )
         result_tree = generate_result_tree(normalised_results)
+
+        # perform deduplication
+        if ctx.params["deduplicate"]:
+            result_tree = rhel_br_deduplicate(result_tree)
 
         # TODO - MAVEN component type will require special handling
         if ctx.params["affect_mode"]:
