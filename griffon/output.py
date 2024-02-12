@@ -510,7 +510,7 @@ def text_output_products_contain_component(
             if ctx.obj["VERBOSE"] == 0:  # product_version X root component nvr
                 for pv in result_tree.keys():
                     used_component_names = set()  # store used component names for deduplication
-                    for ps in result_tree[pv].keys():
+                    for ps in sorted(result_tree[pv].keys(), key=natural_sort_key):
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
                             nvr = sorted(
@@ -602,7 +602,7 @@ def text_output_products_contain_component(
                 ctx.obj["VERBOSE"] == 1
             ):  # product_stream X root component nvr (type) x child components [nvr (type)]
                 for pv in result_tree.keys():
-                    for ps in result_tree[pv].keys():
+                    for ps in sorted(result_tree[pv].keys(), key=natural_sort_key):
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
                             nvr = sorted(
@@ -728,7 +728,7 @@ def text_output_products_contain_component(
                 ctx.obj["VERBOSE"] == 2
             ):  # product_stream X root component nvr (type:arch) x child components [name {versions} (type:{arches})] x related_url x build_source_url # noqa
                 for pv in result_tree.keys():
-                    for ps in result_tree[pv].keys():
+                    for ps in sorted(result_tree[pv].keys(), key=natural_sort_key):
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
                             nvr = sorted(
@@ -883,7 +883,7 @@ def text_output_products_contain_component(
                 ctx.obj["VERBOSE"] == 3 or middleware_cli_purl_verbose_level
             ):  # product_stream X root component nvr (type:arch) x child components [ nvr (type:arch)] x related_url x build_source_url # noqa
                 for pv in result_tree.keys():
-                    for ps in result_tree[pv].keys():
+                    for ps in sorted(result_tree[pv].keys(), key=natural_sort_key):
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
                             nvr = sorted(
@@ -1000,7 +1000,7 @@ def text_output_products_contain_component(
                 ctx.obj["VERBOSE"] > 3 and not middleware_cli_purl_verbose_level
             ):  # product_stream X root component purl x child components [ purl ] x related_url x build_source_url # noqa
                 for pv in result_tree.keys():
-                    for ps in result_tree[pv].keys():
+                    for ps in sorted(result_tree[pv].keys(), key=natural_sort_key):
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
                             nvr = sorted(
