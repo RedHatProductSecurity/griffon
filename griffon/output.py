@@ -433,7 +433,6 @@ def rhel_br_deduplicate(result_tree: dict) -> dict:
     """
     if component exists for both rhel-X and rhel-br-X
     product version and product stream keep only the rhel-X record
-
     """
     filtered_result_tree = result_tree
     for pv in list(result_tree.keys()):
@@ -510,6 +509,7 @@ def text_output_products_contain_component(
         else:
             if ctx.obj["VERBOSE"] == 0:  # product_version X root component nvr
                 for pv in result_tree.keys():
+                    used_component_names = set()  # store used component names for deduplication
                     for ps in result_tree[pv].keys():
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
@@ -533,7 +533,7 @@ def text_output_products_contain_component(
                             dep = f"[{root_component_color}]{dep_name}[/{root_component_color}]"  # noqa
                             if result_tree[pv][ps][cn][nvr]["upstreams"]:
                                 upstream_component_names = sorted(
-                                    list(
+                                    set(
                                         [
                                             f"{upstream['name']}"
                                             for upstream in result_tree[pv][ps][cn][nvr][
@@ -542,6 +542,15 @@ def text_output_products_contain_component(
                                         ]
                                     )
                                 )
+
+                                # deduplicate upstream component names
+                                upstream_component_names = sorted(
+                                    set(upstream_component_names) - used_component_names
+                                )
+                                used_component_names = used_component_names.union(
+                                    set(upstream_component_names)
+                                )
+
                                 for upstream_component_name in upstream_component_names:
                                     console.print(
                                         Text(pv, style=f"{product_color} b"),
@@ -561,15 +570,28 @@ def text_output_products_contain_component(
                                         )
                                     )
                                 )
+
+                                # deduplicate source component names
+                                source_component_names = sorted(
+                                    set(source_component_names) - used_component_names
+                                )
+                                used_component_names = used_component_names.union(
+                                    set(source_component_names)
+                                )
+
                                 for source_component_name in source_component_names:
                                     console.print(
                                         Text(pv, style=f"{product_color} b"),
                                         f"[pale_turquoise1]{source_component_name}[/pale_turquoise1]",  # noqa
                                         no_wrap=no_wrap,
                                     )
-                            if not (result_tree[pv][ps][cn][nvr]["upstreams"]) and not (
-                                result_tree[pv][ps][cn][nvr]["sources"]
+                            if (
+                                not (result_tree[pv][ps][cn][nvr]["upstreams"])
+                                and not (result_tree[pv][ps][cn][nvr]["sources"])
+                                and dep_name
+                                not in used_component_names  # deduplicate single component name
                             ):
+                                used_component_names.add(dep_name)
                                 console.print(
                                     Text(pv, style=f"{product_color} b"),
                                     dep,
