@@ -407,22 +407,6 @@ def progress_bar(is_updatable=False, initial_status=None):
     return decorator
 
 
-def progress_bar2(
-    func=None,
-):
-    """progress bar decorator"""
-    if not func:
-        return partial(progress_bar)
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        obj: dict = args[0].obj
-        with console_status(obj.get("NO_PROGRESS_BAR")) as operation_status:
-            func(*args, operation_status=operation_status, **kwargs)
-
-    return wrapper
-
-
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
