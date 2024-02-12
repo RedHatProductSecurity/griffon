@@ -853,7 +853,7 @@ def text_output_products_contain_component(
             # delete once we stop using middleware CLI completely
             middleware_cli_purl_verbose_level = (
                 ctx.obj["VERBOSE"] > 3
-                and ctx.obj["MIDDLEWARE_CLI"]
+                and ctx.obj.get("MIDDLEWARE_CLI")
                 and not ctx.params["no_middleware"]
             )
 
