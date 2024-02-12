@@ -5,8 +5,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+* added --deduplicate/--no-deduplicate (enabled by default) flag on products-contain-component
+  which performs additional deduplications (all deduplication steps are listed in the --help)
+* added rhel-br/rhel deduplication (GRIF-150)
+
 ### Changed
 * change verbosity level 0 to return component name on service products-contain-component
+* verbosity level 0 (without -v option) now deduplicates multiple same components
+  per product version
+
+### Fixed
+* fixed picking the latest NVR with natural sort instead of normal sort
+* fixed listing product streams sorted naturally
+* fixed error when using -vvvv (verbosity level 4) without
+  GRIFFON_MIDDLEWARE_CLI set
 
 ## [0.5.5] - 2024-02-02
 ### Changed
