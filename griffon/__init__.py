@@ -20,7 +20,7 @@ from griffon.output import console
 
 from .exceptions import GriffonException
 
-__version__ = "0.5.5"
+__version__ = "0.6.0"
 
 CORGI_SERVER_URL = os.getenv("CORGI_SERVER_URL")
 OSIDB_SERVER_URL = os.getenv("OSIDB_SERVER_URL")
