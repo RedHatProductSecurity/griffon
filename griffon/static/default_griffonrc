@@ -17,12 +17,13 @@ exclude_components = -container-source
     -common-debuginfo
     -doc
     -devel
-    -javadoc 
-    -testlib 
+    -javadoc
+    -testlib
     -repolib
 include_container_roots = False
 exclude_unreleased = False
 filter_rh_naming = True
+deduplicate = True
 
 # profile sections (use with --profile {profile} flag)
 [cloud]

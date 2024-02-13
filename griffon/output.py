@@ -2,6 +2,7 @@
     Gather up all of the messy 'presentation' logic into one place
 
 """
+
 import enum
 import json
 import logging
@@ -15,6 +16,8 @@ from packageurl import PackageURL
 from rich.console import Console
 from rich.text import Text
 from rich.tree import Tree
+
+from .helpers import natural_sort_key
 
 console = Console(color_system="auto")
 
@@ -426,6 +429,29 @@ def highlight_search_term(search_pattern, text_value):
     return re.sub(search_pattern, "[b]\\g<0>[/b]", text_value)
 
 
+def rhel_br_deduplicate(result_tree: dict) -> dict:
+    """
+    if component exists for both rhel-X and rhel-br-X
+    product version and product stream keep only the rhel-X record
+    """
+    filtered_result_tree = result_tree
+    for pv in list(result_tree.keys()):
+        if pv.startswith("rhel-br"):
+            for ps in list(result_tree[pv].keys()):
+                for cn in list(result_tree[pv][ps].keys()):
+                    if cn in result_tree.get(pv.replace("rhel-br", "rhel"), {}).get(
+                        ps.replace("rhel-br", "rhel"), {}
+                    ):
+                        filtered_result_tree[pv][ps].pop(cn)
+
+                if not filtered_result_tree[pv][ps]:
+                    filtered_result_tree[pv].pop(ps)
+
+            if not filtered_result_tree[pv]:
+                filtered_result_tree.pop(pv)
+    return filtered_result_tree
+
+
 def text_output_products_contain_component(
     ctx,
     output,
@@ -460,6 +486,10 @@ def text_output_products_contain_component(
         )
         result_tree = generate_result_tree(normalised_results)
 
+        # perform deduplication
+        if ctx.params["deduplicate"]:
+            result_tree = rhel_br_deduplicate(result_tree)
+
         # TODO - MAVEN component type will require special handling
         if ctx.params["affect_mode"]:
             console.no_color = True
@@ -479,10 +509,13 @@ def text_output_products_contain_component(
         else:
             if ctx.obj["VERBOSE"] == 0:  # product_version X root component nvr
                 for pv in result_tree.keys():
-                    for ps in result_tree[pv].keys():
+                    used_component_names = set()  # store used component names for deduplication
+                    for ps in sorted(result_tree[pv].keys(), key=natural_sort_key):
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
-                            nvr = list(result_tree[pv][ps][cn].keys())[-1]
+                            nvr = sorted(
+                                list(result_tree[pv][ps][cn].keys()), key=natural_sort_key
+                            )[-1]
                             product_color = process_product_color(
                                 result_tree[pv][ps][cn][nvr]["product_stream_relations"],
                                 result_tree[pv][ps][cn][nvr]["build_type"],
@@ -500,7 +533,7 @@ def text_output_products_contain_component(
                             dep = f"[{root_component_color}]{dep_name}[/{root_component_color}]"  # noqa
                             if result_tree[pv][ps][cn][nvr]["upstreams"]:
                                 upstream_component_names = sorted(
-                                    list(
+                                    set(
                                         [
                                             f"{upstream['name']}"
                                             for upstream in result_tree[pv][ps][cn][nvr][
@@ -509,6 +542,15 @@ def text_output_products_contain_component(
                                         ]
                                     )
                                 )
+
+                                # deduplicate upstream component names
+                                upstream_component_names = sorted(
+                                    set(upstream_component_names) - used_component_names
+                                )
+                                used_component_names = used_component_names.union(
+                                    set(upstream_component_names)
+                                )
+
                                 for upstream_component_name in upstream_component_names:
                                     console.print(
                                         Text(pv, style=f"{product_color} b"),
@@ -528,15 +570,28 @@ def text_output_products_contain_component(
                                         )
                                     )
                                 )
+
+                                # deduplicate source component names
+                                source_component_names = sorted(
+                                    set(source_component_names) - used_component_names
+                                )
+                                used_component_names = used_component_names.union(
+                                    set(source_component_names)
+                                )
+
                                 for source_component_name in source_component_names:
                                     console.print(
                                         Text(pv, style=f"{product_color} b"),
                                         f"[pale_turquoise1]{source_component_name}[/pale_turquoise1]",  # noqa
                                         no_wrap=no_wrap,
                                     )
-                            if not (result_tree[pv][ps][cn][nvr]["upstreams"]) and not (
-                                result_tree[pv][ps][cn][nvr]["sources"]
+                            if (
+                                not (result_tree[pv][ps][cn][nvr]["upstreams"])
+                                and not (result_tree[pv][ps][cn][nvr]["sources"])
+                                and dep_name
+                                not in used_component_names  # deduplicate single component name
                             ):
+                                used_component_names.add(dep_name)
                                 console.print(
                                     Text(pv, style=f"{product_color} b"),
                                     dep,
@@ -547,10 +602,12 @@ def text_output_products_contain_component(
                 ctx.obj["VERBOSE"] == 1
             ):  # product_stream X root component nvr (type) x child components [nvr (type)]
                 for pv in result_tree.keys():
-                    for ps in result_tree[pv].keys():
+                    for ps in sorted(result_tree[pv].keys(), key=natural_sort_key):
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
-                            nvr = list(result_tree[pv][ps][cn].keys())[-1]
+                            nvr = sorted(
+                                list(result_tree[pv][ps][cn].keys()), key=natural_sort_key
+                            )[-1]
                             product_color = process_product_color(
                                 result_tree[pv][ps][cn][nvr]["product_stream_relations"],
                                 result_tree[pv][ps][cn][nvr]["build_type"],
@@ -671,10 +728,12 @@ def text_output_products_contain_component(
                 ctx.obj["VERBOSE"] == 2
             ):  # product_stream X root component nvr (type:arch) x child components [name {versions} (type:{arches})] x related_url x build_source_url # noqa
                 for pv in result_tree.keys():
-                    for ps in result_tree[pv].keys():
+                    for ps in sorted(result_tree[pv].keys(), key=natural_sort_key):
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
-                            nvr = list(result_tree[pv][ps][cn].keys())[-1]
+                            nvr = sorted(
+                                list(result_tree[pv][ps][cn].keys()), key=natural_sort_key
+                            )[-1]
                             product_color = process_product_color(
                                 result_tree[pv][ps][cn][nvr]["product_stream_relations"],
                                 result_tree[pv][ps][cn][nvr]["build_type"],
@@ -816,7 +875,7 @@ def text_output_products_contain_component(
             # delete once we stop using middleware CLI completely
             middleware_cli_purl_verbose_level = (
                 ctx.obj["VERBOSE"] > 3
-                and ctx.obj["MIDDLEWARE_CLI"]
+                and ctx.obj.get("MIDDLEWARE_CLI")
                 and not ctx.params["no_middleware"]
             )
 
@@ -824,10 +883,12 @@ def text_output_products_contain_component(
                 ctx.obj["VERBOSE"] == 3 or middleware_cli_purl_verbose_level
             ):  # product_stream X root component nvr (type:arch) x child components [ nvr (type:arch)] x related_url x build_source_url # noqa
                 for pv in result_tree.keys():
-                    for ps in result_tree[pv].keys():
+                    for ps in sorted(result_tree[pv].keys(), key=natural_sort_key):
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
-                            nvr = list(result_tree[pv][ps][cn].keys())[-1]
+                            nvr = sorted(
+                                list(result_tree[pv][ps][cn].keys()), key=natural_sort_key
+                            )[-1]
                             product_color = process_product_color(
                                 result_tree[pv][ps][cn][nvr]["product_stream_relations"],
                                 result_tree[pv][ps][cn][nvr]["build_type"],
@@ -939,10 +1000,12 @@ def text_output_products_contain_component(
                 ctx.obj["VERBOSE"] > 3 and not middleware_cli_purl_verbose_level
             ):  # product_stream X root component purl x child components [ purl ] x related_url x build_source_url # noqa
                 for pv in result_tree.keys():
-                    for ps in result_tree[pv].keys():
+                    for ps in sorted(result_tree[pv].keys(), key=natural_sort_key):
                         for cn in sorted(result_tree[pv][ps].keys()):
                             # select the latest nvr (from sorted list)
-                            nvr = list(result_tree[pv][ps][cn].keys())[-1]
+                            nvr = sorted(
+                                list(result_tree[pv][ps][cn].keys()), key=natural_sort_key
+                            )[-1]
                             product_color = process_product_color(
                                 result_tree[pv][ps][cn][nvr]["product_stream_relations"],
                                 result_tree[pv][ps][cn][nvr]["build_type"],

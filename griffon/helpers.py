@@ -1,7 +1,9 @@
 """
 Helpers for direct usage or debbuging
 """
+
 import json
+import re
 from enum import Enum
 from typing import Callable, Optional, Type, Union
 
@@ -106,3 +108,9 @@ class Style(Enum):
 
     def __str__(self):
         return str(self.value)
+
+
+def natural_sort_key(string):
+    """Key for builtin sorted function to perform natural sort"""
+    split_by_digit = re.split("([0-9]+)", string)
+    return [int(part) if part.isdigit() else part.lower() for part in split_by_digit]

@@ -5,6 +5,7 @@
     these operations beyond cli
 
 """
+
 import copy
 import logging
 import re
@@ -363,6 +364,15 @@ def retrieve_component_summary(ctx, component_name, strict_name_search):
     default=get_config_option("default", "exclude_unreleased", False),
     help="Exclude unreleased components.",
 )
+@click.option(
+    "--deduplicate/--no-deduplicate",
+    "deduplicate",
+    default=get_config_option("default", "deduplicate", True),
+    help=(
+        "Deduplicate / do not deduplicate results "
+        "based on following rules: rhel/rhel-br redundancy"
+    ),
+)
 @click.pass_context
 @progress_bar(is_updatable=True)
 def get_product_contain_component(
@@ -396,6 +406,7 @@ def get_product_contain_component(
     regex_name_search,
     include_container_roots,
     exclude_unreleased,
+    deduplicate,
 ):
     # with console_status(ctx) as operation_status:
     """List products of a latest component."""
@@ -419,6 +430,7 @@ def get_product_contain_component(
     params.pop("sfm2_flaw_id")
     params.pop("flaw_mode")
     params.pop("affect_mode")
+    params.pop("deduplicate")
     if component_name:
         q = query_service.invoke(
             core_queries.products_containing_component_query, params, status=operation_status
