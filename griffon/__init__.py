@@ -2,6 +2,7 @@
     griffon cli
 
 """
+
 import configparser
 import logging
 import os
@@ -15,25 +16,23 @@ from osidb_bindings.bindings.python_client.models import Affect, Flaw, Tracker
 from pkg_resources import resource_filename
 from rich.logging import RichHandler
 
-from griffon.helpers import Color, Style
 from griffon.output import console
+
+from .exceptions import GriffonException
 
 __version__ = "0.5.5"
 
-# TODO: Deprecate CORGI_API_URL completely in the next version or two
-CORGI_SERVER_URL = os.getenv("CORGI_SERVER_URL", os.getenv("CORGI_API_URL"))
-# TODO: Deprecate OSIDB_API_URL completely in the next version or two
-OSIDB_SERVER_URL = os.getenv("OSIDB_SERVER_URL", os.getenv("OSIDB_API_URL"))
+CORGI_SERVER_URL = os.getenv("CORGI_SERVER_URL")
+OSIDB_SERVER_URL = os.getenv("OSIDB_SERVER_URL")
 
 OSIDB_USERNAME = os.getenv("OSIDB_USERNAME", "")
 OSIDB_PASSWORD = os.getenv("OSIDB_PASSWORD", "")
 OSIDB_AUTH_METHOD = os.getenv("OSIDB_AUTH_METHOD", "kerberos")
 
-# TODO: Deprecate COMMUNITY_COMPONENTS_API_URL completely in the next version or two
 # required to enable --search-community
 COMMUNITY_COMPONENTS_SERVER_URL = os.getenv(
     "COMMUNITY_COMPONENTS_SERVER_URL",
-    os.getenv("COMMUNITY_COMPONENTS_API_URL", "https://component-registry.fedoraproject.org"),
+    "https://component-registry.fedoraproject.org",
 )
 
 # TODO: temporary hack required to enable searching of middleware
@@ -52,42 +51,11 @@ RELATED_MODELS_MAPPING = {Flaw: {"affects": Affect}, Affect: {"trackers": Tracke
 def check_envvars():
     """Check that all necessary envvars are set"""
 
-    # TODO: Deprecate CORGI_API_URL completely in the next version or two
-    if "CORGI_API_URL" in os.environ:
-        print(
-            (
-                f"{Style.BOLD}{Color.YELLOW}WARNING: CORGI_API_URL will be deprecated "
-                "in the next version of Griffon in favour of CORGI_SERVER_URL, please "
-                f"switch to the new environment variable.{Style.RESET}"
-            )
-        )
-    if "CORGI_SERVER_URL" not in os.environ and "CORGI_API_URL" not in os.environ:
-        print("Must set CORGI_SERVER_URL environment variable.")
-        exit(1)
+    mandatory_envvars = ("CORGI_SERVER_URL", "OSIDB_SERVER_URL")
 
-    # TODO: Deprecate COMMUNITY_COMPONENTS_API_URL completely in the next version or two
-    if "COMMUNITY_COMPONENTS_API_URL" in os.environ:
-        print(
-            (
-                f"{Style.BOLD}{Color.YELLOW}WARNING: COMMUNITY_COMPONENTS_API_URL "
-                "will be deprecated in the next version of Griffon in favour of "
-                "COMMUNITY_COMPONENTS_SERVER_URL, please switch to the new environment "
-                f"variable.{Style.RESET}"
-            )
-        )
-
-    # TODO: Deprecate OSIDB_API_URL completely in the next version or two
-    if "OSIDB_API_URL" in os.environ:
-        print(
-            (
-                f"{Style.BOLD}{Color.YELLOW}WARNING: OSIDB_API_URL will be deprecated "
-                "in the next version of Griffon in favour of OSIDB_SERVER_URL, please "
-                f"switch to the new environment variable.{Style.RESET}"
-            )
-        )
-    if "OSIDB_SERVER_URL" not in os.environ and "OSIDB_API_URL" not in os.environ:
-        print("Must set OSIDB_SERVER_URL environment variable.")
-        exit(1)
+    for envvar in mandatory_envvars:
+        if envvar not in os.environ:
+            raise GriffonException(f"Must set {envvar} environment variable.")
 
 
 def config_logging(level="INFO"):
@@ -437,22 +405,6 @@ def progress_bar(is_updatable=False, initial_status=None):
         return wrapper
 
     return decorator
-
-
-def progress_bar2(
-    func=None,
-):
-    """progress bar decorator"""
-    if not func:
-        return partial(progress_bar)
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        obj: dict = args[0].obj
-        with console_status(obj.get("NO_PROGRESS_BAR")) as operation_status:
-            func(*args, operation_status=operation_status, **kwargs)
-
-    return wrapper
 
 
 def print_version(ctx, param, value):

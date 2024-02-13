@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * fixed error when using -vvvv (verbosity level 4) without
   GRIFFON_MIDDLEWARE_CLI set
 
+### Removed
+* deprecated OSIDB_API_URL environmental variable
+* deprecated CORGI_API_URL environmental variable
+* deprecated COMMUNITY_COMPONENTS_API_URL environmental variable
+
 ## [0.5.5] - 2024-02-02
 ### Changed
 * if default --search_provides finds no children then revert to --search-latest
